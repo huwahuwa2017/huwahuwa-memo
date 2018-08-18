@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class PrimitiveMesh
@@ -39,18 +37,5 @@ public class PrimitiveMesh
         }
 
         return UnityEngine.Object.Instantiate(AllPrimitiveMesh[(int)PT]);
-    }
-
-    static public Mesh Create(PrimitiveType PT, Vector3 Scale)
-    {
-        Mesh mesh = Create(PT);
-
-        mesh.SetVertices(new List<Vector3>(mesh.vertices.Select(V => Vector3.Scale(V, Scale))));
-
-        mesh.RecalculateBounds();
-        mesh.RecalculateNormals();
-        mesh.RecalculateTangents();
-
-        return mesh;
     }
 }
