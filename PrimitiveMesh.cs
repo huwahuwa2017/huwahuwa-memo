@@ -1,17 +1,17 @@
 using System;
 using UnityEngine;
 
-public class PrimitiveMesh
+namespace TestMod
 {
-    private static Mesh[] AllPrimitiveMesh = new Mesh[Enum.GetValues(typeof(PrimitiveType)).Length];
-
-    public static Mesh Create(PrimitiveType PT)
+    public class PrimitiveMesh
     {
-        if (AllPrimitiveMesh[(int)PT] == null)
-        {
-            AllPrimitiveMesh[(int)PT] = Resources.GetBuiltinResource<Mesh>(PT.ToString() + ".fbx");
-        }
+        private static Mesh[] AllPrimitiveMesh = new Mesh[Enum.GetValues(typeof(PrimitiveType)).Length];
 
-        return UnityEngine.Object.Instantiate(AllPrimitiveMesh[(int)PT]);
+        public static Mesh Create(PrimitiveType PT)
+        {
+            int Index = (int)PT;
+            AllPrimitiveMesh[Index] = AllPrimitiveMesh[Index] ?? Resources.GetBuiltinResource<Mesh>(PT.ToString() + ".fbx");
+            return AllPrimitiveMesh[Index];
+        }
     }
 }
