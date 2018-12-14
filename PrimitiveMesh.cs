@@ -7,11 +7,8 @@ public class PrimitiveMesh
 
     public static Mesh Create(PrimitiveType PT)
     {
-        if (AllPrimitiveMesh[(int)PT] == null)
-        {
-            AllPrimitiveMesh[(int)PT] = Resources.GetBuiltinResource<Mesh>(PT.ToString() + ".fbx");
-        }
-
-        return UnityEngine.Object.Instantiate(AllPrimitiveMesh[(int)PT]);
+        int Index = (int)PT;
+        AllPrimitiveMesh[Index] = AllPrimitiveMesh[Index] ?? Resources.GetBuiltinResource<Mesh>(PT.ToString() + ".fbx");
+        return AllPrimitiveMesh[Index];
     }
 }
