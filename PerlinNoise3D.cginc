@@ -16,19 +16,19 @@ float Grad(uint hash, float3 v)
 {
 	switch (hash % 12)
 	{
-	case 0: return v.x + v.y;
-	case 1: return v.y + v.z;
-	case 2: return v.z + v.x;
-	case 3: return v.x - v.y;
-	case 4: return v.y - v.z;
-	case 5: return v.z - v.x;
-	case 6: return -v.x + v.y;
-	case 7: return -v.y + v.z;
-	case 8: return -v.z + v.x;
-	case 9: return -v.x - v.y;
-	case 10: return -v.y - v.z;
-	case 11: return -v.z - v.x;
-	default: return 0;
+		case 0: return v.x + v.y;
+		case 1: return v.y + v.z;
+		case 2: return v.z + v.x;
+		case 3: return v.x - v.y;
+		case 4: return v.y - v.z;
+		case 5: return v.z - v.x;
+		case 6: return -v.x + v.y;
+		case 7: return -v.y + v.z;
+		case 8: return -v.z + v.x;
+		case 9: return -v.x - v.y;
+		case 10: return -v.y - v.z;
+		case 11: return -v.z - v.x;
+		default: return 0;
 	}
 }
 
