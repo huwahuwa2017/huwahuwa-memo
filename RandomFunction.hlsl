@@ -10,7 +10,7 @@ uint XorBitShift(uint seed)
 
 uint UIntToRandom(uint data)
 {
-    return XorBitShift(data * 1450663063) | 1;
+    return XorBitShift(data * 1450663063) + (data == 0);
 }
 
 uint UIntToRandom(uint2 data)
