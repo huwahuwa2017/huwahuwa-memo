@@ -10,34 +10,22 @@ uint XorBitShift(uint seed)
 
 uint UIntToRandom(uint data)
 {
-    return XorBitShift(data * 1450663063) + (data == 0);
+    return XorBitShift(data) * 1450663063 + (data == 0);
 }
 
 uint UIntToRandom(uint2 data)
 {
-    data.x = UIntToRandom(data.x);
-    data.y = UIntToRandom(data.y);
-    
-    return data.x * data.y;
+    return UIntToRandom(UIntToRandom(data.x) + data.y);
 }
 
 uint UIntToRandom(uint3 data)
 {
-    data.x = UIntToRandom(data.x);
-    data.y = UIntToRandom(data.y);
-    data.z = UIntToRandom(data.z);
-    
-    return data.x * data.y * data.z;
+    return UIntToRandom(UIntToRandom(UIntToRandom(data.x) + data.y) + data.z);
 }
 
 uint UIntToRandom(uint4 data)
 {
-    data.x = UIntToRandom(data.x);
-    data.y = UIntToRandom(data.y);
-    data.z = UIntToRandom(data.z);
-    data.w = UIntToRandom(data.w);
-    
-    return data.x * data.y * data.z * data.w;
+    return UIntToRandom(UIntToRandom(UIntToRandom(UIntToRandom(data.x) + data.y) + data.z) + data.w);
 }
 
 
