@@ -97,7 +97,7 @@ float BasicPerlinNoise(float4 position)
 	return lerp(tempZ[0], tempZ[1], sw);
 }
 
-float PerlinNoise4D(float4 position, float scale = 1, int detail = 1)
+float PerlinNoise(float4 position, float scale = 1, int detail = 1)
 {
 	float noise = 0.0;
 	float maxValue = 0.0;
@@ -113,17 +113,17 @@ float PerlinNoise4D(float4 position, float scale = 1, int detail = 1)
 	return noise / maxValue;
 }
 
-float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
+float PerlinNoise(float3 position, float scale = 1, int detail = 1)
 {
-	return PerlinNoise4D(float4(position, 0.5), scale, detail);
+	return PerlinNoise(float4(position, 0.5), scale, detail);
 }
 
-float PerlinNoise2D(float2 position, float scale = 1, int detail = 1)
+float PerlinNoise(float2 position, float scale = 1, int detail = 1)
 {
-	return PerlinNoise4D(float4(position, 0.5, 0.5), scale, detail);
+	return PerlinNoise(float4(position, 0.5, 0.5), scale, detail);
 }
 
-float PerlinNoise1D(float position, float scale = 1, int detail = 1)
+float PerlinNoise(float position, float scale = 1, int detail = 1)
 {
-	return PerlinNoise4D(float4(position, 0.5, 0.5, 0.5), scale, detail);
+	return PerlinNoise(float4(position, 0.5, 0.5, 0.5), scale, detail);
 }
