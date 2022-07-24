@@ -82,7 +82,7 @@ float Grad4D(uint hash, float4 v)
 	return dot(v, nf);
 }
 
-float BasicPerlinNoise1D(float position)
+float BasicPerlinNoise(float position)
 {
 	int positionInt = floor(position);
 	position -= positionInt;
@@ -99,7 +99,7 @@ float BasicPerlinNoise1D(float position)
 	return lerp(temp[0], temp[1], sx);
 }
 
-float BasicPerlinNoise2D(float2 position)
+float BasicPerlinNoise(float2 position)
 {
 	int2 positionInt = floor(position);
 	position -= positionInt;
@@ -123,7 +123,7 @@ float BasicPerlinNoise2D(float2 position)
 	return lerp(tempX[0], tempX[1], sy);
 }
 
-float BasicPerlinNoise3D(float3 position)
+float BasicPerlinNoise(float3 position)
 {
 	int3 positionInt = floor(position);
 	position -= positionInt;
@@ -156,7 +156,7 @@ float BasicPerlinNoise3D(float3 position)
 	return lerp(tempY[0], tempY[1], sz);
 }
 
-float BasicPerlinNoise4D(float4 position)
+float BasicPerlinNoise(float4 position)
 {
 	int4 positionInt = floor(position);
 	position -= positionInt;
@@ -202,7 +202,7 @@ float BasicPerlinNoise4D(float4 position)
 	return lerp(tempZ[0], tempZ[1], sw);
 }
 
-float PerlinNoise1D(float position, float scale = 1, int detail = 1)
+float PerlinNoise(float position, float scale = 1, int detail = 1)
 {
 	float noise = 0.0;
 	float maxValue = 0.0;
@@ -210,24 +210,7 @@ float PerlinNoise1D(float position, float scale = 1, int detail = 1)
 
 	for (int count = 0; count < detail; ++count)
 	{
-		noise += BasicPerlinNoise1D(position / scale * shrink) / shrink;
-		maxValue += 1.0 / shrink;
-		shrink *= 2;
-	}
-
-	return noise / maxValue;
-
-}
-
-float PerlinNoise2D(float2 position, float scale = 1, int detail = 1)
-{
-	float noise = 0.0;
-	float maxValue = 0.0;
-	int shrink = 1;
-
-	for (int count = 0; count < detail; ++count)
-	{
-		noise += BasicPerlinNoise2D(position / scale * shrink) / shrink;
+		noise += BasicPerlinNoise(position / scale * shrink) / shrink;
 		maxValue += 1.0 / shrink;
 		shrink *= 2;
 	}
@@ -235,7 +218,7 @@ float PerlinNoise2D(float2 position, float scale = 1, int detail = 1)
 	return noise / maxValue;
 }
 
-float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
+float PerlinNoise(float2 position, float scale = 1, int detail = 1)
 {
 	float noise = 0.0;
 	float maxValue = 0.0;
@@ -243,7 +226,7 @@ float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
 
 	for (int count = 0; count < detail; ++count)
 	{
-		noise += BasicPerlinNoise3D(position / scale * shrink) / shrink;
+		noise += BasicPerlinNoise(position / scale * shrink) / shrink;
 		maxValue += 1.0 / shrink;
 		shrink *= 2;
 	}
@@ -251,7 +234,7 @@ float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
 	return noise / maxValue;
 }
 
-float PerlinNoise4D(float4 position, float scale = 1, int detail = 1)
+float PerlinNoise(float3 position, float scale = 1, int detail = 1)
 {
 	float noise = 0.0;
 	float maxValue = 0.0;
@@ -259,7 +242,23 @@ float PerlinNoise4D(float4 position, float scale = 1, int detail = 1)
 
 	for (int count = 0; count < detail; ++count)
 	{
-		noise += BasicPerlinNoise4D(position / scale * shrink) / shrink;
+		noise += BasicPerlinNoise(position / scale * shrink) / shrink;
+		maxValue += 1.0 / shrink;
+		shrink *= 2;
+	}
+
+	return noise / maxValue;
+}
+
+float PerlinNoise(float4 position, float scale = 1, int detail = 1)
+{
+	float noise = 0.0;
+	float maxValue = 0.0;
+	int shrink = 1;
+
+	for (int count = 0; count < detail; ++count)
+	{
+		noise += BasicPerlinNoise(position / scale * shrink) / shrink;
 		maxValue += 1.0 / shrink;
 		shrink *= 2;
 	}
