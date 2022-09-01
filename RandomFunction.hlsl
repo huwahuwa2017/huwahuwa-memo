@@ -2,7 +2,7 @@ uint XorBitShift(uint seed)
 {
     seed ^= (seed << 13);
     seed ^= (seed >> 17);
-    seed ^= (seed << 5);
+    seed ^= (seed << 15);
     return seed;
 }
 
