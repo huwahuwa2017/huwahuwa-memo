@@ -46,8 +46,8 @@ float3x3 RotationComponentExtraction(float4x4 targetMatrix)
 
 float3x3 LookRotation(float3 fv, float3 uv)
 {
-    float3 rv = normalize(cross(uv, fv));
     fv = normalize(fv);
+    float3 rv = normalize(cross(uv, fv));
     uv = cross(fv, rv);
 
     return float3x3
@@ -197,8 +197,8 @@ FragmentData Vert(VertexData data)
         newResult = v0 + (v1 - v0) * (time * 3.0) + (v2 + v0 - v1 * 2.0) * (time * time * 3.0) + (v3 - v0 + (v1 - v2) * 3.0) * (time * time * time);
 
         fv = newResult - preResult;
-        float3 rv = cross(uv, fv);
-        uv = normalize(cross(fv, rv));
+        uv = cross(fv, cross(uv, fv));
+        uv /= abs(uv.x) + abs(uv.y) + abs(uv.z);
 
         preCurveDistance = curveDistance;
         curveDistance += length(fv);
