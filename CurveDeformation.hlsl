@@ -187,14 +187,16 @@ FragmentData Vert(VertexData data)
     float3 uv = float3(0.0, 1.0, 0.0);
     float curveDistance = 0.0;
     float preCurveDistance = 0.0;
+    float curveT = 0.0;
+    float curveDT = 1.0 / (float) _Division;
     float lpz = vertex_LPLRWS.z;
 
     for (int count = 1; count <= _Division; ++count)
     {
-        float time = (float) count / (float) _Division;
+        curveT += curveDT;
 
         preResult = newResult;
-        newResult = v0 + (v1 - v0) * (time * 3.0) + (v2 + v0 - v1 * 2.0) * (time * time * 3.0) + (v3 - v0 + (v1 - v2) * 3.0) * (time * time * time);
+        newResult = v0 + (v1 - v0) * (curveT * 3.0) + (v2 + v0 - v1 * 2.0) * (curveT * curveT * 3.0) + (v3 - v0 + (v1 - v2) * 3.0) * (curveT * curveT * curveT);
 
         fv = newResult - preResult;
         uv = cross(fv, cross(uv, fv));
