@@ -1,4 +1,4 @@
-//Ver3 2022”N10ŒŽ11“ú 7Žž15•ª
+//Ver3 2022å¹´10æœˆ11æ—¥ 7æ™‚15åˆ†
 
 #ifndef HT_VERTEX_LIGHTING_INCLUDED
 #define HT_VERTEX_LIGHTING_INCLUDED
