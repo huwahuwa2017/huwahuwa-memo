@@ -1,3 +1,5 @@
+//Ver1 2022/10/22 19:02
+
 #include "HuwaVertexLighting.hlsl"
 #include "HuwaRandomFunction.hlsl"
 
@@ -48,12 +50,12 @@ static float _FurAbsorptionTemp = (_FurAbsorption + 1.0) * 0.5;
 static float _MaxFurPerPolygonReciprocal = 1.0 / _MaxFurPerPolygon;
 static float _ThreeReciprocal = 1.0 / 3.0;
 
-VertexData VertexStage(VertexData data, uint id : SV_VertexID)
+VertexData VertexStage(VertexData input, uint id : SV_VertexID)
 {
-    half3 lightColor = HT_ShadeVertexLightsFull(data.pos.xyz, data.normal, _AmbientColorAdjustment, 0.5);
-    data.lightColor = lerp(lightColor, half3(1.0, 1.0, 1.0), _ColorIntensity);
-    data.id = id;
-    return data;
+    half3 lightColor = HT_ShadeVertexLightsFull(input.pos.xyz, input.normal, _AmbientColorAdjustment, 0.5);
+    input.lightColor = lerp(lightColor, half3(1.0, 1.0, 1.0), _ColorIntensity);
+    input.id = id;
+    return input;
 }
 
 [domain("tri")]
@@ -212,8 +214,8 @@ void GeometryStage(triangle VertexData input[3], inout TriangleStream<FragmentDa
     }
 }
 
-half4 FragmentStage(FragmentData data) : SV_Target
+half4 FragmentStage(FragmentData input) : SV_Target
 {
-    half3 col = tex2D(_MainTex, data.uv).rgb * data.lightColor;
+    half3 col = tex2D(_MainTex, input.uv).rgb * input.lightColor;
     return half4(col, 1.0);
 }

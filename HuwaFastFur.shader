@@ -1,11 +1,13 @@
-﻿Shader "HuwaShader/HuwaFastFur"
+﻿//Ver1 2022/10/22 19:02
+
+Shader "HuwaShader/HuwaFastFur"
 {
 	Properties
 	{
 		[NoScaleOffset]
 		_MainTex("Main Texture", 2D) = "white" {}
 		[NoScaleOffset][Normal]
-		_FurDirectionTex("Fur Direction Texture", 2D) = "white" {}
+		_FurDirectionTex("Fur Direction Texture", 2D) = "bump" {}
 		[NoScaleOffset]
 		_FurLengthTex("Fur Length Texture", 2D) = "white" {}
 		[NoScaleOffset]
@@ -30,10 +32,10 @@
 			"LightMode" = "Vertex"
 		}
 
+		Cull Off
+
 		Pass
 		{
-			Cull Off
-
 			CGPROGRAM
 			#include "HuwaFastFur.hlsl"
 			#pragma target 5.0
