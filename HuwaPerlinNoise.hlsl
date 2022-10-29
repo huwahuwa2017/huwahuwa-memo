@@ -1,4 +1,4 @@
-//Ver2 2022/10/29 20:46
+//Ver3 2022/10/29 22:33
 
 #ifndef HUWA_PERLIN_NOISE_INCLUDED
 #define HUWA_PERLIN_NOISE_INCLUDED
@@ -8,27 +8,27 @@
 static const int4 _positionShift[] =
 {
     int4(0, 0, 0, 0),
-	int4(1, 0, 0, 0),
-	int4(0, 1, 0, 0),
-	int4(1, 1, 0, 0),
-	int4(0, 0, 1, 0),
-	int4(1, 0, 1, 0),
-	int4(0, 1, 1, 0),
-	int4(1, 1, 1, 0),
-	int4(0, 0, 0, 1),
-	int4(1, 0, 0, 1),
-	int4(0, 1, 0, 1),
-	int4(1, 1, 0, 1),
-	int4(0, 0, 1, 1),
-	int4(1, 0, 1, 1),
-	int4(0, 1, 1, 1),
-	int4(1, 1, 1, 1)
+    int4(1, 0, 0, 0),
+    int4(0, 1, 0, 0),
+    int4(1, 1, 0, 0),
+    int4(0, 0, 1, 0),
+    int4(1, 0, 1, 0),
+    int4(0, 1, 1, 0),
+    int4(1, 1, 1, 0),
+    int4(0, 0, 0, 1),
+    int4(1, 0, 0, 1),
+    int4(0, 1, 0, 1),
+    int4(1, 1, 0, 1),
+    int4(0, 0, 1, 1),
+    int4(1, 0, 1, 1),
+    int4(0, 1, 1, 1),
+    int4(1, 1, 1, 1)
 };
 
 float Smooth(float t)
 {
     return t * t * (t * -2.0 + 3.0);
-	//return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+    //return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
 float Grad1D(float pos, int posInt, int shift)
@@ -100,18 +100,18 @@ float BasicPerlinNoise(float position)
 {
     int positionInt = floor(position);
     position -= positionInt;
-	
+
     float tempX[2];
-	
+
     for (int index = 0; index < 2; ++index)
     {
         tempX[index] = Grad1D(position, positionInt, _positionShift[index].x);
     }
-	
+
     float result = 0.0;
-	
+
     DimensionLerpX(tempX, Smooth(position.x), result);
-	
+
     return result;
 }
 
@@ -119,20 +119,20 @@ float BasicPerlinNoise(float2 position)
 {
     int2 positionInt = floor(position);
     position -= positionInt;
-	
+
     float tempY[4];
     float tempX[2];
-	
+
     for (int index = 0; index < 4; ++index)
     {
         tempY[index] = Grad2D(position, positionInt, _positionShift[index].yx);
     }
-	
+
     float result = 0.0;
-	
+
     DimensionLerpY(tempY, Smooth(position.y), tempX);
     DimensionLerpX(tempX, Smooth(position.x), result);
-	
+
     return result;
 }
 
@@ -140,22 +140,22 @@ float BasicPerlinNoise(float3 position)
 {
     int3 positionInt = floor(position);
     position -= positionInt;
-	
+
     float tempZ[8];
     float tempY[4];
     float tempX[2];
-	
+
     for (int index = 0; index < 8; ++index)
     {
         tempZ[index] = Grad3D(position, positionInt, _positionShift[index].zyx);
     }
-	
+
     float result = 0.0;
-	
+
     DimensionLerpZ(tempZ, Smooth(position.z), tempY);
     DimensionLerpY(tempY, Smooth(position.y), tempX);
     DimensionLerpX(tempX, Smooth(position.x), result);
-	
+
     return result;
 }
 
@@ -163,24 +163,24 @@ float BasicPerlinNoise(float4 position)
 {
     int4 positionInt = floor(position);
     position -= positionInt;
-	
+
     float tempW[16];
     float tempZ[8];
     float tempY[4];
     float tempX[2];
-	
+
     for (int index = 0; index < 16; ++index)
     {
         tempW[index] = Grad4D(position, positionInt, _positionShift[index].wzyx);
     }
-	
+
     float result = 0.0;
-	
+
     DimensionLerpW(tempW, Smooth(position.w), tempZ);
     DimensionLerpZ(tempZ, Smooth(position.z), tempY);
     DimensionLerpY(tempY, Smooth(position.y), tempX);
     DimensionLerpX(tempX, Smooth(position.x), result);
-	
+
     return result;
 }
 
@@ -189,7 +189,7 @@ float PerlinNoise(float position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float pos = position * scale;
-    
+
     [unroll]
     for (int count = 0; count < detail; ++count)
     {
@@ -206,7 +206,7 @@ float PerlinNoise(float2 position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float2 pos = position * scale;
-    
+
     [unroll]
     for (int count = 0; count < detail; ++count)
     {
@@ -223,7 +223,7 @@ float PerlinNoise(float3 position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float3 pos = position * scale;
-    
+
     [unroll]
     for (int count = 0; count < detail; ++count)
     {
@@ -240,7 +240,7 @@ float PerlinNoise(float4 position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float4 pos = position * scale;
-    
+
     [unroll]
     for (int count = 0; count < detail; ++count)
     {
