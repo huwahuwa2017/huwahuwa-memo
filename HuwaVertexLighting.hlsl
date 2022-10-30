@@ -1,4 +1,4 @@
-//Ver3 2022/10/22 11:47
+//Ver4 2022/10/31 4:45
 
 #ifndef HUWA_VERTEX_LIGHTING_INCLUDED
 #define HUWA_VERTEX_LIGHTING_INCLUDED
@@ -15,18 +15,6 @@ static float4 LightPositionRecalculation(int index)
 #endif
 }
 
-static float4 _ht_LightPosition[8] =
-{
-    LightPositionRecalculation(0),
-    LightPositionRecalculation(1),
-    LightPositionRecalculation(2),
-    LightPositionRecalculation(3),
-    LightPositionRecalculation(4),
-    LightPositionRecalculation(5),
-    LightPositionRecalculation(6),
-    LightPositionRecalculation(7)
-};
-
 static float4 SpotDirectionRecalculation(int index)
 {
 #if UNITY_SINGLE_PASS_STEREO
@@ -38,7 +26,19 @@ static float4 SpotDirectionRecalculation(int index)
 #endif
 }
 
-static float4 _ht_SpotDirection[8] =
+static const float4 _ht_LightPosition[8] =
+{
+    LightPositionRecalculation(0),
+    LightPositionRecalculation(1),
+    LightPositionRecalculation(2),
+    LightPositionRecalculation(3),
+    LightPositionRecalculation(4),
+    LightPositionRecalculation(5),
+    LightPositionRecalculation(6),
+    LightPositionRecalculation(7)
+};
+
+static const float4 _ht_SpotDirection[8] =
 {
     SpotDirectionRecalculation(0),
     SpotDirectionRecalculation(1),
