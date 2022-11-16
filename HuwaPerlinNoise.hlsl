@@ -1,4 +1,4 @@
-//Ver3 2022/10/29 22:33
+//Ver4 2022/11/17 07:04
 
 #ifndef HUWA_PERLIN_NOISE_INCLUDED
 #define HUWA_PERLIN_NOISE_INCLUDED
@@ -189,8 +189,7 @@ float PerlinNoise(float position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float pos = position * scale;
-
-    [unroll]
+    
     for (int count = 0; count < detail; ++count)
     {
         noise += BasicPerlinNoise(pos) * amplitude;
@@ -206,8 +205,7 @@ float PerlinNoise(float2 position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float2 pos = position * scale;
-
-    [unroll]
+    
     for (int count = 0; count < detail; ++count)
     {
         noise += BasicPerlinNoise(pos) * amplitude;
@@ -223,8 +221,7 @@ float PerlinNoise(float3 position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float3 pos = position * scale;
-
-    [unroll]
+    
     for (int count = 0; count < detail; ++count)
     {
         noise += BasicPerlinNoise(pos) * amplitude;
@@ -240,8 +237,7 @@ float PerlinNoise(float4 position, float scale = 1, int detail = 1)
     float noise = 0.0;
     float amplitude = 1.0;
     float4 pos = position * scale;
-
-    [unroll]
+    
     for (int count = 0; count < detail; ++count)
     {
         noise += BasicPerlinNoise(pos) * amplitude;
