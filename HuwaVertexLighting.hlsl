@@ -26,7 +26,7 @@ float4 SpotDirectionRecalculation(int index)
 #endif
 }
 
-static const float4 _ht_LightPosition[8] =
+static float4 _ht_LightPosition[8] =
 {
     LightPositionRecalculation(0),
     LightPositionRecalculation(1),
@@ -38,7 +38,7 @@ static const float4 _ht_LightPosition[8] =
     LightPositionRecalculation(7)
 };
 
-static const float4 _ht_SpotDirection[8] =
+static float4 _ht_SpotDirection[8] =
 {
     SpotDirectionRecalculation(0),
     SpotDirectionRecalculation(1),
