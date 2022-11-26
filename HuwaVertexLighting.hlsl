@@ -1,4 +1,4 @@
-//Ver5 2022/11/27 1:03
+//Ver6 2022/11/27 1:09
 
 #ifndef HUWA_VERTEX_LIGHTING_INCLUDED
 #define HUWA_VERTEX_LIGHTING_INCLUDED
@@ -52,20 +52,25 @@ static float4 _ht_SpotDirection[8] =
 
 
 
+half3 HT_AmbientColor(float worldNormalY, half3 ambientColorAdjustment)
+{
+    half3 ambientSky = lerp(unity_AmbientEquator, unity_AmbientSky, worldNormalY);
+    half3 ambientGround = lerp(unity_AmbientEquator, unity_AmbientGround, -worldNormalY);
+    half3 ambientColor = lerp(ambientSky, ambientGround, worldNormalY < 0.0);
+    return ambientColor + ambientColorAdjustment;
+}
+
 half3 HT_ShadeVertexLightsFull(float3 position, float3 normal, half3 ambientColorAdjustment = (half3) 0, float diffuseAdjustment = 0.0)
 {
-    float3 viewpos = UnityObjectToViewPos(position);
-    float3 worldN = normalize(mul((float3x3) UNITY_MATRIX_M, normal));
-    float3 viewN = normalize(mul((float3x3) UNITY_MATRIX_V, worldN));
+    float3 viewPosition = UnityObjectToViewPos(position);
+    float3 worldNormal = normalize(mul((float3x3) UNITY_MATRIX_M, normal));
+    float3 viewNormal = normalize(mul((float3x3) UNITY_MATRIX_V, worldNormal));
     
-    half3 ambientSky = lerp(unity_AmbientEquator, unity_AmbientSky, worldN.y);
-    half3 ambientGround = lerp(unity_AmbientEquator, unity_AmbientGround, -worldN.y);
-    half3 ambientColor = lerp(ambientSky, ambientGround, worldN.y < 0.0);
-    half3 lightColor = ambientColor + ambientColorAdjustment;
+    half3 lightColor = HT_AmbientColor(worldNormal.y, ambientColorAdjustment);
     
     for (int i = 0; i < 8; i++)
     {
-        float3 toLight = _ht_LightPosition[i].xyz - viewpos.xyz * _ht_LightPosition[i].w;
+        float3 toLight = _ht_LightPosition[i].xyz - viewPosition.xyz * _ht_LightPosition[i].w;
         float lengthSq = dot(toLight, toLight);
         lengthSq = max(lengthSq, 0.000001);
         toLight *= rsqrt(lengthSq);
@@ -75,7 +80,7 @@ half3 HT_ShadeVertexLightsFull(float3 position, float3 normal, half3 ambientColo
         float spotAtt = (rho - unity_LightAtten[i].x) * unity_LightAtten[i].y;
         atten *= saturate(spotAtt);
 
-        float diff = saturate(dot(viewN, toLight) + diffuseAdjustment);
+        float diff = saturate(dot(viewNormal, toLight) + diffuseAdjustment);
         lightColor += unity_LightColor[i].rgb * (diff * atten);
     }
 
