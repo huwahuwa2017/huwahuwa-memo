@@ -1,11 +1,11 @@
-//Ver4 2022/10/31 4:45
+//Ver5 2022/11/27 1:03
 
 #ifndef HUWA_VERTEX_LIGHTING_INCLUDED
 #define HUWA_VERTEX_LIGHTING_INCLUDED
 
 #include "UnityCG.cginc"
 
-static float4 LightPositionRecalculation(int index)
+float4 LightPositionRecalculation(int index)
 {
 #if UNITY_SINGLE_PASS_STEREO
     float4 temp = mul(unity_StereoMatrixInvV[0], unity_LightPosition[index]);
@@ -15,7 +15,7 @@ static float4 LightPositionRecalculation(int index)
 #endif
 }
 
-static float4 SpotDirectionRecalculation(int index)
+float4 SpotDirectionRecalculation(int index)
 {
 #if UNITY_SINGLE_PASS_STEREO
     float3 temp = mul((float3x3) unity_StereoMatrixInvV[0], unity_SpotDirection[index].xyz);
