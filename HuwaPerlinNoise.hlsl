@@ -1,4 +1,4 @@
-//Ver6 2022/11/30 07:32
+//Ver7 2022/11/30 07:50
 
 #ifndef HUWA_PERLIN_NOISE_INCLUDED
 #define HUWA_PERLIN_NOISE_INCLUDED
@@ -96,7 +96,7 @@ void Lerp4D(float input[16], float s, out float result[8])
     result[7] = lerp(input[14], input[15], s);
 }
 
-float BasicPerlinNoise1D(float position)
+float BasicPerlinNoise(float position)
 {
     int positionInt = floor(position);
     position -= positionInt;
@@ -115,7 +115,7 @@ float BasicPerlinNoise1D(float position)
     return result;
 }
 
-float BasicPerlinNoise2D(float2 position)
+float BasicPerlinNoise(float2 position)
 {
     int2 positionInt = floor(position);
     position -= positionInt;
@@ -136,7 +136,7 @@ float BasicPerlinNoise2D(float2 position)
     return result;
 }
 
-float BasicPerlinNoise3D(float3 position)
+float BasicPerlinNoise(float3 position)
 {
     int3 positionInt = floor(position);
     position -= positionInt;
@@ -159,7 +159,7 @@ float BasicPerlinNoise3D(float3 position)
     return result;
 }
 
-float BasicPerlinNoise4D(float4 position)
+float BasicPerlinNoise(float4 position)
 {
     int4 positionInt = floor(position);
     position -= positionInt;
@@ -184,7 +184,7 @@ float BasicPerlinNoise4D(float4 position)
     return result;
 }
 
-float PerlinNoise1D(float position, float scale = 1, int detail = 1)
+float PerlinNoise(float position, float scale = 1, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
@@ -192,7 +192,7 @@ float PerlinNoise1D(float position, float scale = 1, int detail = 1)
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise1D(pos) * amplitude;
+        noise += BasicPerlinNoise(pos) * amplitude;
         amplitude *= 0.5;
         pos *= 2.0;
     }
@@ -200,7 +200,7 @@ float PerlinNoise1D(float position, float scale = 1, int detail = 1)
     return noise;
 }
 
-float PerlinNoise2D(float2 position, float scale = 1, int detail = 1)
+float PerlinNoise(float2 position, float scale = 1, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
@@ -208,7 +208,7 @@ float PerlinNoise2D(float2 position, float scale = 1, int detail = 1)
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise2D(pos) * amplitude;
+        noise += BasicPerlinNoise(pos) * amplitude;
         amplitude *= 0.5;
         pos *= 2.0;
     }
@@ -216,7 +216,7 @@ float PerlinNoise2D(float2 position, float scale = 1, int detail = 1)
     return noise;
 }
 
-float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
+float PerlinNoise(float3 position, float scale = 1, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
@@ -224,7 +224,7 @@ float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise3D(pos) * amplitude;
+        noise += BasicPerlinNoise(pos) * amplitude;
         amplitude *= 0.5;
         pos *= 2.0;
     }
@@ -232,7 +232,7 @@ float PerlinNoise3D(float3 position, float scale = 1, int detail = 1)
     return noise;
 }
 
-float PerlinNoise4D(float4 position, float scale = 1, int detail = 1)
+float PerlinNoise(float4 position, float scale = 1, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
@@ -240,7 +240,7 @@ float PerlinNoise4D(float4 position, float scale = 1, int detail = 1)
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise4D(pos) * amplitude;
+        noise += BasicPerlinNoise(pos) * amplitude;
         amplitude *= 0.5;
         pos *= 2.0;
     }
