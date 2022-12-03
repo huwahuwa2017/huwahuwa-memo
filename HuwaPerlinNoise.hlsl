@@ -1,11 +1,11 @@
-//Ver7 2022/11/30 07:50
+//Ver8 2022/12/03 09:03
 
 #ifndef HUWA_PERLIN_NOISE_INCLUDED
 #define HUWA_PERLIN_NOISE_INCLUDED
 
 #include "HuwaRandomFunction.hlsl"
 
-static int4 _positionShift[] =
+static int4 _HPN_PositionShift[] =
 {
     int4(0, 0, 0, 0),
     int4(1, 0, 0, 0),
@@ -25,58 +25,24 @@ static int4 _positionShift[] =
     int4(1, 1, 1, 1)
 };
 
-float Smooth(float t)
+float HPN_Smooth(float t)
 {
     return t * t * (t * -2.0 + 3.0);
     //return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
-float Gradient1D(float pos, int posInt, int shift)
-{
-    uint r0 = IntToRandom(posInt + shift);
-    float nf = RandomToFloat(r0);
-    return dot(pos - shift, nf);
-}
-
-float Gradient2D(float2 pos, int2 posInt, int2 shift)
-{
-    uint r0 = IntToRandom(posInt + shift);
-    uint r1 = UIntToRandom(r0);
-    float2 nf = float2(RandomToFloat(r0), RandomToFloat(r1));
-    return dot(pos - shift, nf);
-}
-
-float Gradient3D(float3 pos, int3 posInt, int3 shift)
-{
-    uint r0 = IntToRandom(posInt + shift);
-    uint r1 = UIntToRandom(r0);
-    uint r2 = UIntToRandom(r1);
-    float3 nf = float3(RandomToFloat(r0), RandomToFloat(r1), RandomToFloat(r2));
-    return dot(pos - shift, nf);
-}
-
-float Gradient4D(float4 pos, int4 posInt, int4 shift)
-{
-    uint r0 = IntToRandom(posInt + shift);
-    uint r1 = UIntToRandom(r0);
-    uint r2 = UIntToRandom(r1);
-    uint r3 = UIntToRandom(r2);
-    float4 nf = float4(RandomToFloat(r0), RandomToFloat(r1), RandomToFloat(r2), RandomToFloat(r3));
-    return dot(pos - shift, nf);
-}
-
-void Lerp1D(float input[2], float s, out float result)
+void HPN_Lerp1D(float input[2], float s, out float result)
 {
     result = lerp(input[0], input[1], s);
 }
 
-void Lerp2D(float input[4], float s, out float result[2])
+void HPN_Lerp2D(float input[4], float s, out float result[2])
 {
     result[0] = lerp(input[0], input[1], s);
     result[1] = lerp(input[2], input[3], s);
 }
 
-void Lerp3D(float input[8], float s, out float result[4])
+void HPN_Lerp3D(float input[8], float s, out float result[4])
 {
     result[0] = lerp(input[0], input[1], s);
     result[1] = lerp(input[2], input[3], s);
@@ -84,7 +50,7 @@ void Lerp3D(float input[8], float s, out float result[4])
     result[3] = lerp(input[6], input[7], s);
 }
 
-void Lerp4D(float input[16], float s, out float result[8])
+void HPN_Lerp4D(float input[16], float s, out float result[8])
 {
     result[0] = lerp(input[0], input[1], s);
     result[1] = lerp(input[2], input[3], s);
@@ -105,12 +71,15 @@ float BasicPerlinNoise(float position)
     
     for (int index = 0; index < 2; ++index)
     {
-        temp1D[index] = Gradient1D(position, positionInt, _positionShift[index].x);
+        int shift = _HPN_PositionShift[index].x;
+        uint rx = IntToRandom(positionInt + shift);
+        float nf = RandomToFloat(rx);
+        temp1D[index] = dot(position - shift, nf);
     }
     
     float result = 0.0;
     
-    Lerp1D(temp1D, Smooth(position.x), result);
+    HPN_Lerp1D(temp1D, HPN_Smooth(position.x), result);
     
     return result;
 }
@@ -125,13 +94,17 @@ float BasicPerlinNoise(float2 position)
     
     for (int index = 0; index < 4; ++index)
     {
-        temp2D[index] = Gradient2D(position, positionInt, _positionShift[index].yx);
+        int2 shift = _HPN_PositionShift[index].yx;
+        uint rx = IntToRandom(positionInt + shift);
+        uint ry = UIntToRandom(rx);
+        float2 nf = float2(RandomToFloat(rx), RandomToFloat(ry));
+        temp2D[index] = dot(position - shift, nf);
     }
     
     float result = 0.0;
     
-    Lerp2D(temp2D, Smooth(position.y), temp1D);
-    Lerp1D(temp1D, Smooth(position.x), result);
+    HPN_Lerp2D(temp2D, HPN_Smooth(position.y), temp1D);
+    HPN_Lerp1D(temp1D, HPN_Smooth(position.x), result);
     
     return result;
 }
@@ -147,14 +120,19 @@ float BasicPerlinNoise(float3 position)
     
     for (int index = 0; index < 8; ++index)
     {
-        temp3D[index] = Gradient3D(position, positionInt, _positionShift[index].zyx);
+        int3 shift = _HPN_PositionShift[index].zyx;
+        uint rx = IntToRandom(positionInt + shift);
+        uint ry = UIntToRandom(rx);
+        uint rz = UIntToRandom(ry);
+        float3 nf = float3(RandomToFloat(rx), RandomToFloat(ry), RandomToFloat(rz));
+        temp3D[index] = dot(position - shift, nf);
     }
     
     float result = 0.0;
     
-    Lerp3D(temp3D, Smooth(position.z), temp2D);
-    Lerp2D(temp2D, Smooth(position.y), temp1D);
-    Lerp1D(temp1D, Smooth(position.x), result);
+    HPN_Lerp3D(temp3D, HPN_Smooth(position.z), temp2D);
+    HPN_Lerp2D(temp2D, HPN_Smooth(position.y), temp1D);
+    HPN_Lerp1D(temp1D, HPN_Smooth(position.x), result);
     
     return result;
 }
@@ -171,78 +149,80 @@ float BasicPerlinNoise(float4 position)
     
     for (int index = 0; index < 16; ++index)
     {
-        temp4D[index] = Gradient4D(position, positionInt, _positionShift[index].wzyx);
+        int4 shift = _HPN_PositionShift[index].wzyx;
+        uint rx = IntToRandom(positionInt + shift);
+        uint ry = UIntToRandom(rx);
+        uint rz = UIntToRandom(ry);
+        uint rw = UIntToRandom(rz);
+        float4 nf = float4(RandomToFloat(rx), RandomToFloat(ry), RandomToFloat(rz), RandomToFloat(rw));
+        temp4D[index] = dot(position - shift, nf);
     }
     
     float result = 0.0;
     
-    Lerp4D(temp4D, Smooth(position.w), temp3D);
-    Lerp3D(temp3D, Smooth(position.z), temp2D);
-    Lerp2D(temp2D, Smooth(position.y), temp1D);
-    Lerp1D(temp1D, Smooth(position.x), result);
+    HPN_Lerp4D(temp4D, HPN_Smooth(position.w), temp3D);
+    HPN_Lerp3D(temp3D, HPN_Smooth(position.z), temp2D);
+    HPN_Lerp2D(temp2D, HPN_Smooth(position.y), temp1D);
+    HPN_Lerp1D(temp1D, HPN_Smooth(position.x), result);
     
     return result;
 }
 
-float PerlinNoise(float position, float scale = 1, int detail = 1)
+float PerlinNoise(float position, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
-    float pos = position * scale;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(pos) * amplitude;
+        noise += BasicPerlinNoise(position) * amplitude;
         amplitude *= 0.5;
-        pos *= 2.0;
+        position *= 2.0;
     }
     
     return noise;
 }
 
-float PerlinNoise(float2 position, float scale = 1, int detail = 1)
+float PerlinNoise(float2 position, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
-    float2 pos = position * scale;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(pos) * amplitude;
+        noise += BasicPerlinNoise(position) * amplitude;
         amplitude *= 0.5;
-        pos *= 2.0;
+        position *= 2.0;
     }
     
     return noise;
 }
 
-float PerlinNoise(float3 position, float scale = 1, int detail = 1)
+float PerlinNoise(float3 position, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
-    float3 pos = position * scale;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(pos) * amplitude;
+        noise += BasicPerlinNoise(position) * amplitude;
         amplitude *= 0.5;
-        pos *= 2.0;
+        position *= 2.0;
     }
     
     return noise;
 }
 
-float PerlinNoise(float4 position, float scale = 1, int detail = 1)
+float PerlinNoise(float4 position, int detail = 1)
 {
     float noise = 0.0;
     float amplitude = 1.0;
-    float4 pos = position * scale;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(pos) * amplitude;
+        noise += BasicPerlinNoise(position) * amplitude;
         amplitude *= 0.5;
-        pos *= 2.0;
+        position *= 2.0;
     }
     
     return noise;
