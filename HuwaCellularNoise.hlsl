@@ -1,4 +1,4 @@
-//Ver1 2022/12/03 10:03
+//Ver2 2022/12/05 09:42
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -90,7 +90,7 @@ static int4 _HSN_PositionShift[] =
     int4(-1, -1, -1, -1)
 };
 
-void CellularNoiseBasicProcessing(in float position, out float distance0, out float distance1, out float randomVector)
+void CellularNoise(in float position, out float distance0, out float distance1, out float randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -125,7 +125,7 @@ void CellularNoiseBasicProcessing(in float position, out float distance0, out fl
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Fast euclidean distance
-void CellularNoiseBasicProcessing(in int type, in float2 position, out float distance0, out float distance1, out float2 randomVector)
+void CellularNoise(in int type, in float2 position, out float distance0, out float distance1, out float2 randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -178,7 +178,7 @@ void CellularNoiseBasicProcessing(in int type, in float2 position, out float dis
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Fast euclidean distance
-void CellularNoiseBasicProcessing(in int type, in float3 position, out float distance0, out float distance1, out float3 randomVector)
+void CellularNoise(in int type, in float3 position, out float distance0, out float distance1, out float3 randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -232,7 +232,7 @@ void CellularNoiseBasicProcessing(in int type, in float3 position, out float dis
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Fast euclidean distance
-void CellularNoiseBasicProcessing(in int type, in float4 position, out float distance0, out float distance1, out float4 randomVector)
+void CellularNoise(in int type, in float4 position, out float distance0, out float distance1, out float4 randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
