@@ -1,11 +1,11 @@
-//Ver7 2022/12/07 10:32
+//Ver8 2022/12/07 21:40
 
 #ifndef HUWA_VERTEX_LIGHTING_INCLUDED
 #define HUWA_VERTEX_LIGHTING_INCLUDED
 
 #include "UnityCG.cginc"
 
-float4 HuwaLightPositionRecalculation(int index)
+float4 HVL_LightPositionRecalculation(int index)
 {
 #if UNITY_SINGLE_PASS_STEREO
     float4 temp = mul(unity_StereoMatrixInvV[0], unity_LightPosition[index]);
@@ -15,7 +15,7 @@ float4 HuwaLightPositionRecalculation(int index)
 #endif
 }
 
-float4 HuwaSpotDirectionRecalculation(int index)
+float4 HVL_SpotDirectionRecalculation(int index)
 {
 #if UNITY_SINGLE_PASS_STEREO
     float3 temp = mul((float3x3) unity_StereoMatrixInvV[0], unity_SpotDirection[index].xyz);
@@ -28,31 +28,31 @@ float4 HuwaSpotDirectionRecalculation(int index)
 
 static float4 _HuwaLightPosition[8] =
 {
-    HuwaLightPositionRecalculation(0),
-    HuwaLightPositionRecalculation(1),
-    HuwaLightPositionRecalculation(2),
-    HuwaLightPositionRecalculation(3),
-    HuwaLightPositionRecalculation(4),
-    HuwaLightPositionRecalculation(5),
-    HuwaLightPositionRecalculation(6),
-    HuwaLightPositionRecalculation(7)
+    HVL_LightPositionRecalculation(0),
+    HVL_LightPositionRecalculation(1),
+    HVL_LightPositionRecalculation(2),
+    HVL_LightPositionRecalculation(3),
+    HVL_LightPositionRecalculation(4),
+    HVL_LightPositionRecalculation(5),
+    HVL_LightPositionRecalculation(6),
+    HVL_LightPositionRecalculation(7)
 };
 
 static float4 _HuwaSpotDirection[8] =
 {
-    HuwaSpotDirectionRecalculation(0),
-    HuwaSpotDirectionRecalculation(1),
-    HuwaSpotDirectionRecalculation(2),
-    HuwaSpotDirectionRecalculation(3),
-    HuwaSpotDirectionRecalculation(4),
-    HuwaSpotDirectionRecalculation(5),
-    HuwaSpotDirectionRecalculation(6),
-    HuwaSpotDirectionRecalculation(7)
+    HVL_SpotDirectionRecalculation(0),
+    HVL_SpotDirectionRecalculation(1),
+    HVL_SpotDirectionRecalculation(2),
+    HVL_SpotDirectionRecalculation(3),
+    HVL_SpotDirectionRecalculation(4),
+    HVL_SpotDirectionRecalculation(5),
+    HVL_SpotDirectionRecalculation(6),
+    HVL_SpotDirectionRecalculation(7)
 };
 
 
 
-half3 HuwaVertexLightingAmbientColor(float worldNormalY)
+half3 HVL_AmbientColor(float worldNormalY)
 {
     half3 ambientSky = lerp(unity_AmbientEquator, unity_AmbientSky, worldNormalY);
     half3 ambientGround = lerp(unity_AmbientEquator, unity_AmbientGround, -worldNormalY);
@@ -60,13 +60,13 @@ half3 HuwaVertexLightingAmbientColor(float worldNormalY)
     return ambientColor;
 }
 
-half3 HuwaShadeVertexLightsFull(float3 position, float3 normal, half3 ambientColorAdjustment = (half3) 0, float diffuseAdjustment = 0.0)
+half3 HVL_ShadeVertexLightsFull(float3 position, float3 normal, half3 ambientColorAdjustment = (half3) 0, float diffuseAdjustment = 0.0)
 {
     float3 viewPosition = UnityObjectToViewPos(position);
     float3 worldNormal = normalize(mul((float3x3) UNITY_MATRIX_M, normal));
     float3 viewNormal = normalize(mul((float3x3) UNITY_MATRIX_V, worldNormal));
     
-    half3 lightColor = HuwaVertexLightingAmbientColor(worldNormal.y) + ambientColorAdjustment;
+    half3 lightColor = HVL_AmbientColor(worldNormal.y) + ambientColorAdjustment;
     
     for (int i = 0; i < 8; i++)
     {
