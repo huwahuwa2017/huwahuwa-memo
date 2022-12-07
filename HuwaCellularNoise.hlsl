@@ -1,4 +1,4 @@
-//Ver2 2022/12/05 09:42
+//Ver3 2022/12/07 21:32
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -90,7 +90,7 @@ static int4 _HSN_PositionShift[] =
     int4(-1, -1, -1, -1)
 };
 
-void CellularNoise(in float position, out float distance0, out float distance1, out float randomVector)
+void CellularNoise(in float position, in uint repetition, out float distance0, out float distance1, out float randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -102,8 +102,14 @@ void CellularNoise(in float position, out float distance0, out float distance1, 
     for (int index = 0; index < 3; ++index)
     {
         int shift = _HSN_PositionShift[index];
+        int target = positionInt + shift;
         
-        uint rx = IntToRandom(positionInt + shift);
+        if (repetition.x != 0)
+        {
+            target.x %= repetition.x;
+        }
+        
+        uint rx = IntToRandom(target);
         float newRandomVector = RandomToFloatAbs(rx);
         
         float rp = newRandomVector - position + shift;
@@ -125,7 +131,7 @@ void CellularNoise(in float position, out float distance0, out float distance1, 
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Fast euclidean distance
-void CellularNoise(in int type, in float2 position, out float distance0, out float distance1, out float2 randomVector)
+void CellularNoise(in int type, in float2 position, in uint2 repetition, out float distance0, out float distance1, out float2 randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -137,8 +143,19 @@ void CellularNoise(in int type, in float2 position, out float distance0, out flo
     for (int index = 0; index < 9; ++index)
     {
         int2 shift = _HSN_PositionShift[index];
+        int2 target = positionInt + shift;
         
-        uint rx = IntToRandom(positionInt + shift);
+        if (repetition.x != 0)
+        {
+            target.x %= repetition.x;
+        }
+        
+        if (repetition.y != 0)
+        {
+            target.y %= repetition.y;
+        }
+        
+        uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
         float2 newRandomVector = float2(RandomToFloatAbs(rx), RandomToFloatAbs(ry));
         
@@ -178,7 +195,7 @@ void CellularNoise(in int type, in float2 position, out float distance0, out flo
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Fast euclidean distance
-void CellularNoise(in int type, in float3 position, out float distance0, out float distance1, out float3 randomVector)
+void CellularNoise(in int type, in float3 position, in uint3 repetition, out float distance0, out float distance1, out float3 randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -190,8 +207,24 @@ void CellularNoise(in int type, in float3 position, out float distance0, out flo
     for (int index = 0; index < 27; ++index)
     {
         int3 shift = _HSN_PositionShift[index];
+        int3 target = positionInt + shift;
         
-        uint rx = IntToRandom(positionInt + shift);
+        if (repetition.x != 0)
+        {
+            target.x %= repetition.x;
+        }
+        
+        if (repetition.y != 0)
+        {
+            target.y %= repetition.y;
+        }
+        
+        if (repetition.z != 0)
+        {
+            target.z %= repetition.z;
+        }
+        
+        uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
         uint rz = UIntToRandom(ry);
         float3 newRandomVector = float3(RandomToFloatAbs(rx), RandomToFloatAbs(ry), RandomToFloatAbs(rz));
@@ -232,7 +265,7 @@ void CellularNoise(in int type, in float3 position, out float distance0, out flo
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Fast euclidean distance
-void CellularNoise(in int type, in float4 position, out float distance0, out float distance1, out float4 randomVector)
+void CellularNoise(in int type, in float4 position, in uint4 repetition, out float distance0, out float distance1, out float4 randomVector)
 {
     distance0 = 99.9;
     distance1 = 99.9;
@@ -244,8 +277,29 @@ void CellularNoise(in int type, in float4 position, out float distance0, out flo
     for (int index = 0; index < 81; ++index)
     {
         int4 shift = _HSN_PositionShift[index];
+        int4 target = positionInt + shift;
         
-        uint rx = IntToRandom(positionInt + shift);
+        if (repetition.x != 0)
+        {
+            target.x %= repetition.x;
+        }
+        
+        if (repetition.y != 0)
+        {
+            target.y %= repetition.y;
+        }
+        
+        if (repetition.z != 0)
+        {
+            target.z %= repetition.z;
+        }
+        
+        if (repetition.w != 0)
+        {
+            target.w %= repetition.w;
+        }
+        
+        uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
         uint rz = UIntToRandom(ry);
         uint rw = UIntToRandom(rz);
