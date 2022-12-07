@@ -1,4 +1,4 @@
-//Ver8 2022/12/03 09:03
+//Ver9 2022/12/08 00:50
 
 #ifndef HUWA_PERLIN_NOISE_INCLUDED
 #define HUWA_PERLIN_NOISE_INCLUDED
@@ -25,10 +25,9 @@ static int4 _HPN_PositionShift[] =
     int4(1, 1, 1, 1)
 };
 
-float HPN_Smooth(float t)
+int HPN_IntLerp(int x, int y, int s)
 {
-    return t * t * (t * -2.0 + 3.0);
-    //return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+    return x + (y - x) * s;
 }
 
 void HPN_Lerp1D(float input[2], float s, out float result)
@@ -62,17 +61,29 @@ void HPN_Lerp4D(float input[16], float s, out float result[8])
     result[7] = lerp(input[14], input[15], s);
 }
 
-float BasicPerlinNoise(float position)
+float HPN_Smooth(float t)
+{
+    return t * t * (t * -2.0 + 3.0);
+    //return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+float BasicPerlinNoise(float position, uint repetition)
 {
     int positionInt = floor(position);
     position -= positionInt;
     
     float temp1D[2];
     
+    bool flagX = repetition.x == 0;
+    
     for (int index = 0; index < 2; ++index)
     {
         int shift = _HPN_PositionShift[index].x;
-        uint rx = IntToRandom(positionInt + shift);
+        
+        int target = positionInt + shift;
+        target.x = HPN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        
+        uint rx = IntToRandom(target);
         float nf = RandomToFloat(rx);
         temp1D[index] = dot(position - shift, nf);
     }
@@ -84,7 +95,7 @@ float BasicPerlinNoise(float position)
     return result;
 }
 
-float BasicPerlinNoise(float2 position)
+float BasicPerlinNoise(float2 position, uint2 repetition)
 {
     int2 positionInt = floor(position);
     position -= positionInt;
@@ -92,10 +103,18 @@ float BasicPerlinNoise(float2 position)
     float temp2D[4];
     float temp1D[2];
     
+    bool flagX = repetition.x == 0;
+    bool flagY = repetition.y == 0;
+    
     for (int index = 0; index < 4; ++index)
     {
         int2 shift = _HPN_PositionShift[index].yx;
-        uint rx = IntToRandom(positionInt + shift);
+        
+        int2 target = positionInt + shift;
+        target.x = HPN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        target.y = HPN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
+        
+        uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
         float2 nf = float2(RandomToFloat(rx), RandomToFloat(ry));
         temp2D[index] = dot(position - shift, nf);
@@ -109,7 +128,7 @@ float BasicPerlinNoise(float2 position)
     return result;
 }
 
-float BasicPerlinNoise(float3 position)
+float BasicPerlinNoise(float3 position, uint3 repetition)
 {
     int3 positionInt = floor(position);
     position -= positionInt;
@@ -118,10 +137,20 @@ float BasicPerlinNoise(float3 position)
     float temp2D[4];
     float temp1D[2];
     
+    bool flagX = repetition.x == 0;
+    bool flagY = repetition.y == 0;
+    bool flagZ = repetition.z == 0;
+    
     for (int index = 0; index < 8; ++index)
     {
         int3 shift = _HPN_PositionShift[index].zyx;
-        uint rx = IntToRandom(positionInt + shift);
+        
+        int3 target = positionInt + shift;
+        target.x = HPN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        target.y = HPN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
+        target.z = HPN_IntLerp(target.z % (repetition.z + flagZ), target.z, flagZ);
+        
+        uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
         uint rz = UIntToRandom(ry);
         float3 nf = float3(RandomToFloat(rx), RandomToFloat(ry), RandomToFloat(rz));
@@ -137,7 +166,7 @@ float BasicPerlinNoise(float3 position)
     return result;
 }
 
-float BasicPerlinNoise(float4 position)
+float BasicPerlinNoise(float4 position, uint4 repetition)
 {
     int4 positionInt = floor(position);
     position -= positionInt;
@@ -147,10 +176,22 @@ float BasicPerlinNoise(float4 position)
     float temp2D[4];
     float temp1D[2];
     
+    bool flagX = repetition.x == 0;
+    bool flagY = repetition.y == 0;
+    bool flagZ = repetition.z == 0;
+    bool flagW = repetition.w == 0;
+    
     for (int index = 0; index < 16; ++index)
     {
         int4 shift = _HPN_PositionShift[index].wzyx;
-        uint rx = IntToRandom(positionInt + shift);
+        
+        int4 target = positionInt + shift;
+        target.x = HPN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        target.y = HPN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
+        target.z = HPN_IntLerp(target.z % (repetition.z + flagZ), target.z, flagZ);
+        target.w = HPN_IntLerp(target.w % (repetition.w + flagW), target.w, flagW);
+        
+        uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
         uint rz = UIntToRandom(ry);
         uint rw = UIntToRandom(rz);
@@ -168,14 +209,14 @@ float BasicPerlinNoise(float4 position)
     return result;
 }
 
-float PerlinNoise(float position, int detail = 1)
+float PerlinNoise(float position, uint repetition, int detail)
 {
     float noise = 0.0;
     float amplitude = 1.0;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(position) * amplitude;
+        noise += BasicPerlinNoise(position, repetition) * amplitude;
         amplitude *= 0.5;
         position *= 2.0;
     }
@@ -183,14 +224,14 @@ float PerlinNoise(float position, int detail = 1)
     return noise;
 }
 
-float PerlinNoise(float2 position, int detail = 1)
+float PerlinNoise(float2 position, uint2 repetition, int detail)
 {
     float noise = 0.0;
     float amplitude = 1.0;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(position) * amplitude;
+        noise += BasicPerlinNoise(position, repetition) * amplitude;
         amplitude *= 0.5;
         position *= 2.0;
     }
@@ -198,14 +239,14 @@ float PerlinNoise(float2 position, int detail = 1)
     return noise;
 }
 
-float PerlinNoise(float3 position, int detail = 1)
+float PerlinNoise(float3 position, uint3 repetition, int detail)
 {
     float noise = 0.0;
     float amplitude = 1.0;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(position) * amplitude;
+        noise += BasicPerlinNoise(position, repetition) * amplitude;
         amplitude *= 0.5;
         position *= 2.0;
     }
@@ -213,14 +254,14 @@ float PerlinNoise(float3 position, int detail = 1)
     return noise;
 }
 
-float PerlinNoise(float4 position, int detail = 1)
+float PerlinNoise(float4 position, uint4 repetition, int detail)
 {
     float noise = 0.0;
     float amplitude = 1.0;
     
     for (int count = 0; count < detail; ++count)
     {
-        noise += BasicPerlinNoise(position) * amplitude;
+        noise += BasicPerlinNoise(position, repetition) * amplitude;
         amplitude *= 0.5;
         position *= 2.0;
     }
