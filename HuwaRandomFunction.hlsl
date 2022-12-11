@@ -1,80 +1,80 @@
-//Ver2 2022/10/22 11:49
+//Ver3 2022/12/11 23:18
 
 #ifndef HUWA_RANDOM_FUNCTION_INCLUDED
 #define HUWA_RANDOM_FUNCTION_INCLUDED
 
-uint XorBitShift(uint seed)
+uint Xorshift(uint seed)
 {
-    seed ^= (seed << 13);
-    seed ^= (seed >> 17);
-    seed ^= (seed << 15);
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
     return seed;
 }
 
 
 
-uint UIntToRandom(uint data)
+uint UIntToRandom(uint seed)
 {
-    return XorBitShift(data) * 1450663063;
+    return Xorshift(seed) * 1450663063;
 }
 
-uint UIntToRandom(uint2 data)
+uint UIntToRandom(uint2 seed)
 {
-    return UIntToRandom(UIntToRandom(data.x) + data.y);
+    return Xorshift(Xorshift(seed.x) + seed.y) * 1450663063;
 }
 
-uint UIntToRandom(uint3 data)
+uint UIntToRandom(uint3 seed)
 {
-    return UIntToRandom(UIntToRandom(UIntToRandom(data.x) + data.y) + data.z);
+    return Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z) * 1450663063;
 }
 
-uint UIntToRandom(uint4 data)
+uint UIntToRandom(uint4 seed)
 {
-    return UIntToRandom(UIntToRandom(UIntToRandom(UIntToRandom(data.x) + data.y) + data.z) + data.w);
-}
-
-
-
-uint IntToRandom(int data)
-{
-    return UIntToRandom(asuint(data));
-}
-
-uint IntToRandom(int2 data)
-{
-    return UIntToRandom(asuint(data));
-}
-
-uint IntToRandom(int3 data)
-{
-    return UIntToRandom(asuint(data));
-}
-
-uint IntToRandom(int4 data)
-{
-    return UIntToRandom(asuint(data));
+    return Xorshift(Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z) + seed.w) * 1450663063;
 }
 
 
 
-uint FloatToRandom(float data)
+uint IntToRandom(int seed)
 {
-    return UIntToRandom(asuint(data));
+    return UIntToRandom(asuint(seed));
 }
 
-uint FloatToRandom(float2 data)
+uint IntToRandom(int2 seed)
 {
-    return UIntToRandom(asuint(data));
+    return UIntToRandom(asuint(seed));
 }
 
-uint FloatToRandom(float3 data)
+uint IntToRandom(int3 seed)
 {
-    return UIntToRandom(asuint(data));
+    return UIntToRandom(asuint(seed));
 }
 
-uint FloatToRandom(float4 data)
+uint IntToRandom(int4 seed)
 {
-    return UIntToRandom(asuint(data));
+    return UIntToRandom(asuint(seed));
+}
+
+
+
+uint FloatToRandom(float seed)
+{
+    return UIntToRandom(asuint(seed));
+}
+
+uint FloatToRandom(float2 seed)
+{
+    return UIntToRandom(asuint(seed));
+}
+
+uint FloatToRandom(float3 seed)
+{
+    return UIntToRandom(asuint(seed));
+}
+
+uint FloatToRandom(float4 seed)
+{
+    return UIntToRandom(asuint(seed));
 }
 
 
@@ -86,14 +86,12 @@ int RandomToInt(uint seed)
 
 float RandomToFloatAbs(uint seed)
 {
-    uint data = seed & 0x7FFFFF | 0x3F800000;
-    return asfloat(data) - 1.0;
+    return asfloat(seed & 0x7FFFFF | 0x3F800000) - 1.0;
 }
 
 float RandomToFloat(uint seed)
 {
-    uint data = asuint(RandomToFloatAbs(seed)) | (seed & 0x80000000);
-    return asfloat(data);
+    return asfloat(asuint(RandomToFloatAbs(seed)) | (seed & 0x80000000));
 }
 
 #endif // HUWA_RANDOM_FUNCTION_INCLUDED
