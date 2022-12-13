@@ -1,4 +1,4 @@
-//Ver4 2022/12/08 00:38
+//Ver5 2022/12/13 23:44
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -121,20 +121,20 @@ void CellularNoise(in float position, in uint repetition, out float distance0, o
         rp = abs(rp);
         float newDistance = rp.x;
         
-        bool flag0 = newDistance < distance1;
-        bool flag1 = newDistance < distance0;
+        bool flag0 = newDistance < distance0;
+        bool flag1 = newDistance < distance1;
         
-        distance1 = lerp(distance1, newDistance, flag0);
-        distance1 = lerp(distance1, distance0, flag1);
-        distance0 = lerp(distance0, newDistance, flag1);
-        randomVector = lerp(randomVector, newRandomVector, flag1);
+        distance1 = lerp(distance1, newDistance, flag1);
+        distance1 = lerp(distance1, distance0, flag0);
+        distance0 = lerp(distance0, newDistance, flag0);
+        randomVector = lerp(randomVector, newRandomVector, flag0);
     }
 }
 
 // type = 0  Manhattan distance
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
-// type = 3  Fast euclidean distance
+// type = 3  Euclidean distance square
 void CellularNoise(in int type, in float2 position, in uint2 repetition, out float distance0, out float distance1, out float2 randomVector)
 {
     distance0 = 99.9;
@@ -170,31 +170,35 @@ void CellularNoise(in int type, in float2 position, in uint2 repetition, out flo
                 newDistance = rp.x + rp.y;
                 break;
             case 1:
-                newDistance = length(rp);
+            case 3:
+                newDistance = dot(rp, rp);
                 break;
             case 2:
                 rp = abs(rp);
                 newDistance = max(rp.x, rp.y);
                 break;
-            case 3:
-                newDistance = dot(rp, rp);
-                break;
         }
         
-        bool flag0 = newDistance < distance1;
-        bool flag1 = newDistance < distance0;
+        bool flag0 = newDistance < distance0;
+        bool flag1 = newDistance < distance1;
         
-        distance1 = lerp(distance1, newDistance, flag0);
-        distance1 = lerp(distance1, distance0, flag1);
-        distance0 = lerp(distance0, newDistance, flag1);
-        randomVector = lerp(randomVector, newRandomVector, flag1);
+        distance1 = lerp(distance1, newDistance, flag1);
+        distance1 = lerp(distance1, distance0, flag0);
+        distance0 = lerp(distance0, newDistance, flag0);
+        randomVector = lerp(randomVector, newRandomVector, flag0);
+    }
+    
+    if (type == 1)
+    {
+        distance0 = sqrt(distance0);
+        distance1 = sqrt(distance1);
     }
 }
 
 // type = 0  Manhattan distance
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
-// type = 3  Fast euclidean distance
+// type = 3  Euclidean distance square
 void CellularNoise(in int type, in float3 position, in uint3 repetition, out float distance0, out float distance1, out float3 randomVector)
 {
     distance0 = 99.9;
@@ -233,31 +237,35 @@ void CellularNoise(in int type, in float3 position, in uint3 repetition, out flo
                 newDistance = rp.x + rp.y + rp.z;
                 break;
             case 1:
-                newDistance = length(rp);
+            case 3:
+                newDistance = dot(rp, rp);
                 break;
             case 2:
                 rp = abs(rp);
                 newDistance = max(max(rp.x, rp.y), rp.z);
                 break;
-            case 3:
-                newDistance = dot(rp, rp);
-                break;
         }
         
-        bool flag0 = newDistance < distance1;
-        bool flag1 = newDistance < distance0;
+        bool flag0 = newDistance < distance0;
+        bool flag1 = newDistance < distance1;
         
-        distance1 = lerp(distance1, newDistance, flag0);
-        distance1 = lerp(distance1, distance0, flag1);
-        distance0 = lerp(distance0, newDistance, flag1);
-        randomVector = lerp(randomVector, newRandomVector, flag1);
+        distance1 = lerp(distance1, newDistance, flag1);
+        distance1 = lerp(distance1, distance0, flag0);
+        distance0 = lerp(distance0, newDistance, flag0);
+        randomVector = lerp(randomVector, newRandomVector, flag0);
+    }
+    
+    if (type == 1)
+    {
+        distance0 = sqrt(distance0);
+        distance1 = sqrt(distance1);
     }
 }
 
 // type = 0  Manhattan distance
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
-// type = 3  Fast euclidean distance
+// type = 3  Euclidean distance square
 void CellularNoise(in int type, in float4 position, in uint4 repetition, out float distance0, out float distance1, out float4 randomVector)
 {
     distance0 = 99.9;
@@ -299,24 +307,28 @@ void CellularNoise(in int type, in float4 position, in uint4 repetition, out flo
                 newDistance = rp.x + rp.y + rp.z + rp.w;
                 break;
             case 1:
-                newDistance = length(rp);
+            case 3:
+                newDistance = dot(rp, rp);
                 break;
             case 2:
                 rp = abs(rp);
                 newDistance = max(max(rp.x, rp.y), max(rp.z, rp.w));
                 break;
-            case 3:
-                newDistance = dot(rp, rp);
-                break;
         }
         
-        bool flag0 = newDistance < distance1;
-        bool flag1 = newDistance < distance0;
+        bool flag0 = newDistance < distance0;
+        bool flag1 = newDistance < distance1;
         
-        distance1 = lerp(distance1, newDistance, flag0);
-        distance1 = lerp(distance1, distance0, flag1);
-        distance0 = lerp(distance0, newDistance, flag1);
-        randomVector = lerp(randomVector, newRandomVector, flag1);
+        distance1 = lerp(distance1, newDistance, flag1);
+        distance1 = lerp(distance1, distance0, flag0);
+        distance0 = lerp(distance0, newDistance, flag0);
+        randomVector = lerp(randomVector, newRandomVector, flag0);
+    }
+    
+    if (type == 1)
+    {
+        distance0 = sqrt(distance0);
+        distance1 = sqrt(distance1);
     }
 }
 
