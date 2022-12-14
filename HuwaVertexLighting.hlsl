@@ -1,4 +1,4 @@
-//Ver9 2022/12/14 12:17
+//Ver10 2022/12/14 12:25
 
 #ifndef HUWA_VERTEX_LIGHTING_INCLUDED
 #define HUWA_VERTEX_LIGHTING_INCLUDED
@@ -50,14 +50,39 @@ static float4 _HuwaSpotDirection[8] =
     HVL_SpotDirectionRecalculation(7)
 };
 
-
-
 half3 HVL_AmbientColor(float worldNormalY)
 {
     half3 ambientSky = lerp(unity_AmbientEquator, unity_AmbientSky, worldNormalY);
     half3 ambientGround = lerp(unity_AmbientEquator, unity_AmbientGround, -worldNormalY);
     half3 ambientColor = lerp(ambientSky, ambientGround, worldNormalY < 0.0);
     return ambientColor;
+}
+
+half3 HVL_ShadeVertexLightsFull(float3 position, float3 normal, half3 ambientColorAdjustment = (half3) 0, float diffuseAdjustment = 0.0)
+{
+    float3 viewPosition = UnityObjectToViewPos(position);
+    float3 worldNormal = normalize(mul((float3x3) UNITY_MATRIX_M, normal));
+    float3 viewNormal = normalize(mul((float3x3) UNITY_MATRIX_V, worldNormal));
+    
+    half3 lightColor = HVL_AmbientColor(worldNormal.y) + ambientColorAdjustment;
+    
+    for (int i = 0; i < 8; i++)
+    {
+        float3 toLight = _HuwaLightPosition[i].xyz - viewPosition.xyz * _HuwaLightPosition[i].w;
+        float lengthSq = dot(toLight, toLight);
+        lengthSq += lengthSq < 0.0;
+        toLight *= rsqrt(lengthSq);
+
+        float atten = 1.0 / (1.0 + lengthSq * unity_LightAtten[i].z);
+        float rho = max(0.0, dot(toLight, _HuwaSpotDirection[i].xyz));
+        float spotAtt = (rho - unity_LightAtten[i].x) * unity_LightAtten[i].y;
+        atten *= saturate(spotAtt);
+
+        float diff = saturate(dot(viewNormal, toLight) + diffuseAdjustment);
+        lightColor += unity_LightColor[i].rgb * (diff * atten);
+    }
+
+    return lightColor;
 }
 
 void HVL_ShadeVertexLightsFull(in float3 position, in float3 normal, in half3 ambientColorAdjustment, in float diffuseAdjustment, in int specularPower, out half3 totalLightColor, out half3 totalSpecular)
