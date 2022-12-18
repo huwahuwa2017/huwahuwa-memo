@@ -1,9 +1,9 @@
-//Ver1 2022/10/22 19:02
-
-#include "HuwaVertexLighting.hlsl"
-#include "HuwaRandomFunction.hlsl"
+//Ver3 2022/12/19 06:46
 
 #define UNITY_MATRIX_I_M unity_WorldToObject
+
+#include "HuwaRandomFunction.hlsl"
+#include "HuwaVertexLighting.hlsl"
 
 struct VertexData
 {
@@ -11,7 +11,7 @@ struct VertexData
     float3 normal : NORMAL;
     float4 tangent : TANGENT;
     float2 uv : TEXCOORD0;
-    float3 compositeData : TEXCOORD1;
+    float furCount : TEXCOORD1;
     half3 lightColor : COLOR;
     uint id : BLENDINDICES;
 };
@@ -20,39 +20,43 @@ struct TessellationFactor
 {
     float tessFactor[3] : SV_TessFactor;
     float insideTessFactor : SV_InsideTessFactor;
+    float furCount : TEXCOORD;
 };
 
 struct FragmentData
 {
     float4 pos : SV_POSITION;
     float2 uv : TEXCOORD;
-    half3 lightColor : COLOR;
+    half3 lightColor : COLOR0;
+    half transparency : COLOR1;
 };
 
-uniform sampler2D _MainTex;
-uniform sampler2D _FurDirectionTex;
-uniform sampler2D _FurLengthTex;
-uniform sampler2D _AreaDataTex;
+sampler2D _MainTex;
+sampler2D _FurDirectionTex;
+sampler2D _FurLengthTex;
+sampler2D _AreaDataTex;
 
-uniform float _FurMaxLength;
-uniform float _FurRandomLength;
-uniform float _FurScaleWidth;
-uniform float _FurDensity;
-uniform float _FurRoughness;
-uniform float _FurAbsorption;
+float _FurMaxLength;
+float _FurRandomLength;
+float _FurScaleWidth;
+float _FurRoughness;
+float _FurDensity;
+float _FurSplit;
+float _FurAbsorption;
 
-uniform float _ColorIntensity;
-uniform half3 _AmbientColorAdjustment;
+float _ColorIntensity;
+half3 _AmbientColorAdjustment;
 
-static int _MaxFurPerPolygon = 36;
+static int _MaxFurPerPolygon = 30;
 static int _MaxVertexCount = _MaxFurPerPolygon * 3;
 static float _FurAbsorptionTemp = (_FurAbsorption + 1.0) * 0.5;
 static float _MaxFurPerPolygonReciprocal = 1.0 / _MaxFurPerPolygon;
 static float _ThreeReciprocal = 1.0 / 3.0;
+static float _FurSplitTemp = _FurSplit * 2.0;
 
 VertexData VertexStage(VertexData input, uint id : SV_VertexID)
 {
-    half3 lightColor = HT_ShadeVertexLightsFull(input.pos.xyz, input.normal, _AmbientColorAdjustment, 0.5);
+    half3 lightColor = HVL_ShadeVertexLightsFull(input.pos.xyz, input.normal, _AmbientColorAdjustment, 0.5);
     input.lightColor = lerp(lightColor, half3(1.0, 1.0, 1.0), _ColorIntensity);
     input.id = id;
     return input;
@@ -65,62 +69,51 @@ VertexData VertexStage(VertexData input, uint id : SV_VertexID)
 [outputcontrolpoints(3)]
 VertexData HullStage(InputPatch<VertexData, 3> input, uint id : SV_OutputControlPointID)
 {
-    /*
-    float3 polygonCenter = (input[0].pos.xyz + input[1].pos.xyz + input[2].pos.xyz) * _ThreeReciprocal;
-    float3 viewPos_L = mul(UNITY_MATRIX_I_M, float4(UNITY_MATRIX_I_V._14_24_34, 1.0));
-    float temp31 = dot(-trueNormal, normalize(polygonCenter - viewPos_L));
-    
-    if (temp31 < -0.5)
-        return;
-    */
-    
-    float2 areaDataUV = (input[0].uv + input[1].uv + input[2].uv) * _ThreeReciprocal;
-    float areaData = tex2Dlod(_AreaDataTex, float4(areaDataUV, 0.0, 0.0)).r;
-    float lengthData = tex2Dlod(_FurLengthTex, float4(areaDataUV, 0.0, 0.0)).r;
-    
-    float temp0 = max(lengthData * lengthData, 0.01);
-    float furCount = _FurDensity * areaData / (temp0 + (temp0 == 0.0));
-    furCount *= lengthData > 0.1;
-    
-    float temp1 = furCount * _MaxFurPerPolygonReciprocal;
-    float requiredPolygonCount = ceil(temp1);
-    float requiredTessFactor = ceil(temp1 * _ThreeReciprocal);
-    float temp2 = requiredTessFactor * 3.0;
-    float furCountPerPolygon = furCount / (temp2 + (temp2 == 0.0));
-    
-    VertexData output = input[id];
-    output.compositeData = float3(requiredPolygonCount, requiredTessFactor, furCountPerPolygon);
-    return output;
+    return input[id];
 }
 
 TessellationFactor PatchConstantFunction(InputPatch<VertexData, 3> input)
 {
-    //0~64
-    float temp0 = input[0].compositeData.y;
+    float2 areaDataUV = (input[0].uv + input[1].uv + input[2].uv) * _ThreeReciprocal;
+    float areaData = tex2Dlod(_AreaDataTex, float4(areaDataUV, 0.0, 0.0)).r;
+    float lengthData = tex2Dlod(_FurLengthTex, float4(areaDataUV, 0.0, 0.0)).r;
     
-    TessellationFactor output;
-    output.tessFactor[0] = temp0;
-    output.tessFactor[1] = temp0;
-    output.tessFactor[2] = temp0;
-    output.insideTessFactor = 2 - (input[0].compositeData.x == 1.0);
+    float temp0 = lengthData * lengthData;
+    float furCount = _FurDensity * areaData / (temp0 + (temp0 == 0.0));
+    furCount *= temp0 > 0.01;
+    
+    float temp1 = furCount * _MaxFurPerPolygonReciprocal;
+    float requiredTessFactor = clamp(ceil(temp1 * _ThreeReciprocal), 0.0, 64.0);
+    bool noTess = ceil(temp1) == 1.0;
+    
+    float temp2 = lerp(requiredTessFactor * 3.0, 1.0, noTess);
+    float furCountPerPolygon = furCount / (temp2 + (temp2 == 0.0));
+    furCountPerPolygon *= temp2 > 0.0;
+    
+    TessellationFactor output = (TessellationFactor) 0;
+    output.tessFactor[0] = requiredTessFactor;
+    output.tessFactor[1] = requiredTessFactor;
+    output.tessFactor[2] = requiredTessFactor;
+    output.insideTessFactor = 2 - noTess;
+    output.furCount = furCountPerPolygon;
     return output;
 }
 
 [domain("tri")]
-VertexData DomainStage(TessellationFactor temp, const OutputPatch<VertexData, 3> input, float3 bary : SV_DomainLocation)
+VertexData DomainStage(TessellationFactor tf, const OutputPatch<VertexData, 3> input, float3 bary : SV_DomainLocation)
 {
     float3 temp0 = input[0].tangent.xyz;
     float3 temp1 = input[1].tangent.xyz;
     float3 temp2 = input[2].tangent.xyz;
     
-    VertexData output;
+    VertexData output = (VertexData) 0;
     output.pos = bary.x * input[0].pos + bary.y * input[1].pos + bary.z * input[2].pos;
-    output.normal = normalize(bary.x * input[0].normal + bary.y * input[1].normal + bary.z * input[2].normal);
-    output.tangent = float4(normalize(bary.x * temp0 + bary.y * temp1 + bary.z * temp2), input[0].tangent.w);
+    output.normal = bary.x * input[0].normal + bary.y * input[1].normal + bary.z * input[2].normal;
+    output.tangent = float4(bary.x * temp0 + bary.y * temp1 + bary.z * temp2, input[0].tangent.w);
     output.uv = bary.x * input[0].uv + bary.y * input[1].uv + bary.z * input[2].uv;
     output.lightColor = bary.x * input[0].lightColor + bary.y * input[1].lightColor + bary.z * input[2].lightColor;
     output.id = UIntToRandom(uint4(input[0].id, input[1].id, input[2].id, FloatToRandom(bary)));
-    output.compositeData = input[0].compositeData;
+    output.furCount = tf.furCount;
     return output;
 }
 
@@ -151,7 +144,7 @@ void GeometryStage(triangle VertexData input[3], inout TriangleStream<FragmentDa
     float3 trueNormal = normalize(cross(position_0, position_1));
     
     uint random = UIntToRandom(uint3(input[0].id, input[1].id, input[2].id));
-    float targetfurcount = input[0].compositeData.z + RandomToFloatAbs(random) - 1.0;
+    float targetfurcount = input[0].furCount + RandomToFloatAbs(random) - 1.0;
     
     for (int count = 0; count < targetfurcount; ++count)
     {
@@ -195,20 +188,23 @@ void GeometryStage(triangle VertexData input[3], inout TriangleStream<FragmentDa
         
         furDirection *= furLength;
         
-        FragmentData commonData = (FragmentData) 0;
-        commonData.uv = uv;
+        FragmentData output = (FragmentData) 0;
+        output.uv = uv;
         
-        commonData.pos = UnityObjectToClipPos(position);
-        commonData.lightColor = lightColor * _FurAbsorption;
-        stream.Append(commonData);
+        output.pos = UnityObjectToClipPos(position);
+        output.lightColor = lightColor * _FurAbsorption;
+        output.transparency = 0.0;
+        stream.Append(output);
         
-        commonData.pos = UnityObjectToClipPos(position + furDirection * 0.5 + furWidthVector);
-        commonData.lightColor = lightColor * _FurAbsorptionTemp;
-        stream.Append(commonData);
+        output.pos = UnityObjectToClipPos(position + furDirection * 0.5 + furWidthVector);
+        output.lightColor = lightColor * _FurAbsorptionTemp;
+        output.transparency = 1.0;
+        stream.Append(output);
         
-        commonData.pos = UnityObjectToClipPos(position + furDirection);
-        commonData.lightColor = lightColor;
-        stream.Append(commonData);
+        output.pos = UnityObjectToClipPos(position + furDirection);
+        output.lightColor = lightColor;
+        output.transparency = 0.0;
+        stream.Append(output);
         
         stream.RestartStrip();
     }
@@ -216,6 +212,8 @@ void GeometryStage(triangle VertexData input[3], inout TriangleStream<FragmentDa
 
 half4 FragmentStage(FragmentData input) : SV_Target
 {
+    clip(-(floor(input.transparency * _FurSplitTemp) % 2.0));
+    
     half3 col = tex2D(_MainTex, input.uv).rgb * input.lightColor;
     return half4(col, 1.0);
 }
