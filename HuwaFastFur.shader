@@ -1,4 +1,4 @@
-﻿//Ver1 2022/10/22 19:02
+//Ver2 2022/12/19 06:42
 
 Shader "HuwaShader/HuwaFastFur"
 {
@@ -13,11 +13,12 @@ Shader "HuwaShader/HuwaFastFur"
 		[NoScaleOffset]
 		_AreaDataTex("Area Data Texture", 2D) = "white" {}
 
-		_FurMaxLength("Fur Max Length", Range(0, 1)) = 0.2
+		_FurMaxLength("Fur Max Length", Float) = 0.2
 		_FurRandomLength("Fur Random Length", Range(0, 1)) = 0.0
-		_FurScaleWidth("Fur Scale Width", Range(0, 1)) = 0.1
-		_FurDensity("Fur Density", Range(0.01, 5000)) = 20
+		_FurScaleWidth("Fur Scale Width", Range(0, 1)) = 0.125
 		_FurRoughness("Fur Roughness", Range(0, 1)) = 0.0
+		_FurDensity("Fur Density", Range(0.01, 9999)) = 20.0
+		_FurSplit("Fur Split", Float) = 8.0
 		_FurAbsorption("Fur Absorption", Range(0, 1)) = 0.5
 
 		_ColorIntensity("Color intensity", Range(0.0, 1.0)) = 0.0625
@@ -28,22 +29,32 @@ Shader "HuwaShader/HuwaFastFur"
 	{
 		Tags
 		{
+			"Queue" = "AlphaTest"
 			"RenderType" = "Opaque"
-			"LightMode" = "Vertex"
 		}
-
-		Cull Off
 
 		Pass
 		{
+			Tags
+			{
+				"LightMode" = "Vertex"
+			}
+
+			Cull Off
+
 			CGPROGRAM
+
 			#include "HuwaFastFur.hlsl"
-			#pragma target 5.0
+
+			#pragma require tessellation
+			#pragma require geometry
+
 			#pragma vertex VertexStage
 			#pragma hull HullStage
 			#pragma domain DomainStage
 			#pragma geometry GeometryStage
 			#pragma fragment FragmentStage
+
 			ENDCG
 		}
 	}
