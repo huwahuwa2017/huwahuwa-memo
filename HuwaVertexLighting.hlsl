@@ -1,4 +1,4 @@
-//Ver11 2022/12/19 07:17
+//Ver12 2022/12/23 12:39
 
 #ifndef HUWA_VERTEX_LIGHTING_INCLUDED
 #define HUWA_VERTEX_LIGHTING_INCLUDED
@@ -61,7 +61,7 @@ half3 HVL_AmbientColor(float worldNormalY)
 half3 HVL_ShadeVertexLightsFull(float3 position, float3 normal, half3 ambientColorAdjustment = 0.0, float diffuseAdjustment = 0.0)
 {
     float3 viewPosition = UnityObjectToViewPos(position);
-    float3 worldNormal = normalize(mul((float3x3) UNITY_MATRIX_M, normal));
+    float3 worldNormal = UnityObjectToWorldNormal(normal);
     float3 viewNormal = normalize(mul((float3x3) UNITY_MATRIX_V, worldNormal));
     
     half3 lightColor = HVL_AmbientColor(worldNormal.y) + ambientColorAdjustment;
