@@ -1,4 +1,4 @@
-//Ver3 2022/12/11 23:18
+//Ver4 2023/02/14 07:07
 
 #ifndef HUWA_RANDOM_FUNCTION_INCLUDED
 #define HUWA_RANDOM_FUNCTION_INCLUDED
@@ -15,22 +15,26 @@ uint Xorshift(uint seed)
 
 uint UIntToRandom(uint seed)
 {
-    return Xorshift(seed) * 1450663063;
+    uint temp = Xorshift(seed);
+    return (temp + (temp == 0)) * 1450663063;
 }
 
 uint UIntToRandom(uint2 seed)
 {
-    return Xorshift(Xorshift(seed.x) + seed.y) * 1450663063;
+    uint temp = Xorshift(Xorshift(seed.x) + seed.y);
+    return (temp + (temp == 0)) * 1450663063;
 }
 
 uint UIntToRandom(uint3 seed)
 {
-    return Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z) * 1450663063;
+    uint temp = Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z);
+    return (temp + (temp == 0)) * 1450663063;
 }
 
 uint UIntToRandom(uint4 seed)
 {
-    return Xorshift(Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z) + seed.w) * 1450663063;
+    uint temp = Xorshift(Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z) + seed.w);
+    return (temp + (temp == 0)) * 1450663063;
 }
 
 
@@ -79,19 +83,46 @@ uint FloatToRandom(float4 seed)
 
 
 
-int RandomToInt(uint seed)
+int RandomToInt(uint random)
 {
-    return asint(seed);
+    return asint(random);
 }
 
-float RandomToFloatAbs(uint seed)
+float RandomToFloatAbs(uint random)
 {
-    return asfloat(seed & 0x7FFFFF | 0x3F800000) - 1.0;
+    return asfloat(random & 0x3FFFFFFF | 0x3F800000) - 1.0;
 }
 
-float RandomToFloat(uint seed)
+float RandomToFloat(uint random)
 {
-    return asfloat(asuint(RandomToFloatAbs(seed)) | (seed & 0x80000000));
+    float temp = asfloat(random & 0xBFFFFFFF | 0x3F800000);
+    return temp - sign(temp);
+}
+
+
+
+uint UpdateRandom(in out uint random)
+{
+    random = UIntToRandom(random);
+    return random;
+}
+
+int UpdateRandomToInt(in out uint random)
+{
+    random = UIntToRandom(random);
+    return RandomToInt(random);
+}
+
+float UpdateRandomToFloatAbs(in out uint random)
+{
+    random = UIntToRandom(random);
+    return RandomToFloatAbs(random);
+}
+
+float UpdateRandomToFloat(in out uint random)
+{
+    random = UIntToRandom(random);
+    return RandomToFloat(random);
 }
 
 #endif // HUWA_RANDOM_FUNCTION_INCLUDED
