@@ -1,4 +1,4 @@
-//Ver6 2023/02/13 10:20
+//Ver7 2023/02/13 10:24
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -89,11 +89,6 @@ static int4 _HSN_PositionShift[] =
     int4(1, -1, -1, -1),
     int4(-1, -1, -1, -1)
 };
-
-int HSN_IntLerp(int x, int y, int s)
-{
-    return x + (y - x) * s;
-}
 
 void CellularNoise(in float position, in uint repetition, out float distance0, out float distance1, out float randomVector)
 {
