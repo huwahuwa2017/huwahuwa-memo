@@ -1,4 +1,4 @@
-//Ver7 2023/02/13 10:24
+//Ver8 2023/02/13 11:06
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -90,6 +90,11 @@ static int4 _HSN_PositionShift[] =
     int4(-1, -1, -1, -1)
 };
 
+int HSN_IntLerp(int x, int y, int s)
+{
+    return x + (y - x) * s;
+}
+
 void CellularNoise(in float position, in uint repetition, out float distance0, out float distance1, out float randomVector)
 {
     distance0 = 99.9;
@@ -106,9 +111,7 @@ void CellularNoise(in float position, in uint repetition, out float distance0, o
         int shift = _HSN_PositionShift[index];
         
         int target = positionInt + shift;
-        
-        if (!flagX)
-            target.x %= repetition.x + flagX;
+        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
         
         uint rx = IntToRandom(target);
         float newRandomVector = RandomToFloatAbs(rx);
@@ -149,12 +152,8 @@ void CellularNoise(in int type, in float2 position, in uint2 repetition, out flo
         int2 shift = _HSN_PositionShift[index];
         
         int2 target = positionInt + shift;
-        
-        if (!flagX)
-            target.x %= repetition.x + flagX;
-        
-        if (!flagY)
-            target.y %= repetition.y + flagY;
+        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        target.y = HSN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
         
         uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
@@ -218,15 +217,9 @@ void CellularNoise(in int type, in float3 position, in uint3 repetition, out flo
         int3 shift = _HSN_PositionShift[index];
         
         int3 target = positionInt + shift;
-        
-        if (!flagX)
-            target.x %= repetition.x + flagX;
-        
-        if (!flagY)
-            target.y %= repetition.y + flagY;
-        
-        if (!flagZ)
-            target.z %= repetition.z + flagZ;
+        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        target.y = HSN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
+        target.z = HSN_IntLerp(target.z % (repetition.z + flagZ), target.z, flagZ);
         
         uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
@@ -292,18 +285,10 @@ void CellularNoise(in int type, in float4 position, in uint4 repetition, out flo
         int4 shift = _HSN_PositionShift[index];
         
         int4 target = positionInt + shift;
-        
-        if (!flagX)
-            target.x %= repetition.x + flagX;
-        
-        if (!flagY)
-            target.y %= repetition.y + flagY;
-        
-        if (!flagZ)
-            target.z %= repetition.z + flagZ;
-        
-        if (!flagW)
-            target.w %= repetition.w + flagW;
+        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        target.y = HSN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
+        target.z = HSN_IntLerp(target.z % (repetition.z + flagZ), target.z, flagZ);
+        target.w = HSN_IntLerp(target.w % (repetition.w + flagW), target.w, flagW);
         
         uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
