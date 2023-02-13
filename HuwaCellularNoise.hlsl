@@ -1,4 +1,4 @@
-//Ver5 2022/12/13 23:44
+//Ver6 2023/02/13 10:20
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -111,7 +111,9 @@ void CellularNoise(in float position, in uint repetition, out float distance0, o
         int shift = _HSN_PositionShift[index];
         
         int target = positionInt + shift;
-        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
+        
+        if (!flagX)
+            target.x %= repetition.x + flagX;
         
         uint rx = IntToRandom(target);
         float newRandomVector = RandomToFloatAbs(rx);
@@ -152,8 +154,12 @@ void CellularNoise(in int type, in float2 position, in uint2 repetition, out flo
         int2 shift = _HSN_PositionShift[index];
         
         int2 target = positionInt + shift;
-        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
-        target.y = HSN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
+        
+        if (!flagX)
+            target.x %= repetition.x + flagX;
+        
+        if (!flagY)
+            target.y %= repetition.y + flagY;
         
         uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
@@ -217,9 +223,15 @@ void CellularNoise(in int type, in float3 position, in uint3 repetition, out flo
         int3 shift = _HSN_PositionShift[index];
         
         int3 target = positionInt + shift;
-        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
-        target.y = HSN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
-        target.z = HSN_IntLerp(target.z % (repetition.z + flagZ), target.z, flagZ);
+        
+        if (!flagX)
+            target.x %= repetition.x + flagX;
+        
+        if (!flagY)
+            target.y %= repetition.y + flagY;
+        
+        if (!flagZ)
+            target.z %= repetition.z + flagZ;
         
         uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
@@ -285,10 +297,18 @@ void CellularNoise(in int type, in float4 position, in uint4 repetition, out flo
         int4 shift = _HSN_PositionShift[index];
         
         int4 target = positionInt + shift;
-        target.x = HSN_IntLerp(target.x % (repetition.x + flagX), target.x, flagX);
-        target.y = HSN_IntLerp(target.y % (repetition.y + flagY), target.y, flagY);
-        target.z = HSN_IntLerp(target.z % (repetition.z + flagZ), target.z, flagZ);
-        target.w = HSN_IntLerp(target.w % (repetition.w + flagW), target.w, flagW);
+        
+        if (!flagX)
+            target.x %= repetition.x + flagX;
+        
+        if (!flagY)
+            target.y %= repetition.y + flagY;
+        
+        if (!flagZ)
+            target.z %= repetition.z + flagZ;
+        
+        if (!flagW)
+            target.w %= repetition.w + flagW;
         
         uint rx = IntToRandom(target);
         uint ry = UIntToRandom(rx);
