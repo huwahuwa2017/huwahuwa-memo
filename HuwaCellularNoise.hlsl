@@ -1,4 +1,4 @@
-//Ver10 2023/02/15 03:48
+//Ver11 2023/02/18 14:47
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -95,14 +95,12 @@ int HSN_IntLerp(int x, int y, int s)
     return x + (y - x) * s;
 }
 
-void CellularNoise(in float input, in uint repetition, out float distance0, out float distance1, out float color, out float position)
+void CellularNoise(in float input, in uint repetition, out float distance0, out float distance1, out float color, out float relativePosition)
 {
     distance0 = 99.9;
     distance1 = 99.9;
     color = 0.0;
-    position = 0.0;
-    
-    int shift = 0;
+    relativePosition = 0.0;
     
     int inputInt = floor(input);
     input -= inputInt;
@@ -119,10 +117,10 @@ void CellularNoise(in float input, in uint repetition, out float distance0, out 
         
         uint random = IntToRandom(target);
         float randomFloat = RandomToFloatAbs(random);
-        float rp = randomFloat - input + tempShift;
+        float tempRP = randomFloat - input + tempShift;
         
-        rp = abs(rp);
-        float tempDistance = rp.x;
+        tempRP = abs(tempRP);
+        float tempDistance = tempRP.x;
         
         bool flag0 = tempDistance < distance0;
         bool flag1 = tempDistance < distance1;
@@ -131,24 +129,20 @@ void CellularNoise(in float input, in uint repetition, out float distance0, out 
         distance1 = lerp(distance1, distance0, flag0);
         distance0 = lerp(distance0, tempDistance, flag0);
         color = lerp(color, randomFloat, flag0);
-        shift = lerp(shift, tempShift, flag0);
+        relativePosition = lerp(relativePosition, tempRP, flag0);
     }
-    
-    position = inputInt + shift + color;
 }
 
 // type = 0  Manhattan distance
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Euclidean distance square
-void CellularNoise(in int type, in float2 input, in uint2 repetition, out float distance0, out float distance1, out float2 color, out float2 position)
+void CellularNoise(in int type, in float2 input, in uint2 repetition, out float distance0, out float distance1, out float2 color, out float2 relativePosition)
 {
     distance0 = 99.9;
     distance1 = 99.9;
     color = 0.0;
-    position = 0.0;
-    
-    int2 shift = 0;
+    relativePosition = 0.0;
     
     int2 inputInt = floor(input);
     input -= inputInt;
@@ -166,23 +160,23 @@ void CellularNoise(in int type, in float2 input, in uint2 repetition, out float 
         
         uint random = IntToRandom(target);
         float2 randomFloat = float2(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
-        float2 rp = randomFloat - input + tempShift;
+        float2 tempRP = randomFloat - input + tempShift;
         
         float tempDistance = 0.0;
         
         switch (type)
         {
             case 0:
-                rp = abs(rp);
-                tempDistance = rp.x + rp.y;
+                tempRP = abs(tempRP);
+                tempDistance = tempRP.x + tempRP.y;
                 break;
             case 1:
             case 3:
-                tempDistance = dot(rp, rp);
+                tempDistance = dot(tempRP, tempRP);
                 break;
             case 2:
-                rp = abs(rp);
-                tempDistance = max(rp.x, rp.y);
+                tempRP = abs(tempRP);
+                tempDistance = max(tempRP.x, tempRP.y);
                 break;
         }
         
@@ -193,7 +187,7 @@ void CellularNoise(in int type, in float2 input, in uint2 repetition, out float 
         distance1 = lerp(distance1, distance0, flag0);
         distance0 = lerp(distance0, tempDistance, flag0);
         color = lerp(color, randomFloat, flag0);
-        shift = lerp(shift, tempShift, flag0);
+        relativePosition = lerp(relativePosition, tempRP, flag0);
     }
     
     if (type == 1)
@@ -201,22 +195,18 @@ void CellularNoise(in int type, in float2 input, in uint2 repetition, out float 
         distance0 = sqrt(distance0);
         distance1 = sqrt(distance1);
     }
-    
-    position = inputInt + shift + color;
 }
 
 // type = 0  Manhattan distance
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Euclidean distance square
-void CellularNoise(in int type, in float3 input, in uint3 repetition, out float distance0, out float distance1, out float3 color, out float3 position)
+void CellularNoise(in int type, in float3 input, in uint3 repetition, out float distance0, out float distance1, out float3 color, out float3 relativePosition)
 {
     distance0 = 99.9;
     distance1 = 99.9;
     color = 0.0;
-    position = 0.0;
-    
-    int3 shift = 0;
+    relativePosition = 0.0;
     
     int3 inputInt = floor(input);
     input -= inputInt;
@@ -235,23 +225,23 @@ void CellularNoise(in int type, in float3 input, in uint3 repetition, out float 
         
         uint random = IntToRandom(target);
         float3 randomFloat = float3(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
-        float3 rp = randomFloat - input + tempShift;
+        float3 tempRP = randomFloat - input + tempShift;
         
         float tempDistance = 0.0;
         
         switch (type)
         {
             case 0:
-                rp = abs(rp);
-                tempDistance = rp.x + rp.y + rp.z;
+                tempRP = abs(tempRP);
+                tempDistance = tempRP.x + tempRP.y + tempRP.z;
                 break;
             case 1:
             case 3:
-                tempDistance = dot(rp, rp);
+                tempDistance = dot(tempRP, tempRP);
                 break;
             case 2:
-                rp = abs(rp);
-                tempDistance = max(max(rp.x, rp.y), rp.z);
+                tempRP = abs(tempRP);
+                tempDistance = max(max(tempRP.x, tempRP.y), tempRP.z);
                 break;
         }
         
@@ -262,7 +252,7 @@ void CellularNoise(in int type, in float3 input, in uint3 repetition, out float 
         distance1 = lerp(distance1, distance0, flag0);
         distance0 = lerp(distance0, tempDistance, flag0);
         color = lerp(color, randomFloat, flag0);
-        shift = lerp(shift, tempShift, flag0);
+        relativePosition = lerp(relativePosition, tempRP, flag0);
     }
     
     if (type == 1)
@@ -270,22 +260,18 @@ void CellularNoise(in int type, in float3 input, in uint3 repetition, out float 
         distance0 = sqrt(distance0);
         distance1 = sqrt(distance1);
     }
-    
-    position = inputInt + shift + color;
 }
 
 // type = 0  Manhattan distance
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Euclidean distance square
-void CellularNoise(in int type, in float4 input, in uint4 repetition, out float distance0, out float distance1, out float4 color, out float4 position)
+void CellularNoise(in int type, in float4 input, in uint4 repetition, out float distance0, out float distance1, out float4 color, out float4 relativePosition)
 {
     distance0 = 99.9;
     distance1 = 99.9;
     color = 0.0;
-    position = 0.0;
-    
-    int4 shift = 0;
+    relativePosition = 0.0;
     
     int4 inputInt = floor(input);
     input -= inputInt;
@@ -305,23 +291,23 @@ void CellularNoise(in int type, in float4 input, in uint4 repetition, out float 
         
         uint random = IntToRandom(target);
         float4 randomFloat = float4(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
-        float4 rp = randomFloat - input + tempShift;
+        float4 tempRP = randomFloat - input + tempShift;
         
         float tempDistance = 0.0;
         
         switch (type)
         {
             case 0:
-                rp = abs(rp);
-                tempDistance = rp.x + rp.y + rp.z + rp.w;
+                tempRP = abs(tempRP);
+                tempDistance = tempRP.x + tempRP.y + tempRP.z + tempRP.w;
                 break;
             case 1:
             case 3:
-                tempDistance = dot(rp, rp);
+                tempDistance = dot(tempRP, tempRP);
                 break;
             case 2:
-                rp = abs(rp);
-                tempDistance = max(max(rp.x, rp.y), max(rp.z, rp.w));
+                tempRP = abs(tempRP);
+                tempDistance = max(max(tempRP.x, tempRP.y), max(tempRP.z, tempRP.w));
                 break;
         }
         
@@ -332,7 +318,7 @@ void CellularNoise(in int type, in float4 input, in uint4 repetition, out float 
         distance1 = lerp(distance1, distance0, flag0);
         distance0 = lerp(distance0, tempDistance, flag0);
         color = lerp(color, randomFloat, flag0);
-        shift = lerp(shift, tempShift, flag0);
+        relativePosition = lerp(relativePosition, tempRP, flag0);
     }
     
     if (type == 1)
@@ -340,8 +326,6 @@ void CellularNoise(in int type, in float4 input, in uint4 repetition, out float 
         distance0 = sqrt(distance0);
         distance1 = sqrt(distance1);
     }
-    
-    position = inputInt + shift + color;
 }
 
 #endif // HUWA_CELLULAR_NOISE_INCLUDED
