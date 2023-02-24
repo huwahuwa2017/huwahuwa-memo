@@ -1,10 +1,12 @@
-﻿Shader "FlowPaintTool2/WireFrame"
+﻿//Ver1 2023/02/24 16:56
+
+Shader "Custom/WireFrame"
 {
 	Properties
 	{
 		_MainColor("Main Color", Color) = (1.0, 1.0, 1.0, 1.0)
 		_WireFrameColor("Wire Frame Color", Color) = (0.5, 0.5, 0.5, 1.0)
-		_Width("Width", Range(0.0, 2.0)) = 1.0
+		_Width("Width", Range(0.0, 99.0)) = 1.0
 	}
 
 	SubShader
@@ -20,23 +22,24 @@
 			CGPROGRAM
 
 			#pragma require geometry
+
 			#pragma vertex VertexShaderStage
 			#pragma geometry GeometryShaderStage
 			#pragma fragment FragmentShaderStage
 
 			#include "UnityCG.cginc"
 
-			struct IA2VS
+			struct I2V
 			{
 				float4 lPos : POSITION;
 			};
 
-			struct VS2GS
+			struct V2G
 			{
 				float4 cPos : TEXCOORD0;
 			};
 
-			struct GS2FS
+			struct G2F
 			{
 				float4 cPos : SV_POSITION;
 				float3 distance : TEXCOORD0;
@@ -46,15 +49,15 @@
 			fixed4 _WireFrameColor;
 			float _Width;
 
-			VS2GS VertexShaderStage(IA2VS input)
+			V2G VertexShaderStage(I2V input)
 			{
-				VS2GS output = (VS2GS)0;
+				V2G output = (V2G)0;
 				output.cPos = UnityObjectToClipPos(input.lPos);
 				return output;
 			}
 
 			[maxvertexcount(3)]
-			void GeometryShaderStage(triangle VS2GS input[3], inout TriangleStream<GS2FS> stream)
+			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream)
 			{
 				float2 pos0 = input[0].cPos.xy * _ScreenParams.xy / input[0].cPos.w;
 				float2 pos1 = input[1].cPos.xy * _ScreenParams.xy / input[1].cPos.w;
@@ -66,7 +69,7 @@
 
 				float area = abs(side0.x * side1.y - side0.y * side1.x);
 
-				GS2FS output = (GS2FS)0;
+				G2F output = (G2F)0;
 
 				output.cPos = input[0].cPos;
 				output.distance = float3(area / length(side0), 0.0, 0.0);
@@ -81,7 +84,7 @@
 				stream.Append(output);
 			}
 
-			half4 FragmentShaderStage(GS2FS input) : SV_Target
+			fixed4 FragmentShaderStage(G2F input) : SV_Target
 			{
 				bool flag = (input.distance.x < _Width) || (input.distance.y < _Width) || (input.distance.z < _Width);
 				return lerp(_MainColor, _WireFrameColor, flag);
