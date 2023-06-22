@@ -1,4 +1,4 @@
-//Ver4 2023/02/14 07:07
+//Ver5 2023/06/22 18:40
 
 #ifndef HUWA_RANDOM_FUNCTION_INCLUDED
 #define HUWA_RANDOM_FUNCTION_INCLUDED
@@ -21,19 +21,19 @@ uint UIntToRandom(uint seed)
 
 uint UIntToRandom(uint2 seed)
 {
-    uint temp = Xorshift(Xorshift(seed.x) + seed.y);
+    uint temp = Xorshift(Xorshift(seed.y) + seed.x);
     return (temp + (temp == 0)) * 1450663063;
 }
 
 uint UIntToRandom(uint3 seed)
 {
-    uint temp = Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z);
+    uint temp = Xorshift(Xorshift(Xorshift(seed.z) + seed.y) + seed.x);
     return (temp + (temp == 0)) * 1450663063;
 }
 
 uint UIntToRandom(uint4 seed)
 {
-    uint temp = Xorshift(Xorshift(Xorshift(Xorshift(seed.x) + seed.y) + seed.z) + seed.w);
+    uint temp = Xorshift(Xorshift(Xorshift(Xorshift(seed.w) + seed.z) + seed.y) + seed.x);
     return (temp + (temp == 0)) * 1450663063;
 }
 
