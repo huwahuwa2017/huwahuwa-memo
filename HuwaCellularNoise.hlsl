@@ -1,4 +1,4 @@
-//Ver12 2023/02/18 17:43
+//Ver13 2023/08/06 09:00
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -95,6 +95,21 @@ int HCN_IntLerp(int x, int y, int s)
     return x + (y - x) * s;
 }
 
+int2 HCN_IntLerp(int2 x, int2 y, int2 s)
+{
+    return x + (y - x) * s;
+}
+
+int3 HCN_IntLerp(int3 x, int3 y, int3 s)
+{
+    return x + (y - x) * s;
+}
+
+int4 HCN_IntLerp(int4 x, int4 y, int4 s)
+{
+    return x + (y - x) * s;
+}
+
 void CellularNoise(in float input, in uint repetition, out float distance0, out float distance1, out float color, out float relativePosition)
 {
     distance0 = 99.9;
@@ -105,7 +120,7 @@ void CellularNoise(in float input, in uint repetition, out float distance0, out 
     int inputInt = floor(input);
     input -= inputInt;
     
-    bool flag = repetition.x == 0;
+    bool flag = repetition == 0;
     repetition += flag;
     
     for (int index = 0; index < 3; ++index)
@@ -113,9 +128,9 @@ void CellularNoise(in float input, in uint repetition, out float distance0, out 
         int shift = _HSN_PositionShift[index];
         
         int target = inputInt + shift;
-        target.x = HCN_IntLerp(target.x % repetition.x, target.x, flag.x);
+        target = HCN_IntLerp(target % repetition, target, flag);
         
-        uint random = IntToRandom(target);
+        uint random = ValueToRandom(target);
         float randomFloat = RandomToFloatAbs(random);
         float tempRP = randomFloat - input + shift;
         
@@ -147,7 +162,7 @@ void CellularNoise(in int type, in float2 input, in uint2 repetition, out float 
     int2 inputInt = floor(input);
     input -= inputInt;
     
-    bool2 flag = bool2(repetition.x == 0, repetition.y == 0);
+    bool2 flag = repetition == 0;
     repetition += flag;
     
     for (int index = 0; index < 9; ++index)
@@ -155,10 +170,9 @@ void CellularNoise(in int type, in float2 input, in uint2 repetition, out float 
         int2 shift = _HSN_PositionShift[index];
         
         int2 target = inputInt + shift;
-        target.x = HCN_IntLerp(target.x % repetition.x, target.x, flag.x);
-        target.y = HCN_IntLerp(target.y % repetition.y, target.y, flag.y);
+        target = HCN_IntLerp(target % repetition, target, flag);
         
-        uint random = IntToRandom(target);
+        uint random = ValueToRandom(target);
         float2 randomFloat = float2(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
         float2 tempRP = randomFloat - input + shift;
         
@@ -211,7 +225,7 @@ void CellularNoise(in int type, in float3 input, in uint3 repetition, out float 
     int3 inputInt = floor(input);
     input -= inputInt;
     
-    bool3 flag = bool3(repetition.x == 0, repetition.y == 0, repetition.z == 0);
+    bool3 flag = repetition == 0;
     repetition += flag;
     
     for (int index = 0; index < 27; ++index)
@@ -219,11 +233,9 @@ void CellularNoise(in int type, in float3 input, in uint3 repetition, out float 
         int3 shift = _HSN_PositionShift[index];
         
         int3 target = inputInt + shift;
-        target.x = HCN_IntLerp(target.x % repetition.x, target.x, flag.x);
-        target.y = HCN_IntLerp(target.y % repetition.y, target.y, flag.y);
-        target.z = HCN_IntLerp(target.z % repetition.z, target.z, flag.z);
+        target = HCN_IntLerp(target % repetition, target, flag);
         
-        uint random = IntToRandom(target);
+        uint random = ValueToRandom(target);
         float3 randomFloat = float3(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
         float3 tempRP = randomFloat - input + shift;
         
@@ -276,7 +288,7 @@ void CellularNoise(in int type, in float4 input, in uint4 repetition, out float 
     int4 inputInt = floor(input);
     input -= inputInt;
     
-    bool4 flag = bool4(repetition.x == 0, repetition.y == 0, repetition.z == 0, repetition.w == 0);
+    bool4 flag = repetition == 0;
     repetition += flag;
     
     for (int index = 0; index < 81; ++index)
@@ -284,12 +296,9 @@ void CellularNoise(in int type, in float4 input, in uint4 repetition, out float 
         int4 shift = _HSN_PositionShift[index];
         
         int4 target = inputInt + shift;
-        target.x = HCN_IntLerp(target.x % repetition.x, target.x, flag.x);
-        target.y = HCN_IntLerp(target.y % repetition.y, target.y, flag.y);
-        target.z = HCN_IntLerp(target.z % repetition.z, target.z, flag.z);
-        target.w = HCN_IntLerp(target.w % repetition.w, target.w, flag.w);
+        target = HCN_IntLerp(target % repetition, target, flag);
         
-        uint random = IntToRandom(target);
+        uint random = ValueToRandom(target);
         float4 randomFloat = float4(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
         float4 tempRP = randomFloat - input + shift;
         
