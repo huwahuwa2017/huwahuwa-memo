@@ -1,4 +1,4 @@
-//Ver6 2023/08/06 09:00
+//Ver7 2023/08/11 06:30
 
 #ifndef HUWA_RANDOM_FUNCTION_INCLUDED
 #define HUWA_RANDOM_FUNCTION_INCLUDED
@@ -13,22 +13,26 @@ uint Xorshift(uint seed)
 
 uint ValueToRandom(uint seed)
 {
-    return (Xorshift(seed) + 1) * 1450663063;
+    // return (Xorshift(seed) + 1) * 1450663063;
+    return mad(Xorshift(seed), 1450663063, 1450663063);
 }
 
 uint ValueToRandom(uint2 seed)
 {
-    return (Xorshift(Xorshift(seed.y) + seed.x) + 1) * 1450663063;
+    // return (Xorshift(Xorshift(seed.y) + seed.x) + 1) * 1450663063;
+    return mad(Xorshift(Xorshift(seed.y) + seed.x), 1450663063, 1450663063);
 }
 
 uint ValueToRandom(uint3 seed)
 {
-    return (Xorshift(Xorshift(Xorshift(seed.z) + seed.y) + seed.x) + 1) * 1450663063;
+    // return (Xorshift(Xorshift(Xorshift(seed.z) + seed.y) + seed.x) + 1) * 1450663063;
+    return mad(Xorshift(Xorshift(Xorshift(seed.z) + seed.y) + seed.x), 1450663063, 1450663063);
 }
 
 uint ValueToRandom(uint4 seed)
 {
-    return (Xorshift(Xorshift(Xorshift(Xorshift(seed.w) + seed.z) + seed.y) + seed.x) + 1) * 1450663063;
+    // return (Xorshift(Xorshift(Xorshift(Xorshift(seed.w) + seed.z) + seed.y) + seed.x) + 1) * 1450663063;
+    return mad(Xorshift(Xorshift(Xorshift(Xorshift(seed.w) + seed.z) + seed.y) + seed.x), 1450663063, 1450663063);
 }
 
 uint ValueToRandom(int seed)
