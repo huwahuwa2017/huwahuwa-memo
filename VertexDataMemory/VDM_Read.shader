@@ -37,9 +37,8 @@
 				// VDM_Writeが生成したRenderTextureの情報を読み取り、
 				// 頂点のワールド座標を取得
 
-				int loadX = vertexID % _DataTex_TexelSize.z;
-				int loadY = floor(vertexID * _DataTex_TexelSize.x);
-				float3 wPos = _DataTex.Load(int3(loadX, loadY, 0.0)).xyz;
+				int2 index = int2(vertexID % _DataTex_TexelSize.z, vertexID * _DataTex_TexelSize.x);
+				float3 wPos = _DataTex[index];
 
 				V2F output = (V2F)0;
 				output.cPos = mul(UNITY_MATRIX_VP, float4(wPos, 1.0));
