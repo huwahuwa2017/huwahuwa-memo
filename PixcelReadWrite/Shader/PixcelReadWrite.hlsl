@@ -24,9 +24,9 @@ float2 GetPixcelPosition(uint id)
 	return pos;
 }
 
-float4 GetPixcelData(Texture2D texName, float4 texelSize, uint id)
+float4 GetPixcelData(Texture2D tex, float4 texelSize, uint id)
 {
-	return texName[int2(id % texelSize.z, id * texelSize.x)];
+	return tex[int2(id % texelSize.z, id * texelSize.x)];
 }
 
 #endif
