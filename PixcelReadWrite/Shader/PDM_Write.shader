@@ -29,7 +29,7 @@
 			#pragma geometry GeometryShaderStage
 			#pragma fragment FragmentShaderStage
 
-			#include "PixcelReadWrite.hlsl"
+			#include "HuwaPixcelReadWrite.hlsl"
 
 			struct I2V
 			{
@@ -57,35 +57,15 @@
 				return output;
 			}
 
-			void PixcelGeneration(uint id, float4 data, inout TriangleStream<G2F> stream)
-			{
-				float2 cPos = GetPixcelPosition(id);
-
-				G2F output = (G2F)0;
-				output.data = data;
-				output.cPos.w = 1.0;
-
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[0];
-				stream.Append(output);
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[1];
-				stream.Append(output);
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[2];
-				stream.Append(output);
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[3];
-				stream.Append(output);
-
-				stream.RestartStrip();
-			}
-
 			[maxvertexcount(4)]
 			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream, uint primitiveID : SV_PrimitiveID)
 			{
 				// ここで保存したい情報をピクセルにする
 				// このジオメトリシェーダーは三角ポリゴン単位で処理している
 				
-				float4 data = (input[0].data + input[1].data + input[2].data) / 3.0;
-
-				PixcelGeneration(primitiveID, data, stream);
+				G2F output = (G2F)0;
+				output.data = (input[0].data + input[1].data + input[2].data) / 3.0;;
+				PixcelGeneration(primitiveID, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target

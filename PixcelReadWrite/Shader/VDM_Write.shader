@@ -29,7 +29,7 @@
 			#pragma geometry GeometryShaderStage
 			#pragma fragment FragmentShaderStage
 
-			#include "PixcelReadWrite.hlsl"
+			#include "HuwaPixcelReadWrite.hlsl"
 
 			struct I2V
 			{
@@ -60,26 +60,6 @@
 				return output;
 			}
 
-			void PixcelGeneration(uint id, float4 data, inout TriangleStream<G2F> stream)
-			{
-				float2 cPos = GetPixcelPosition(id);
-
-				G2F output = (G2F)0;
-				output.data = data;
-				output.cPos.w = 1.0;
-
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[0];
-				stream.Append(output);
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[1];
-				stream.Append(output);
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[2];
-				stream.Append(output);
-				output.cPos.xy = cPos + _ClipSpacePixcelOffset[3];
-				stream.Append(output);
-
-				stream.RestartStrip();
-			}
-
 			[maxvertexcount(12)]
 			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream)
 			{
@@ -90,9 +70,13 @@
 				// 一部の頂点が消えてしまうのでうまくいかない
 				// おそらく同じパラメータを持った頂点が合成されてしまうと予想している
 
-				PixcelGeneration(input[0].vertexID, input[0].data, stream);
-				PixcelGeneration(input[1].vertexID, input[1].data, stream);
-				PixcelGeneration(input[2].vertexID, input[2].data, stream);
+				G2F output = (G2F)0;
+				output.data = input[0].data;
+				PixcelGeneration(input[0].vertexID, output.cPos, stream);
+				output.data = input[1].data;
+				PixcelGeneration(input[1].vertexID, output.cPos, stream);
+				output.data = input[2].data;
+				PixcelGeneration(input[2].vertexID, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target

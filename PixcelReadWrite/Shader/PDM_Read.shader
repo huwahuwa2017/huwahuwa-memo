@@ -22,8 +22,6 @@
 			#pragma geometry GeometryShaderStage
 			#pragma fragment FragmentShaderStage
 
-			#include "PixcelReadWrite.hlsl"
-
 			struct I2V
 			{
 				float4 lPos : POSITION;
@@ -43,6 +41,9 @@
 			Texture2D _DataTex;
 			float4 _DataTex_TexelSize;
 
+			#define SetDataTextureTexelSize _DataTex_TexelSize
+			#include "HuwaPixcelReadWrite.hlsl"
+
 			V2G VertexShaderStage(I2V input)
 			{
 				V2G output = (V2G)0;
@@ -56,7 +57,7 @@
 				// VDM_Writeが生成したRenderTextureの情報を読み取り、
 				// ポリゴンの中心のワールド座標を取得
 				
-				float4 data = GetPixcelData(_DataTex, _DataTex_TexelSize, primitiveID);
+				float4 data = GetPixcelData(_DataTex, primitiveID);
 
 				G2F output = (G2F)0;
 				output.wPos = data;

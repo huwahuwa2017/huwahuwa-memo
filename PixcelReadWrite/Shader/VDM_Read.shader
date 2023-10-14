@@ -21,8 +21,6 @@
 			#pragma vertex VertexShaderStage
 			#pragma fragment FragmentShaderStage
 
-			#include "PixcelReadWrite.hlsl"
-
 			struct I2V
 			{
 				uint vertexID : SV_VertexID;
@@ -37,12 +35,15 @@
 			Texture2D _DataTex;
 			float4 _DataTex_TexelSize;
 
+			#define SetDataTextureTexelSize _DataTex_TexelSize
+			#include "HuwaPixcelReadWrite.hlsl"
+
 			V2F VertexShaderStage(I2V input)
 			{
 				// VDM_Writeが生成したRenderTextureの情報を読み取り、
 				// 頂点のワールド座標を取得
 
-				float4 data = GetPixcelData(_DataTex, _DataTex_TexelSize, input.vertexID);
+				float4 data = GetPixcelData(_DataTex, input.vertexID);
 				data.a = 1.0;
 
 				V2F output = (V2F)0;
