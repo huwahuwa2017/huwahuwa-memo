@@ -1,4 +1,4 @@
-﻿// Ver4 2023/10/14 12:44
+﻿// Ver5 2023/10/20 07:01
 
 Shader "HuwaShader/HuwaFur2"
 {
@@ -14,7 +14,7 @@ Shader "HuwaShader/HuwaFur2"
 		_AreaDataTex("Area Data Texture", 2D) = "white" {}
 
 		[Header(Geometry Settings)]
-		[Space(10)]
+		[Space(12)]
 
 		_FurLength("Fur Length", Float) = 0.05
 		_FurWidth("Fur Width", Range(0, 1)) = 0.1
@@ -24,7 +24,7 @@ Shader "HuwaShader/HuwaFur2"
 		_FurSplit("Fur Split", Int) = 4
 
 		[Header(Lighting Settings)]
-		[Space(10)]
+		[Space(12)]
 
 		_FurAbsorption("Fur Absorption", Range(0, 1)) = 0.5
 		_DiffuseOffset("Diffuse offset", Range(-1.0, 1.0)) = 0.5
@@ -50,7 +50,7 @@ Shader "HuwaShader/HuwaFur2"
 
 			CGPROGRAM
 
-			#include "HuwaFur2.hlsl"
+			#include "HuwaFur.hlsl"
 
 			#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
 
@@ -68,11 +68,10 @@ Shader "HuwaShader/HuwaFur2"
 			}
 
 			Cull Off
-			//AlphaToMask On
 
 			CGPROGRAM
 
-			#include "HuwaFur2.hlsl"
+			#include "HuwaFur.hlsl"
 
 			#pragma require tessellation
 			#pragma require geometry
