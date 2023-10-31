@@ -49,12 +49,12 @@ Shader "HuwaShader/FurPostEffect"
 			};
 
 			Texture2D _FurPostEffect46390557;
-
-			// ■■■
-			// ■■■
-			// ■■■
-
+			
 			/*
+			// ■■■
+			// ■■■
+			// ■■■
+
 			static int _SampleCount = 9;
 			
 			static int2 _Offset[] =
@@ -122,18 +122,18 @@ Shader "HuwaShader/FurPostEffect"
 
 			half4 FragmentShaderStage(V2F input) : SV_Target
 			{
+				float2 screenSize = _ScreenParams.xy;
+
+				#if UNITY_SINGLE_PASS_STEREO
+					screenSize.x += screenSize.x;
+				#endif
+
 				int2 target = int2(input.cPos.xy);
 				float3 color = 0.0;
 
 				for (int index = 0; index < _SampleCount; ++index)
 				{
-					float2 screenSize = _ScreenParams.xy;
-
-					#if UNITY_SINGLE_PASS_STEREO
-						screenSize.x += screenSize.x;
-					#endif
-
-					int2 temp0 = clamp(_Offset[index] + target, 0, screenSize);
+					int2 temp0 = clamp(target + _Offset[index], 0, screenSize);
 					color += _FurPostEffect46390557[temp0].rgb;
 				}
 

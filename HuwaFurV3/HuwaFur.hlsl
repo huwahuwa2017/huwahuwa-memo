@@ -324,8 +324,8 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
 
 half4 FragmentShaderStage_Fur(G2F_Fur input) : SV_Target
 {
-    float temp0 = floor(input.transparency % 2.5);
-    clip(0.5 - temp0);
+	float temp0 = floor(input.transparency % 2.5);
+	clip(0.5 - temp0);
 	
-    return half4(input.color, 1.0);
+	return half4(input.color, 1.0);
 }
