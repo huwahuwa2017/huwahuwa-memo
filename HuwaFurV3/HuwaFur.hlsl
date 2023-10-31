@@ -1,4 +1,4 @@
-// Ver5 2023/10/20 07:01
+// Ver6 2023/11/01 02:00
 
 #define UNITY_MATRIX_I_M unity_WorldToObject
 
@@ -36,7 +36,7 @@ struct G2F_Fur
 {
 	float4 cPos : SV_POSITION;
 	half3 color : TEXCOORD0;
-	half transparency : TEXCOORD1;
+	half2 uv : TEXCOORD1;
 };
 
 struct I2V_Skin
@@ -305,17 +305,17 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
 		
 		output.cPos = cPos;
 		output.color = color * _FurAbsorption;
-		output.transparency = 0.0;
+		output.uv = half2(0.0, 0.0);
 		stream.Append(output);
 		
 		output.cPos = UnityWorldToClipPos(position + furDirection * 0.5 + furWidthVector);
 		output.color = color * ((_FurAbsorption + 1.0) * 0.5);
-		output.transparency = _FurSplit * 2.5;
+		output.uv = half2(1.0, 0.5);
 		stream.Append(output);
 		
 		output.cPos = UnityWorldToClipPos(position + furDirection);
 		output.color = color;
-		output.transparency = 0.0;
+		output.uv = half2(0.0, 1.0);
 		stream.Append(output);
 		
 		stream.RestartStrip();
@@ -324,7 +324,9 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
 
 half4 FragmentShaderStage_Fur(G2F_Fur input) : SV_Target
 {
-	float temp0 = floor(input.transparency % 2.5);
+	float temp1 = (input.uv.y - input.uv.y * input.uv.y) * 4.0;
+	float temp0 = floor((input.uv.x / temp1 * _FurSplit * 2) % 2.0);
+	
 	clip(0.5 - temp0);
 	
 	return half4(input.color, 1.0);
