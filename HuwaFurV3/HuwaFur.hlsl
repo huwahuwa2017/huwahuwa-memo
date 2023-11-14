@@ -1,4 +1,4 @@
-// Ver6 2023/11/01 02:00
+// Ver7 2023/11/15 02:24
 
 #define UNITY_MATRIX_I_M unity_WorldToObject
 
@@ -184,22 +184,19 @@ TessellationFactor_Fur PatchConstantFunction_Fur(InputPatch<V2G_Fur, 3> input, u
 	float lengthData = tex2Dlod(_FurLengthTex, float4(centerUV, 0.0, 0.0)).r;
 	float temp0 = lengthData * lengthData;
 	float furCount = _FurDensity * areaData / (temp0 + (temp0 == 0.0));
-	furCount *= temp0 > 0.001;
+	furCount *= temp0 != 0.0;
 	
-	float temp1 = furCount / _MaxFurPerPolygon;
-	float requiredTessFactor = clamp(ceil(temp1 / 3.0), 0.0, 64.0);
-	bool noTess = ceil(temp1) == 1.0;
+	bool noTess = furCount <= _MaxFurPerPolygon;
 	
-	float temp2 = lerp(requiredTessFactor * 3.0, 1.0, noTess);
-	float furCountPerPolygon = furCount / (temp2 + (temp2 == 0.0));
-	furCountPerPolygon *= temp2 > 0.0;
+	float requiredTessFactor = min(ceil(furCount / (_MaxFurPerPolygon * 3.0)), 64.0);
+	float polygonCount = noTess ? 1.0 : requiredTessFactor * 3.0;
 	
 	TessellationFactor_Fur output = (TessellationFactor_Fur) 0;
 	output.tessFactor[0] = requiredTessFactor;
 	output.tessFactor[1] = requiredTessFactor;
 	output.tessFactor[2] = requiredTessFactor;
-	output.insideTessFactor = 2 - noTess;
-	output.furCount = furCountPerPolygon;
+	output.insideTessFactor = 2.0 - noTess;
+	output.furCount = furCount / polygonCount;
 	return output;
 }
 
