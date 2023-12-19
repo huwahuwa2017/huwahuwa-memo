@@ -1,4 +1,4 @@
-// Ver1 2023-12-20 00:23
+// Ver2 2023-12-20 01:57
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardBRDF.cginc
@@ -111,7 +111,7 @@ half3 BRDF1_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half r
 			D = a2 / (REWRITE_UNITY_PI * (d * d + 1e-7f));
 		}
 		
-		float specularTerm = max(0.0, V * D * REWRITE_UNITY_PI);
+		float specularTerm = V * D * REWRITE_UNITY_PI;
 		
 #if defined(UNITY_COLORSPACE_GAMMA)
 		specularTerm = sqrt(max(1e-4h, specularTerm));
