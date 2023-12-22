@@ -1,50 +1,51 @@
-// Ver3 2023/12/22 14:25
+// Ver6 2023/12/22 16:49
 
 #if !defined(HUWA_PIXCEL_READ_WRITE)
 #define HUWA_PIXCEL_READ_WRITE
 
 #include "UnityCG.cginc"
 
-#if !defined(SetDataTextureTexelSize)
-static float4 _HPRW54300853 = float4(1.0 / _ScreenParams.xy, _ScreenParams.xy);
-#define SetDataTextureTexelSize _HPRW54300853
+#if !defined(HPRW_SetDataTextureSize)
+static uint2 _HPRW_TextureSize = uint2(_ScreenParams.xy + 0.5);
+#else
+static uint2 _HPRW_TextureSize = HPRW_SetDataTextureSize;
 #endif
 
-// ClipSpacePixcelSize
-static float3 _HPRW65645850 = float3(SetDataTextureTexelSize.xy * 2.0, 0.0);
+// ClipSpaceTexelSize
+static float3 _HPRW_TexelSize = float3(2.0 / float2(_HPRW_TextureSize), 0.0);
 
 // Temp
-static float2 _HPRW23994811;
+static float2 _HPRW_Temp = 0.0;
 
-// GetClipSpacePixcelPosition
-float2 HPRW13828804(uint id)
+// GetClipSpaceTexelPosition
+float2 GetTexelPosition(uint id)
 {
-	float2 pos = float2(id % SetDataTextureTexelSize.z, floor(id * SetDataTextureTexelSize.x));
-	pos = pos * _HPRW65645850.xy - 1.0;
+	float2 pos = float2(id % _HPRW_TextureSize.x, id / _HPRW_TextureSize.x);
+	pos = pos * _HPRW_TexelSize.xy - 1.0;
 
 #if UNITY_UV_STARTS_AT_TOP
-	pos.y = -pos.y - _HPRW65645850.y;
+	pos.y = -pos.y - _HPRW_TexelSize.y;
 #endif
 	
 	return pos;
 }
 
 #define PixcelGeneration(id, clipPosition, stream)\
-_HPRW23994811 = HPRW13828804(id);\
+_HPRW_Temp = GetTexelPosition(id);\
 clipPosition.w = 1.0;\
-clipPosition.xy = _HPRW23994811 + _HPRW65645850.zz;\
+clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.zz;\
 stream.Append(output);\
-clipPosition.xy = _HPRW23994811 + _HPRW65645850.xz;\
+clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.xz;\
 stream.Append(output);\
-clipPosition.xy = _HPRW23994811 + _HPRW65645850.zy;\
+clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.zy;\
 stream.Append(output);\
-clipPosition.xy = _HPRW23994811 + _HPRW65645850.xy;\
+clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.xy;\
 stream.Append(output);\
 stream.RestartStrip();
 
 float4 GetPixcelData(Texture2D tex, uint id)
 {
-	return tex[uint2(id % SetDataTextureTexelSize.z, id * SetDataTextureTexelSize.x)];
+	return tex[uint2(id % _HPRW_TextureSize.x, id / _HPRW_TextureSize.x)];
 }
 
-#endif // HUWA_PIXCEL_READ_WRITE
+#endif // !defined(HUWA_PIXCEL_READ_WRITE)
