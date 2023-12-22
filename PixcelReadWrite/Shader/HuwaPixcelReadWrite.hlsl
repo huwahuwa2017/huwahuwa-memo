@@ -1,4 +1,4 @@
-// Ver2 2023/10/14 10:27
+// Ver3 2023/12/22 14:25
 
 #if !defined(HUWA_PIXCEL_READ_WRITE)
 #define HUWA_PIXCEL_READ_WRITE
@@ -42,7 +42,9 @@ clipPosition.xy = _HPRW23994811 + _HPRW65645850.xy;\
 stream.Append(output);\
 stream.RestartStrip();
 
-#define GetPixcelData(tex, id)\
-tex[int2(id % SetDataTextureTexelSize.z, id * SetDataTextureTexelSize.x)];
+float4 GetPixcelData(Texture2D tex, uint id)
+{
+	return tex[uint2(id % SetDataTextureTexelSize.z, id * SetDataTextureTexelSize.x)];
+}
 
 #endif // HUWA_PIXCEL_READ_WRITE
