@@ -1,4 +1,4 @@
-// Ver9 2023-12-23 23:35
+// Ver10 2023-12-24 04:34
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
@@ -77,6 +77,8 @@ float4 L15bitToFP16(uint4 input)
 	return asfloat(data);
 }
 
+
+
 uint FP16ToL15bit(float input)
 {
 	uint temp0 = asuint(input);
@@ -107,6 +109,50 @@ uint4 FP16ToL15bit(float4 input)
 	uint4 data = temp0 & 0x80000000;
 	data |= (temp0 & 0x07FFE000) << 4;
 	return data;
+}
+
+
+
+float L14bitToFP16(uint input)
+{
+	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+}
+
+float2 L14bitToFP16(uint2 input)
+{
+	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+}
+
+float3 L14bitToFP16(uint3 input)
+{
+	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+}
+
+float4 L14bitToFP16(uint4 input)
+{
+	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+}
+
+
+
+uint FP16ToL14bit(float input)
+{
+	return (asuint(input) & 0x07FFE000) << 5;
+}
+
+uint2 FP16ToL14bit(float2 input)
+{
+	return (asuint(input) & 0x07FFE000) << 5;
+}
+
+uint3 FP16ToL14bit(float3 input)
+{
+	return (asuint(input) & 0x07FFE000) << 5;
+}
+
+uint4 FP16ToL14bit(float4 input)
+{
+	return (asuint(input) & 0x07FFE000) << 5;
 }
 
 #endif // !defined(HUWA_TEXEL_READ_WRITE)
