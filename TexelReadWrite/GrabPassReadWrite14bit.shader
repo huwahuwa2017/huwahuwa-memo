@@ -156,9 +156,9 @@
 				uint4 data3 = FP16ToL14bit(data1);
 
 				uint3 data4 = (data2.xyz | (data3.xyz >> 14));
-				data4.x |= (data2.w & 0xC0000000) >> 28;
-				data4.y |= (data2.w & 0x30000000) >> 24;
-				data4.z |= (data2.w & 0x0C000000) >> 20;
+				data4.x |= (data2.w & 0xF0000000) >> 28;
+				data4.y |= (data2.w & 0x0F000000) >> 24;
+				data4.z |= (data2.w & 0x00F00000) >> 20;
 
 				float3 wPos = float4(asfloat(data4), 1.0);
 
