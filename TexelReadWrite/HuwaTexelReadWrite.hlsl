@@ -1,14 +1,14 @@
-// Ver10 2023-12-24 04:34
+// Ver11 2023-12-24 17:13
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
 
 #include "UnityCG.cginc"
 
-#if !defined(HPRW_SetDataTextureSize)
+#if !defined(HPRW_SET_DATA_TEXTURE_SIZE)
 static uint2 _HPRW_TextureSize = uint2(_ScreenParams.xy + 0.5);
 #else
-static uint2 _HPRW_TextureSize = HPRW_SetDataTextureSize;
+static uint2 _HPRW_TextureSize = HPRW_SET_DATA_TEXTURE_SIZE;
 #endif
 
 static float3 _HPRW_TexelSize = float3(2.0 / float2(_HPRW_TextureSize), 0.0);

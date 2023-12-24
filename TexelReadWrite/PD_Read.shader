@@ -41,7 +41,7 @@
 			Texture2D _DataTex;
 			float4 _DataTex_TexelSize;
 
-			#define HPRW_SetDataTextureSize uint2(_DataTex_TexelSize.zw + 0.5)
+			#define HPRW_SET_DATA_TEXTURE_SIZE uint2(_DataTex_TexelSize.zw + 0.5)
 			#include "HuwaTexelReadWrite.hlsl"
 
 			V2G VertexShaderStage(I2V input)
