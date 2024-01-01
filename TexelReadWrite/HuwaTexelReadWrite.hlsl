@@ -1,4 +1,4 @@
-// Ver11 2023-12-24 17:13
+// Ver12 2024-01-02 04:26
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
@@ -11,31 +11,25 @@ static uint2 _HPRW_TextureSize = uint2(_ScreenParams.xy + 0.5);
 static uint2 _HPRW_TextureSize = HPRW_SET_DATA_TEXTURE_SIZE;
 #endif
 
-static float3 _HPRW_TexelSize = float3(2.0 / float2(_HPRW_TextureSize), 0.0);
+static float3 _HPRW_TexelSize = float3(2.0 / float(_HPRW_TextureSize.x), 2.0 / float(_HPRW_TextureSize.y) * _ProjectionParams.x, 0.0);
 
 static float2 _HPRW_Temp = 0.0;
 
 float2 HPRW_GetTexelPosition(uint id)
 {
 	float2 pos = float2(id % _HPRW_TextureSize.x, id / _HPRW_TextureSize.x);
-	pos = pos * _HPRW_TexelSize.xy - 1.0;
-
-#if UNITY_UV_STARTS_AT_TOP
-	pos.y = -pos.y - _HPRW_TexelSize.y;
-#endif
-	
-	return pos;
+	return pos * _HPRW_TexelSize.xy - float2(1.0, _ProjectionParams.x);
 }
 
 #define HPRW_TEXEL_GENERATION(id, clipPosition, stream)\
 _HPRW_Temp = HPRW_GetTexelPosition(id);\
-clipPosition.z = 0.999;\
+clipPosition.z = 0.5;\
 clipPosition.w = 1.0;\
 clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.zz;\
 stream.Append(output);\
-clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.xz;\
-stream.Append(output);\
 clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.zy;\
+stream.Append(output);\
+clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.xz;\
 stream.Append(output);\
 clipPosition.xy = _HPRW_Temp + _HPRW_TexelSize.xy;\
 stream.Append(output);\
