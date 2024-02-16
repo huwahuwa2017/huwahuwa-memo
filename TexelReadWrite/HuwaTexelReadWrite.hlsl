@@ -1,4 +1,4 @@
-// Ver12 2024-01-02 04:26
+// Ver13 2024-02-16 17:35
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
@@ -39,114 +39,187 @@ stream.RestartStrip();
 
 
 
-float L15bitToFP16(uint input)
+#define HPRW_R15BIT_TO_FP16 \
+temp0 = (input & 0x000003FF) << 13;\
+temp1 = (input & 0x00003C00) >> 10;\
+temp1 = (113 + temp1) << 23;\
+temp2 = (input & 0x00004000) << 17;\
+return asfloat(temp0 | temp1 | temp2);
+
+float R15bitToFP16(uint input)
 {
-	uint data = 0x38000000;
-	data |= input & 0x80000000;
-	data |= (input & 0x7FFE0000) >> 4;
-	return asfloat(data);
+	uint temp0, temp1, temp2;
+	HPRW_R15BIT_TO_FP16
 }
 
-float2 L15bitToFP16(uint2 input)
+float2 R15bitToFP16(uint2 input)
 {
-	uint2 data = 0x38000000;
-	data |= input & 0x80000000;
-	data |= (input & 0x7FFE0000) >> 4;
-	return asfloat(data);
+	uint2 temp0, temp1, temp2;
+	HPRW_R15BIT_TO_FP16
 }
 
-float3 L15bitToFP16(uint3 input)
+float3 R15bitToFP16(uint3 input)
 {
-	uint3 data = 0x38000000;
-	data |= input & 0x80000000;
-	data |= (input & 0x7FFE0000) >> 4;
-	return asfloat(data);
+	uint3 temp0, temp1, temp2;
+	HPRW_R15BIT_TO_FP16
 }
 
-float4 L15bitToFP16(uint4 input)
+float4 R15bitToFP16(uint4 input)
 {
-	uint4 data = 0x38000000;
-	data |= input & 0x80000000;
-	data |= (input & 0x7FFE0000) >> 4;
-	return asfloat(data);
+	uint4 temp0, temp1, temp2;
+	HPRW_R15BIT_TO_FP16
 }
 
+#define HPRW_R14BIT_TO_FP16 \
+temp0 = (input & 0x000003FF) << 13;\
+temp1 = (input & 0x00003C00) >> 10;\
+temp1 = (113 + temp1) << 23;\
+return asfloat(temp0 | temp1);
 
-
-uint FP16ToL15bit(float input)
+float R14bitToFP16(uint input)
 {
-	uint temp0 = asuint(input);
-	uint data = temp0 & 0x80000000;
-	data |= (temp0 & 0x07FFE000) << 4;
-	return data;
+	uint temp0, temp1;
+	HPRW_R14BIT_TO_FP16
 }
 
-uint2 FP16ToL15bit(float2 input)
+float2 R14bitToFP16(uint2 input)
 {
-	uint2 temp0 = asuint(input);
-	uint2 data = temp0 & 0x80000000;
-	data |= (temp0 & 0x07FFE000) << 4;
-	return data;
+	uint2 temp0, temp1;
+	HPRW_R14BIT_TO_FP16
 }
 
-uint3 FP16ToL15bit(float3 input)
+float3 R14bitToFP16(uint3 input)
 {
-	uint3 temp0 = asuint(input);
-	uint3 data = temp0 & 0x80000000;
-	data |= (temp0 & 0x07FFE000) << 4;
-	return data;
+	uint3 temp0, temp1;
+	HPRW_R14BIT_TO_FP16
 }
 
-uint4 FP16ToL15bit(float4 input)
+float4 R14bitToFP16(uint4 input)
 {
-	uint4 temp0 = asuint(input);
-	uint4 data = temp0 & 0x80000000;
-	data |= (temp0 & 0x07FFE000) << 4;
-	return data;
+	uint4 temp0, temp1;
+	HPRW_R14BIT_TO_FP16
 }
 
+#define HPRW_R10BIT_TO_FP16 \
+temp0 = (input & 0x000003FF) << 13;\
+return asfloat(temp0 | 0x38800000);
 
-
-float L14bitToFP16(uint input)
+float R10bitToFP16(uint input)
 {
-	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+	uint temp0;
+	HPRW_R10BIT_TO_FP16
 }
 
-float2 L14bitToFP16(uint2 input)
+float2 R10bitToFP16(uint2 input)
 {
-	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+	uint2 temp0;
+	HPRW_R10BIT_TO_FP16
 }
 
-float3 L14bitToFP16(uint3 input)
+float3 R10bitToFP16(uint3 input)
 {
-	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+	uint3 temp0;
+	HPRW_R10BIT_TO_FP16
 }
 
-float4 L14bitToFP16(uint4 input)
+float4 R10bitToFP16(uint4 input)
 {
-	return asfloat(0x38000000 | ((input & 0xFFFC0000) >> 5));
+	uint4 temp0;
+	HPRW_R10BIT_TO_FP16
 }
 
 
 
-uint FP16ToL14bit(float input)
+#define HPRW_FP16_TO_R15BIT \
+data = asuint(input);\
+temp0 = (data & 0x007FE000) >> 13;\
+temp1 = (data & 0x7F800000) >> 23;\
+temp1 = (temp1 - 113) << 10;\
+temp2 = (data & 0x80000000) >> 17;\
+return temp0 | temp1 | temp2;
+
+uint FP16ToR15bit(float input)
 {
-	return (asuint(input) & 0x07FFE000) << 5;
+	uint data, temp0, temp1, temp2;
+	HPRW_FP16_TO_R15BIT
 }
 
-uint2 FP16ToL14bit(float2 input)
+uint2 FP16ToR15bit(float2 input)
 {
-	return (asuint(input) & 0x07FFE000) << 5;
+	uint2 data, temp0, temp1, temp2;
+	HPRW_FP16_TO_R15BIT
 }
 
-uint3 FP16ToL14bit(float3 input)
+uint3 FP16ToR15bit(float3 input)
 {
-	return (asuint(input) & 0x07FFE000) << 5;
+	uint3 data, temp0, temp1, temp2;
+	HPRW_FP16_TO_R15BIT
 }
 
-uint4 FP16ToL14bit(float4 input)
+uint4 FP16ToR15bit(float4 input)
 {
-	return (asuint(input) & 0x07FFE000) << 5;
+	uint4 data, temp0, temp1, temp2;
+	HPRW_FP16_TO_R15BIT
+}
+
+#define HPRW_FP16_TO_R14BIT \
+data = asuint(input);\
+temp0 = (data & 0x007FE000) >> 13;\
+temp1 = (data & 0x7F800000) >> 23;\
+temp1 = (temp1 - 113) << 10;\
+return temp0 | temp1;
+
+uint FP16ToR14bit(float input)
+{
+	uint data, temp0, temp1;
+	HPRW_FP16_TO_R14BIT
+}
+
+uint2 FP16ToR14bit(float2 input)
+{
+	uint2 data, temp0, temp1;
+	HPRW_FP16_TO_R14BIT
+}
+
+uint3 FP16ToR14bit(float3 input)
+{
+	uint3 data, temp0, temp1;
+	HPRW_FP16_TO_R14BIT
+}
+
+uint4 FP16ToR14bit(float4 input)
+{
+	uint4 data, temp0, temp1;
+	HPRW_FP16_TO_R14BIT
+}
+
+#define HPRW_FP16_TO_R10BIT \
+data = asuint(input);\
+temp0 = (data & 0x007FE000) >> 13;\
+return temp0;
+
+uint FP16ToR10bit(float input)
+{
+	uint data, temp0;
+	HPRW_FP16_TO_R10BIT
+}
+
+uint2 FP16ToR10bit(float2 input)
+{
+	uint2 data, temp0;
+	HPRW_FP16_TO_R10BIT
+}
+
+uint3 FP16ToR10bit(float3 input)
+{
+	uint3 data, temp0;
+	HPRW_FP16_TO_R10BIT
+}
+
+uint4 FP16ToR10bit(float4 input)
+{
+	uint4 data, temp0;
+	HPRW_FP16_TO_R10BIT
 }
 
 #endif // !defined(HUWA_TEXEL_READ_WRITE)

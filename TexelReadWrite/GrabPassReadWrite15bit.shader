@@ -68,10 +68,10 @@
 
 				temp0 = asuint(input[0].data.xyz);
 
-				data0.xyz = L15bitToFP16(temp0);
-				data1.xyz = L15bitToFP16(temp0 << 15);
-				temp0 &= 0x00000003;
-				data0.w = L15bitToFP16((temp0.x << 30) | (temp0.y << 28) | (temp0.z << 26));
+				data0.xyz = R15bitToFP16(temp0);
+				data1.xyz = R15bitToFP16(temp0 >> 15);
+				temp0 &= 0xC0000000;
+				data0.w = R15bitToFP16((temp0.x >> 30) | (temp0.y >> 28) | (temp0.z >> 26));
 				data1.w = 0.0;
 
 				output.data = data0;
@@ -80,11 +80,11 @@
 				HPRW_TEXEL_GENERATION((input[0].vertexID * 2 + 1), output.cPos, stream);
 
 				temp0 = asuint(input[1].data.xyz);
-
-				data0.xyz = L15bitToFP16(temp0);
-				data1.xyz = L15bitToFP16(temp0 << 15);
-				temp0 &= 0x00000003;
-				data0.w = L15bitToFP16((temp0.x << 30) | (temp0.y << 28) | (temp0.z << 26));
+				
+				data0.xyz = R15bitToFP16(temp0);
+				data1.xyz = R15bitToFP16(temp0 >> 15);
+				temp0 &= 0xC0000000;
+				data0.w = R15bitToFP16((temp0.x >> 30) | (temp0.y >> 28) | (temp0.z >> 26));
 				data1.w = 0.0;
 
 				output.data = data0;
@@ -93,11 +93,11 @@
 				HPRW_TEXEL_GENERATION((input[1].vertexID * 2 + 1), output.cPos, stream);
 
 				temp0 = asuint(input[2].data.xyz);
-
-				data0.xyz = L15bitToFP16(temp0);
-				data1.xyz = L15bitToFP16(temp0 << 15);
-				temp0 &= 0x00000003;
-				data0.w = L15bitToFP16((temp0.x << 30) | (temp0.y << 28) | (temp0.z << 26));
+				
+				data0.xyz = R15bitToFP16(temp0);
+				data1.xyz = R15bitToFP16(temp0 >> 15);
+				temp0 &= 0xC0000000;
+				data0.w = R15bitToFP16((temp0.x >> 30) | (temp0.y >> 28) | (temp0.z >> 26));
 				data1.w = 0.0;
 
 				output.data = data0;
@@ -152,13 +152,13 @@
 				float4 data0 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid);
 				float4 data1 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid + 1);
 
-				uint4 data2 = FP16ToL15bit(data0);
-				uint4 data3 = FP16ToL15bit(data1);
+				uint4 data2 = FP16ToR15bit(data0);
+				uint4 data3 = FP16ToR15bit(data1);
 
-				uint3 data4 = (data2.xyz | (data3.xyz >> 15));
-				data4.x |= (data2.w & 0xC0000000) >> 30;
-				data4.y |= (data2.w & 0x30000000) >> 28;
-				data4.z |= (data2.w & 0x0C000000) >> 26;
+				uint3 data4 = (data2.xyz | (data3.xyz << 15));
+				data4.x |= (data2.w & 0x00000003) << 30;
+				data4.y |= (data2.w & 0x0000000C) << 28;
+				data4.z |= (data2.w & 0x00000030) << 26;
 
 				float3 wPos = float4(asfloat(data4), 1.0);
 
