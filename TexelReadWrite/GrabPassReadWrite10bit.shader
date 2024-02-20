@@ -1,4 +1,4 @@
-﻿Shader "TexelReadWrite/GrabPassReadWrite14bit"
+﻿Shader "TexelReadWrite/GrabPassReadWrite10bit"
 {
 	SubShader
 	{
@@ -50,7 +50,7 @@
 				return output;
 			}
 
-			[maxvertexcount(24)]
+			[maxvertexcount(36)]
 			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream)
 			{
 				// ここで保存したい情報をピクセルにする
@@ -64,46 +64,51 @@
 
 				float4 data0;
 				float4 data1;
+				float4 data2;
 				uint3 temp0;
+				uint vid;
 
 				temp0 = asuint(input[0].data.xyz);
+				vid = input[0].vertexID * 3;
 
-				data0.xyz = R14bitToFP16(temp0);
-				data1.xyz = R14bitToFP16(temp0 >> 14);
-				temp0 &= 0xF0000000;
-				data0.w = R14bitToFP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
-				data1.w = 0.0;
+				data0 = R10bitToFP16(uint4(temp0.x, temp0.x >> 10, temp0.x >> 20, temp0.x >> 30));
+				data1 = R10bitToFP16(uint4(temp0.y, temp0.y >> 10, temp0.y >> 20, temp0.y >> 30));
+				data2 = R10bitToFP16(uint4(temp0.z, temp0.z >> 10, temp0.z >> 20, temp0.z >> 30));
 
 				output.data = data0;
-				HPRW_TEXEL_GENERATION((input[0].vertexID * 2), output.cPos, stream);
+				HPRW_TEXEL_GENERATION(vid, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_GENERATION((input[0].vertexID * 2 + 1), output.cPos, stream);
+				HPRW_TEXEL_GENERATION(vid + 1, output.cPos, stream);
+				output.data = data2;
+				HPRW_TEXEL_GENERATION(vid + 2, output.cPos, stream);
 
 				temp0 = asuint(input[1].data.xyz);
+				vid = input[1].vertexID * 3;
 				
-				data0.xyz = R14bitToFP16(temp0);
-				data1.xyz = R14bitToFP16(temp0 >> 14);
-				temp0 &= 0xF0000000;
-				data0.w = R14bitToFP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
-				data1.w = 0.0;
+				data0 = R10bitToFP16(uint4(temp0.x, temp0.x >> 10, temp0.x >> 20, temp0.x >> 30));
+				data1 = R10bitToFP16(uint4(temp0.y, temp0.y >> 10, temp0.y >> 20, temp0.y >> 30));
+				data2 = R10bitToFP16(uint4(temp0.z, temp0.z >> 10, temp0.z >> 20, temp0.z >> 30));
 
 				output.data = data0;
-				HPRW_TEXEL_GENERATION((input[1].vertexID * 2), output.cPos, stream);
+				HPRW_TEXEL_GENERATION(vid, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_GENERATION((input[1].vertexID * 2 + 1), output.cPos, stream);
+				HPRW_TEXEL_GENERATION(vid + 1, output.cPos, stream);
+				output.data = data2;
+				HPRW_TEXEL_GENERATION(vid + 2, output.cPos, stream);
 
 				temp0 = asuint(input[2].data.xyz);
+				vid = input[2].vertexID * 3;
 				
-				data0.xyz = R14bitToFP16(temp0);
-				data1.xyz = R14bitToFP16(temp0 >> 14);
-				temp0 &= 0xF0000000;
-				data0.w = R14bitToFP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
-				data1.w = 0.0;
+				data0 = R10bitToFP16(uint4(temp0.x, temp0.x >> 10, temp0.x >> 20, temp0.x >> 30));
+				data1 = R10bitToFP16(uint4(temp0.y, temp0.y >> 10, temp0.y >> 20, temp0.y >> 30));
+				data2 = R10bitToFP16(uint4(temp0.z, temp0.z >> 10, temp0.z >> 20, temp0.z >> 30));
 
 				output.data = data0;
-				HPRW_TEXEL_GENERATION((input[2].vertexID * 2), output.cPos, stream);
+				HPRW_TEXEL_GENERATION(vid, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_GENERATION((input[2].vertexID * 2 + 1), output.cPos, stream);
+				HPRW_TEXEL_GENERATION(vid + 1, output.cPos, stream);
+				output.data = data2;
+				HPRW_TEXEL_GENERATION(vid + 2, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target
@@ -147,20 +152,22 @@
 			{
 				// _HuwaGrabPass_27349865 の情報を読み取り、頂点のワールド座標を取得
 
-				uint vid = input.vertexID * 2;
+				uint vid = input.vertexID * 3;
 
 				float4 data0 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid);
 				float4 data1 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid + 1);
+				float4 data2 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid + 2);
 
-				uint4 data2 = FP16ToR14bit(data0);
-				uint4 data3 = FP16ToR14bit(data1);
+				uint4 data3 = FP16ToR10bit(data0);
+				uint4 data4 = FP16ToR10bit(data1);
+				uint4 data5 = FP16ToR10bit(data2);
 
-				uint3 data4 = (data2.xyz | (data3.xyz << 14));
-				data4.x |= (data2.w & 0x0000000F) << 28;
-				data4.y |= (data2.w & 0x000000F0) << 24;
-				data4.z |= (data2.w & 0x00000F00) << 20;
+				uint3 data6 = 0;
+				data6.x = data3.x | (data3.y << 10) | (data3.z << 20) | (data3.w << 30);
+				data6.y = data4.x | (data4.y << 10) | (data4.z << 20) | (data4.w << 30);
+				data6.z = data5.x | (data5.y << 10) | (data5.z << 20) | (data5.w << 30);
 
-				float3 wPos = asfloat(data4);
+				float3 wPos = asfloat(data6);
 
 				V2F output = (V2F)0;
 				output.cPos = mul(UNITY_MATRIX_VP, float4(wPos, 1.0));

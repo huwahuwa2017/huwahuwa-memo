@@ -160,7 +160,7 @@
 				data4.y |= (data2.w & 0x0000000C) << 28;
 				data4.z |= (data2.w & 0x00000030) << 26;
 
-				float3 wPos = float4(asfloat(data4), 1.0);
+				float3 wPos = asfloat(data4);
 
 				V2F output = (V2F)0;
 				output.cPos = mul(UNITY_MATRIX_VP, float4(wPos, 1.0));
