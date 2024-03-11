@@ -1,3 +1,5 @@
+// Ver1 2024-03-12 00:58
+
 float2x2 inverse(float2x2 m)
 {
     return float2x2(m._22, -m._12, -m._21, m._11) * rcp(determinant(m));
