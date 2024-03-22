@@ -1,4 +1,4 @@
-// Ver17 2024-03-23 04:23
+// Ver18 2024-03-23 04:37
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -110,25 +110,25 @@ float4 FloatPositiveModulo(float4 a, float4 b)
     return ((a % b) + b) % b;
 }
 
-int IntPositiveModulo(int a, uint b)
+uint IntPositiveModulo(int a, uint b)
 {
     int temp1 = uint(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
-int2 IntPositiveModulo(int2 a, uint2 b)
+uint2 IntPositiveModulo(int2 a, uint2 b)
 {
     int2 temp1 = uint2(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
-int3 IntPositiveModulo(int3 a, uint3 b)
+uint3 IntPositiveModulo(int3 a, uint3 b)
 {
     int3 temp1 = uint3(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
-int4 IntPositiveModulo(int4 a, uint4 b)
+uint4 IntPositiveModulo(int4 a, uint4 b)
 {
     int4 temp1 = uint4(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
