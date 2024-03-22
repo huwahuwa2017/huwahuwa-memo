@@ -1,4 +1,4 @@
-// Ver16 2024-03-23 03:01
+// Ver17 2024-03-23 04:23
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -110,31 +110,27 @@ float4 FloatPositiveModulo(float4 a, float4 b)
     return ((a % b) + b) % b;
 }
 
-int IntPositiveModulo(int a, int b)
+int IntPositiveModulo(int a, uint b)
 {
-    b = max(b, -b);
-    int temp1 = uint(max(a, -a)) % uint(b);
+    int temp1 = uint(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
-int2 IntPositiveModulo(int2 a, int2 b)
+int2 IntPositiveModulo(int2 a, uint2 b)
 {
-    b = max(b, -b);
-    int2 temp1 = uint2(max(a, -a)) % uint2(b);
+    int2 temp1 = uint2(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
-int3 IntPositiveModulo(int3 a, int3 b)
+int3 IntPositiveModulo(int3 a, uint3 b)
 {
-    b = max(b, -b);
-    int3 temp1 = uint3(max(a, -a)) % uint3(b);
+    int3 temp1 = uint3(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
-int4 IntPositiveModulo(int4 a, int4 b)
+int4 IntPositiveModulo(int4 a, uint4 b)
 {
-    b = max(b, -b);
-    int4 temp1 = uint4(max(a, -a)) % uint4(b);
+    int4 temp1 = uint4(abs(a)) % b;
     return (a & 0x80000000) ? b - temp1 : temp1;
 }
 
@@ -158,7 +154,7 @@ distance0 = flag0 ? tempDistance : distance0;\
 color = flag0 ? randomFloat : color;\
 relativePosition = flag0 ? tempRP : relativePosition;
 
-void CellularNoise(in float input, in int repetition, out float distance0, out float distance1, out float color, out float relativePosition)
+void CellularNoise(in float input, in uint repetition, out float distance0, out float distance1, out float color, out float relativePosition)
 {
     bool repetitionFlag;
     int inputInt;
@@ -186,7 +182,7 @@ void CellularNoise(in float input, in int repetition, out float distance0, out f
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Euclidean distance square
-void CellularNoise(in int type, in float2 input, in int2 repetition, out float distance0, out float distance1, out float2 color, out float2 relativePosition)
+void CellularNoise(in int type, in float2 input, in uint2 repetition, out float distance0, out float distance1, out float2 color, out float2 relativePosition)
 {
     bool2 repetitionFlag;
     int2 inputInt;
@@ -237,7 +233,7 @@ void CellularNoise(in int type, in float2 input, in int2 repetition, out float d
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Euclidean distance square
-void CellularNoise(in int type, in float3 input, in int3 repetition, out float distance0, out float distance1, out float3 color, out float3 relativePosition)
+void CellularNoise(in int type, in float3 input, in uint3 repetition, out float distance0, out float distance1, out float3 color, out float3 relativePosition)
 {
     bool3 repetitionFlag;
     int3 inputInt;
@@ -288,7 +284,7 @@ void CellularNoise(in int type, in float3 input, in int3 repetition, out float d
 // type = 1  Euclidean distance
 // type = 2  Chebyshev distance
 // type = 3  Euclidean distance square
-void CellularNoise(in int type, in float4 input, in int4 repetition, out float distance0, out float distance1, out float4 color, out float4 relativePosition)
+void CellularNoise(in int type, in float4 input, in uint4 repetition, out float distance0, out float distance1, out float4 color, out float4 relativePosition)
 {
     bool4 repetitionFlag;
     int4 inputInt;
