@@ -1,7 +1,9 @@
-// Ver14 2024-03-22 16:40
+// Ver15 2024-03-22 18:10
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
+
+#pragma warning(disable:3556)
 
 #define HCN_SETUP_0\
 distance0 = 9.9;\
