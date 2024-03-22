@@ -1,29 +1,7 @@
-// Ver15 2024-03-22 18:10
+// Ver16 2024-03-23 03:01
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
-
-#pragma warning(disable:3556)
-
-#define HCN_SETUP_0\
-distance0 = 9.9;\
-distance1 = 9.9;\
-color = 0.0;\
-relativePosition = 0.0;\
-repetitionFlag = repetition == 0;\
-repetition += repetitionFlag;\
-input = repetitionFlag ? input : ((input % repetition) + repetition) % repetition;\
-inputInt = floor(input);\
-input -= inputInt;
-
-#define HCN_SETUP_1\
-bool flag0 = tempDistance < distance0;\
-bool flag1 = tempDistance < distance1;\
-distance1 = flag1 ? tempDistance : distance1;\
-distance1 = flag0 ? distance0 : distance1;\
-distance0 = flag0 ? tempDistance : distance0;\
-color = flag0 ? randomFloat : color;\
-relativePosition = flag0 ? tempRP : relativePosition;
 
 #include "HuwaRandomFunction.hlsl"
 
@@ -112,6 +90,74 @@ static int4 _HCN_PositionShift[] =
     int4(-1, -1, -1, -1)
 };
 
+float FloatPositiveModulo(float a, float b)
+{
+    return ((a % b) + b) % b;
+}
+
+float2 FloatPositiveModulo(float2 a, float2 b)
+{
+    return ((a % b) + b) % b;
+}
+
+float3 FloatPositiveModulo(float3 a, float3 b)
+{
+    return ((a % b) + b) % b;
+}
+
+float4 FloatPositiveModulo(float4 a, float4 b)
+{
+    return ((a % b) + b) % b;
+}
+
+int IntPositiveModulo(int a, int b)
+{
+    b = max(b, -b);
+    int temp1 = uint(max(a, -a)) % uint(b);
+    return (a & 0x80000000) ? b - temp1 : temp1;
+}
+
+int2 IntPositiveModulo(int2 a, int2 b)
+{
+    b = max(b, -b);
+    int2 temp1 = uint2(max(a, -a)) % uint2(b);
+    return (a & 0x80000000) ? b - temp1 : temp1;
+}
+
+int3 IntPositiveModulo(int3 a, int3 b)
+{
+    b = max(b, -b);
+    int3 temp1 = uint3(max(a, -a)) % uint3(b);
+    return (a & 0x80000000) ? b - temp1 : temp1;
+}
+
+int4 IntPositiveModulo(int4 a, int4 b)
+{
+    b = max(b, -b);
+    int4 temp1 = uint4(max(a, -a)) % uint4(b);
+    return (a & 0x80000000) ? b - temp1 : temp1;
+}
+
+#define HCN_SETUP_0 \
+distance0 = 9.9;\
+distance1 = 9.9;\
+color = 0.0;\
+relativePosition = 0.0;\
+repetitionFlag = repetition == 0;\
+repetition += repetitionFlag;\
+input = repetitionFlag ? input : FloatPositiveModulo(input, repetition);\
+inputInt = floor(input);\
+input -= inputInt;
+
+#define HCN_SETUP_1 \
+bool flag0 = tempDistance < distance0;\
+bool flag1 = tempDistance < distance1;\
+distance1 = flag1 ? tempDistance : distance1;\
+distance1 = flag0 ? distance0 : distance1;\
+distance0 = flag0 ? tempDistance : distance0;\
+color = flag0 ? randomFloat : color;\
+relativePosition = flag0 ? tempRP : relativePosition;
+
 void CellularNoise(in float input, in int repetition, out float distance0, out float distance1, out float color, out float relativePosition)
 {
     bool repetitionFlag;
@@ -124,7 +170,7 @@ void CellularNoise(in float input, in int repetition, out float distance0, out f
         int shift = _HCN_PositionShift[index];
         
         int target = inputInt + shift;
-        target = repetitionFlag ? target : ((target % repetition) + repetition) % repetition;
+        target = repetitionFlag ? target : IntPositiveModulo(target, repetition);
         
         uint random = ValueToRandom(target);
         float randomFloat = RandomToFloatAbs(random);
@@ -152,7 +198,7 @@ void CellularNoise(in int type, in float2 input, in int2 repetition, out float d
         int2 shift = _HCN_PositionShift[index];
         
         int2 target = inputInt + shift;
-        target = repetitionFlag ? target : ((target % repetition) + repetition) % repetition;
+        target = repetitionFlag ? target : IntPositiveModulo(target, repetition);
         
         uint random = ValueToRandom(target);
         float2 randomFloat = float2(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
@@ -203,7 +249,7 @@ void CellularNoise(in int type, in float3 input, in int3 repetition, out float d
         int3 shift = _HCN_PositionShift[index];
         
         int3 target = inputInt + shift;
-        target = repetitionFlag ? target : ((target % repetition) + repetition) % repetition;
+        target = repetitionFlag ? target : IntPositiveModulo(target, repetition);
         
         uint random = ValueToRandom(target);
         float3 randomFloat = float3(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
@@ -254,7 +300,7 @@ void CellularNoise(in int type, in float4 input, in int4 repetition, out float d
         int4 shift = _HCN_PositionShift[index];
         
         int4 target = inputInt + shift;
-        target = repetitionFlag ? target : ((target % repetition) + repetition) % repetition;
+        target = repetitionFlag ? target : IntPositiveModulo(target, repetition);
         
         uint random = ValueToRandom(target);
         float4 randomFloat = float4(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
