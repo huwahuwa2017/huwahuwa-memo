@@ -1,0 +1,326 @@
+順番
+
+Tags
+
+Cull
+ZWrite
+ZTest
+Offset
+Blend
+
+Stencil
+
+#pragma
+#define #include
+
+
+
+#pragma require tessellation
+#pragma require geometry
+
+#pragma vertex VertexShaderStage
+#pragma hull HullShaderStage
+#pragma domain DomainShaderStage
+#pragma geometry GeometryShaderStage
+#pragma fragment FragmentShaderStage
+
+struct TessellationFactor
+{
+    float tessFactor[3] : SV_TessFactor;
+    float insideTessFactor : SV_InsideTessFactor;
+};
+
+struct I2V
+{
+    float4 lPos : POSITION;
+    float3 lNormal : NORMAL;
+    float4 lTangent : TANGENT;
+    float2 uv : TEXCOORD0;
+};
+
+struct V2G
+{
+    float4 cPos : TEXCOORD0;
+    float2 uv : TEXCOORD1;
+};
+
+struct G2F
+{
+    float4 cPos : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
+
+
+shader_featureはキーワードが一切定義されていないバリアントもコンパイルする
+なので以下の書き方ができる
+#pragma shader_feature_local _TEST ← 動作する
+
+multi_compile_localはオフ用の定義を自動生成してくれない
+#pragma multi_compile_local _TEST ← 動作しない
+#pragma multi_compile_local _ _TEST ← 動作する
+
+
+
+ShaderAPI が DirectX の場合
+GL.GetGPUProjectionMatrix は投影行列の形式を OpenGL 形式から Direct3D11 形式に変換する
+OpenGL 形式の射影行列をそのまま Camera.projectionMatrix に代入しても問題ないので、自動的に OpenGL 形式から Direct3D11 形式に変換していると考えられる
+OpenGL 形式の射影行列を Camera.projectionMatrix に代入する場合は GL.GetGPUProjectionMatrix を使う必要はない
+OpenGL 形式の射影行列を Material.SetMatrix でシェーダーに渡す場合に GL.GetGPUProjectionMatrix を使う
+Camera.projectionMatrix から得られる射影行列は OpenGL 形式のはず（たぶん）
+
+
+
+PNGとして出力と入力が両方可能な形式
+R8G8B8A8_UNorm
+R8_UNorm
+R16_UNorm
+
+
+
+channel0 (TEXCOORD0) 普通のUV座標
+channel1 (TEXCOORD1) ライトマップ用UV座標
+channel2 (TEXCOORD2) リアルタイムライトマップ用UV座標
+
+
+
+影
+UNITY_LIGHTING_COORDS & UNITY_TRANSFER_LIGHTING & UNITY_LIGHT_ATTENUATION
+UNITY_TRANSFER_LIGHTINGがLightMode=ForwardAddの時使用不可なので没
+
+LIGHTING_COORDS & TRANSFER_SHADOW & UNITY_LIGHT_ATTENUATION
+悪くない
+
+SHADOW_COORDS & TRANSFER_SHADOW & UNITY_LIGHT_ATTENUATION
+現時点で最高
+
+SHADOW_COORDS & TRANSFER_SHADOW & SHADOW_ATTENUATION
+ForwardBase専用　データ量をかなり小さくできる
+
+
+
+DX9
+sampler2D Tex0;
+float4 color = tex2D(Tex0, xy)
+
+DX11
+Texture2D<float4> Tex0 : register(t0);
+sampler Tex0Sampler : register(s0);
+float4 color = Tex0.Sample(Tex0Sampler, xy)
+
+ShaderLabではDX11をDX9っぽく書けるようにするために色々な関数が追加されている
+
+
+
+UNITY_STEREO_MULTIVIEW_ENABLED
+
+UNITY_SINGLE_PASS_STEREO
+
+UNITY_STEREO_INSTANCING_ENABLED
+
+
+
+#if defined(UNITY_REVERSED_Z)
+	// DirectX系のP行列
+#else
+	// OpenGL系のP行列
+#endif
+
+
+
+頂点シェーダーからフラグメントシェーダーに方向を表すベクトルを送る時、
+頂点シェーダー側で正規化してさらにフラグメントシェーダー側でも正規化していたのだが、
+頂点シェーダー側の正規化は基本的には必要ないかもしれない
+それどころか条件によっては、頂点シェーダー側の正規化をしない方が精度が高まるかもしれない
+
+
+
+"Queue" = "Overlay+2147479647"
+"Queue" = "Overlay+815199"
+(819200-1?)
+
+
+
+static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
+↓
+float _VRChatMirrorMode;
+static bool _IsInMirror = _VRChatMirrorMode != 0.0;
+
+
+
+InputTexture.Load(int3(cPos.x, cPos.y, mipLevel), int2(offset.x, offset.y));
+↓
+InputTexture.mips[mipLevel][uint2(input.cPos.xy)];
+↓
+InputTexture[uint2(input.cPos.xy)];
+
+
+
+output.uv = input[0].uv * bary.x + input[1].uv * bary.y + input[2].uv * bary.z;
+
+
+
+頂点シェーダーからフラグメントシェーダーに方向を表すベクトルを送る時、
+頂点シェーダー側で正規化してさらにフラグメントシェーダー側でも正規化していたのだが、
+頂点シェーダー側の正規化は基本的には必要ないかもしれない
+
+
+
+距離 / 140000 = Zファイティングが発生する距離の目安
+
+
+
+float 32bit浮動小数点
+half  16bit浮動小数点
+fixed 11bit固定小数点
+
+↑要求精度が高い
+位置ベクトル　float
+UV座標　　　　float
+単位ベクトル　float, half
+色　　　　　　half, fixed
+↓要求精度が低い
+
+
+
+色空間
+色をそのまま足したり掛けたりするのがガンマワークフロー
+色をリニア空間に変換（逆ガンマ補正）をしてから足したり掛けたりした後にガンマ空間に変換（ガンマ補正）するのがリニアワークフロー
+ガンマワークフローよりリニアワークフローの方が自然に見えるらしい
+
+逆ガンマ補正(Gamma To Linear)で黒っぽくなる
+  ガンマ補正(Linear To Gamma)で白っぽくなる
+
+Unityはリニアワークフローを推奨しているくせにUnity2019のデフォルト設定はガンマワークフローになっている（罠）
+VRChatはリニアワークフローである
+
+テクスチャのインポート設定にsRGBのチェックボックスがある
+これはこのテクスチャに入っている情報が色なのか数値(ベクトル)なのかを設定する
+バンプマップやノーマルマップなどの、色ではなく数値として扱われるテクスチャは逆ガンマ補正されると困るのでsRGBのチェックを外そう
+
+ちなみにガンマワークフローでsRGBのチェックを入れたり外したりしてもなにもおきない
+
+ガンマワークフローで sRGB がオン
+テクスチャ →              → シェーダー               → モニター
+
+ガンマワークフローで sRGB がオフ
+テクスチャ                 → シェーダー               → モニター
+
+リニアワークフローで sRGB がオン
+テクスチャ → 逆ガンマ補正 → シェーダー → ガンマ補正 → モニター
+
+リニアワークフローで sRGB がオフ
+テクスチャ                 → シェーダー → ガンマ補正 → モニター
+
+Graphics.Blit
+
+source の sRGB がオフ   dest の sRGB がオフ
+source →              → シェーダー →            → dest
+
+source の sRGB がオフ   dest の sRGB がオン
+source →              → シェーダー → ガンマ補正 → dest
+
+source の sRGB がオン   dest の sRGB がオフ
+source → 逆ガンマ補正 → シェーダー →            → dest
+
+source の sRGB がオン   dest の sRGB がオン
+source → 逆ガンマ補正 → シェーダー → ガンマ補正 → dest
+
+
+
+Render Pipeline
+{
+    Built-in Render Pipeline
+
+    Scriptable Render Pipeline
+    {
+        Universal Render Pipeline (URP)
+        High-Definition Render Pipeline (HDRP)
+        Custom SRP
+    }
+}
+
+Built-in Render Pipeline
+{
+    Surface Shader
+
+    Vertex And Fragment Shader
+    {
+        Always
+        Forward
+        Deferred
+        VertexLit
+    }
+}
+
+
+
+sampler2D _ShadowMapTexture;
+
+// Created based on Unity 2022.3.8f1 AutoLight.cginc UNITY_SHADOW_ATTENUATION
+// cspXYW = computeScreenPos.xyw
+half ShadowAttenuationLod(float3 cspXYW, half lod)
+{
+#if defined(DIRECTIONAL) && defined(SHADOWS_SCREEN) && !defined(UNITY_NO_SCREENSPACE_SHADOWS) && \
+	!defined(UNITY_STEREO_MULTIVIEW_ENABLED) && !defined(UNITY_STEREO_INSTANCING_ENABLED)
+	
+	float4 coord = float4(cspXYW.xy / cspXYW.z, 0.0, lod);
+	return tex2Dlod(_ShadowMapTexture, coord).r;
+#else
+	return 1.0;
+#endif
+}
+
+
+
+    float4x4 pm = UNITY_MATRIX_P;
+    
+    float diffZ0, diffZ1;
+    {
+        float focusZ = (vPos.w * pm._m33) / -pm._m32;
+        
+        float nearZ;
+        
+#if defined(UNITY_REVERSED_Z)
+        //DirectX True near z   1 = dot(vPos, (0, 0, m22, m23)) / dot(vPos, (0, 0, m32, m33)) → vPos.z =
+        nearZ = (vPos.w * pm._m23 - pm._m33) / (pm._m32 - pm._m22);
+#else
+        //OpenGL True near z   -1 = dot(vPos, (0, 0, m22, m23)) / dot(vPos, (0, 0, m32, m33)) → vPos.z =
+        nearZ = (vPos.w * (pm._m23 + pm._m33)) / -(pm._m32 + pm._m22);
+#endif
+        
+        diffZ0 = abs(nearZ - focusZ);
+        
+#if defined(UNITY_REVERSED_Z)
+        // DirectX True near z   1 = dot(vPos, m20m21m22m23) / dot(vPos, (0, 0, m32, m33)) → vPos.z =
+        nearZ = dot(vPos.xyw, float3(pm._m20, pm._m21, pm._m23 - pm._m33)) / (pm._m32 - pm._m22);
+#else
+        // OpenGL True near z   -1 = dot(vPos, m20m21m22m23) / dot(vPos, (0, 0, m32, m33)) → vPos.z =
+        nearZ = dot(vPos.xyw, float3(pm._m20, pm._m21, pm._m23 + pm._m33)) / -(pm._m32 + pm._m22);
+#endif
+        
+        diffZ1 = abs(nearZ - focusZ);
+    }
+    
+    float temp42 = length(vPos.xy);
+    float nearGradient = (diffZ1 - diffZ0) / temp42;
+    float rayGradient = cPos.w / temp42;
+
+    // (x * rayGradient) と (x * nearGradient + diffZ1) の交点のZ座標を求める
+    float temp1 = (diffZ0 / (rayGradient - nearGradient)) * rayGradient;
+    
+    float4 temp0 = cPos;
+    temp0.x *= temp1 / temp0.w;
+    temp0.y *= temp1 / temp0.w;
+    temp0.w = temp1;
+    
+#if defined(UNITY_REVERSED_Z)
+    temp0.z = temp1;
+#else
+    temp0.z = -temp1;
+#endif
+    
+    float4x4 unity_matrix_i_vp = inverse(UNITY_MATRIX_VP);
+    float3 worldRayStartPos = mul(unity_matrix_i_vp, temp0).xyz;
+
+

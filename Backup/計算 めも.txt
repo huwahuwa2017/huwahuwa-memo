@@ -1,0 +1,527 @@
+辺の長さが1の正三角形の高さ
+1   = (0.5^2 + y^2)^0.5
+1   = (0.25 + y^2)^0.5
+1   = 0.25 + y^2
+y^2 = 0.75
+y   = 0.75^0.5
+y   = 0.86602540378443864676372317075294
+
+
+
+// Line SDF
+float3 p0, p1, pos;
+float3 edge = p1 - p0;
+float3 rp = pos - p0;
+
+float l = length(edge);
+float n = edge / l;
+float h = clamp(dot(rp, n), 0.0, l);
+float temp0 = length(rp - (n * h));
+↓
+float l = length(edge);
+float h = clamp(dot(rp, (edge / l)), 0.0, l);
+float temp0 = length(rp - ((edge / l) * h));
+↓
+float l = length(edge);
+float h = clamp(dot(rp, edge) / l, 0.0, l) / l;
+float temp0 = length(rp - (edge * h));
+↓
+float l = length(edge);
+float h = saturate(dot(rp, edge) / (l * l));
+float temp0 = length(rp - (edge * h));
+↓
+float h = saturate(dot(rp, edge) / dot(edge, edge));
+float temp0 = length(rp - (edge * h));
+
+
+
+//4ヶ所の座標
+float3 v0, v1, v2, v3;
+
+float3 lerp(float3 a, float3 b ,float t)
+{
+    return a + (b - a) * t;
+}
+
+float3 v4 = lerp(v0, v1, time);
+float3 v5 = lerp(v1, v2, time);
+float3 v6 = lerp(v2, v3, time);
+float3 v7 = lerp(v4, v5, time);
+float3 v8 = lerp(v5, v6, time);
+float3 result = lerp(v7, v8, time);
+↓
+float3 result = v0 + (v1 - v0) * (time * 3.0) + (v2 + v0 - v1 * 2.0) * (time * time * 3.0) + (v3 - v0 + (v1 - v2) * 3.0) * (time * time * time);
+↓
+float3 bccvA = v3 + (-v2 + v1) * 3.0 - v0;
+float3 bccvB = (v2 - v1 * 2.0 + v0) * 3.0;
+float3 bccvC = (v1 - v0) * 3.0;
+float3 bccvD = v0;
+float3 result = time * (time * (time * bccvA + bccvB) + bccvC) + bccvD;
+
+
+
+(x^2 + y^2)^0.5 =  1
+ x^2 + y^2      =  1
+       y^2      =  1 - x^2
+       y        = (1 - x^2)^0.5
+
+指数法則
+a^x * a^y = a^(x+y)
+a^x / a^y = a^(x-y)
+
+a^x * b^x = (a * b)^x
+a^x / b^x = (a / b)^x
+
+(a^x)^y = a^(x * y)
+
+exp(a) = exp2(a * 1.442695)
+e^a = (2^1.442695)^a = 2^(a * 1.442695)
+
+
+
+1 / (|x| + 1)
+|x| / (|x| + 1)
+
+
+
+tan((180 - 視野角) / 2) + 1
+
+
+
+angle = (angle >  180) and angle - 360 or (angle < -180) and angle + 360 or angle
+↓
+angle = Mathf.DeltaAngle(0, angle)
+
+
+
+TransformPoint     : 回転とスケールと位置
+TransformVector    : 回転とスケール
+TransformDirection : 回転
+
+
+
+step(x,y) = x >= y
+
+
+
+(a.x != 0.0 && a.y != 0.0 && a.z != 0.0) = all(a) = !any(a == 0.0) // すべての成分が0以外の場合1を返す
+(a.x != 0.0 || a.y != 0.0 || a.z != 0.0) = any(a) = !all(a == 0.0) // どれかの成分が0以外の場合1を返す
+
+(a.x == b.x && a.y == b.y && a.z == b.z) = all(a == b) = !any(a != b)
+(a.x == b.x || a.y == b.y || a.z == b.z) = any(a == b) = !all(a != b)
+
+( 4.0) % ( 1.5) = fmod( 4.0,  1.5) =  1.0;
+( 4.0) % (-1.5) = fmod( 4.0, -1.5) =  1.0;
+(-4.0) % ( 1.5) = fmod(-4.0,  1.5) = -1.0;
+(-4.0) % (-1.5) = fmod(-4.0, -1.5) = -1.0;
+
+frac( 1.25) = 0.25
+frac(-1.25) = 0.75
+frac( 1.75) = 0.75
+frac(-1.75) = 0.25
+
+
+
+int a, b;
+int result = a / b;
+↓
+int a, b;
+int temp0 = uint(max(a, -a)) / uint(max(b, -b));
+int result = ((a ^ b) & 0x80000000) ? -temp0 : temp0;
+
+
+
+int a, b;
+int result = a % b;
+↓
+int a, b;
+int temp0 = uint(max(a, -a)) % uint(max(b, -b));
+int result = (a & 0x80000000) ? -temp0 : temp0;
+
+
+
+matrix[0] よりも matrix._11_21_31_41 の方が命令数を節約できる
+
+
+
+//カメラが向いている方向(World)
+UNITY_MATRIX_I_V._m02_m12_m22
+UNITY_MATRIX_V[2].xyz
+
+//カメラが向いている方向(Local)
+UNITY_MATRIX_IT_MV[2] .xyz
+
+
+
+正規化ベクトル → ノーマルマップ
+v * 0.5 + 0.5
+(v + 1.0) * 0.5
+
+ノーマルマップ → 正規化ベクトル
+v * 2.0 - 1.0
+(v - 0.5) * 2.0
+
+R X = tangent
+G Y = binormal
+B Z = normal
+
+float3 wNormal = UnityObjectToWorldNormal(lNormal);
+float3 wTangent = UnityObjectToWorldDir(lTangent.xyz);
+float3 wBinormal = cross(wNormal, wTangent) * (lTangent.w * unity_WorldTransformParams.w);
+
+float3 unpackNormal= UnpackNormal(tex2Dlod(_NormalMap, float4(uv, 0.0, 0.0)));
+float3 unpackNormal= UnpackNormal(tex2D(_NormalMap, uv));
+
+unpackNormal = wTangent * unpackNormal.x + wBinormal * unpackNormal.y + wNormal * unpackNormal.z;
+
+
+
+Tangent (接空間) 座標系
+
+ ↓ transpose(float4x3(wTangent, wBinormal, wNormal, wPos)) で変換
+
+World 座標系
+
+
+
+Object (Local) 座標系
+
+ ↓ Model 行列 (UNITY_MATRIX_M) で変換
+
+World 座標系
+
+ ↓ View 行列 (UNITY_MATRIX_V) で変換
+
+View 座標系
+
+ ↓ Projection 行列 (UNITY_MATRIX_P) で変換
+
+Clip 座標系
+
+ ↓ ComputeNonStereoScreenPos 関数で変換 (DesktopかVRかで変わるかも)
+
+Screen 座標系
+
+
+
+// Clip 座標系から Screen 座標系へ変換
+(cPos.xy / cPos.w) * 0.5 + 0.5
+↓
+(cPos.xy / cPos.w + 1.0) * 0.5
+↓
+// ComputeNonStereoScreenPos とほぼ同じ処理
+(cPos.xy + cPos.ww) * 0.5 / cPos.w
+
+
+
+Row    行
+Column 列
+
+単位行列 (I, E)
+対角成分がすべて1で、それ以外の成分がすべて0の正方行列のこと
+
+逆行列 (A^(-1))
+A * B = I が成り立つとき
+BをAの逆行列と呼ぶ
+
+転置行列 (A^(t))
+(行, 列)成分と(列, 行)成分を入れ替えた行列
+
+正方行列
+行の数と列の数が同じ行列
+
+直行行列
+転置行列と逆行列が同じ正方行列のこと
+回転行列が直行行列の性質を持っている
+
+正則行列 可逆行列 非特異行列
+逆行列が存在できる行列
+
+┌─┐
+│  │
+└─┘
+
+ベクトルの内積
+各成分を掛け算して足し合わせるだけ
+
+(ax, ay, az)・(bx, by, bz) = ax * bx + ay * by + az * bz
+
+
+例 3x3行列 A と 3次元ベクトル B の積
+
+ ┌       ┐┌ ┐   ┌                  ┐   ┌                    ┐
+ │a  b  c││j│   │Aの1行目・Bの1列目│   │(a, b, c)・(j, m, p)│
+ │d  e  f││m│ = │Aの2行目・Bの1列目│ = │(d, e, f)・(j, m, p)│ = (a, d, g) * j + (b, e, h) * m + (c, f, i) * p
+ │g  h  i││p│   │Aの3行目・Bの1列目│   │(g, h, i)・(j, m, p)│
+ └       ┘└ ┘   └                  ┘   └                    ┘
+
+
+例 3x3行列 A と 3x3行列 B の積
+
+ ┌       ┐┌       ┐   ┌                                                            ┐   ┌                                                                  ┐
+ │a  b  c││j  k  l│   │Aの1行目・Bの1列目   Aの1行目・Bの2列目   Aの1行目・Bの3列目│   │(a, b, c)・(j, m, p)   (a, b, c)・(k, n, q)   (a, b, c)・(l, o, r)│
+ │d  e  f││m  n  o│ = │Aの2行目・Bの1列目   Aの2行目・Bの2列目   Aの2行目・Bの3列目│ = │(d, e, f)・(j, m, p)   (d, e, f)・(k, n, q)   (d, e, f)・(l, o, r)│
+ │g  h  i││p  q  r│   │Aの3行目・Bの1列目   Aの3行目・Bの2列目   Aの3行目・Bの3列目│   │(g, h, i)・(j, m, p)   (g, h, i)・(k, n, q)   (g, h, i)・(l, o, r)│
+ └       ┘└       ┘   └                                                            ┘   └                                                                  ┘
+
+
+float4x3
+(
+    a[0][0], a[0][1], a[0][2],
+    a[1][0], a[1][1], a[1][2],
+    a[2][0], a[2][1], a[2][2],
+    a[3][0], a[3][1], a[3][2]
+);
+
+float4x3
+(
+    a._m00, a._m01, a._m02,
+    a._m10, a._m11, a._m12,
+    a._m20, a._m21, a._m22,
+    a._m30, a._m31, a._m32
+);
+
+float4x3
+(
+    a._11, a._12, a._13,
+    a._21, a._22, a._23,
+    a._31, a._32, a._33,
+    a._41, a._42, a._43
+);
+
+
+
+#if !defined(UNITY_MATRIX_I_M)
+#define UNITY_MATRIX_I_M unity_WorldToObject
+#endif
+
+float3 Huwa_ObjectToWorldUnnormalizedDirection(float3 direction)
+{
+	return mul((float3x3) UNITY_MATRIX_M, direction);
+}
+
+float3 Huwa_ObjectToWorldUnnormalizedNormal(float3 normal)
+{
+#if defined(UNITY_ASSUME_UNIFORM_SCALING)
+	return Huwa_ObjectToWorldUnnormalizedDirection(normal);
+#else
+	return mul(normal, (float3x3) UNITY_MATRIX_I_M);
+#endif
+}
+
+float4 Huwa_ObjectToWorldUnnormalizedTangent(float4 tangent)
+{
+	return float4(Huwa_ObjectToWorldUnnormalizedDirection(tangent.xyz), tangent.w);
+}
+
+float3 Huwa_ObjectToWorldDirection(float3 direction)
+{
+	return normalize(Huwa_ObjectToWorldUnnormalizedDirection(direction));
+}
+
+float3 Huwa_ObjectToWorldNormal(float3 normal)
+{
+	return normalize(Huwa_ObjectToWorldUnnormalizedNormal(normal));
+}
+
+float4 Huwa_ObjectToWorldTangent(float4 tangent)
+{
+	return float4(Huwa_ObjectToWorldDirection(tangent.xyz), tangent.w);
+}
+
+
+
+float3 Huwa_SafeNormalize(float3 inVec)
+{
+	float dp3 = dot(inVec, inVec);
+	return inVec * rsqrt(dp3 + (dp3 == 0.0));
+}
+
+float ClampNormalize(float value, float min, float max)
+{
+    return saturate((value - min) / (max - min));
+}
+
+float3 PositionExtraction(float4x4 targetMatrix)
+{
+    return targetMatrix._14_24_34;
+}
+
+float3x3 ScalarMul(float3x3 mat, float scalar)
+{
+    return mat * scalar;
+}
+
+float3x3 LookRotation(float3 fv, float3 uv)
+{
+    fv = normalize(fv);
+    float3 rv = normalize(cross(uv, fv));
+    uv = cross(fv, rv);
+
+    return float3x3
+    (
+        rv.x, uv.x, fv.x,
+        rv.y, uv.y, fv.y,
+        rv.z, uv.z, fv.z
+    );
+}
+
+// 複数の親オブジェクトがある場合は使えない
+float3 ScaleExtraction(float4x4 targetMatrix)
+{
+    float x = length(targetMatrix._11_21_31);
+    float y = length(targetMatrix._12_22_32);
+    float z = length(targetMatrix._13_23_33);
+    
+    return float3(x, y, z);
+}
+
+// 複数の親オブジェクトがある場合は使えない
+float3x3 RotationExtraction(float4x4 targetMatrix)
+{
+    float3 rv = normalize(targetMatrix._11_21_31);
+    float3 uv = normalize(targetMatrix._12_22_32);
+    float3 fv = normalize(targetMatrix._13_23_33);
+    
+    return float3x3
+    (
+        rv.x, uv.x, fv.x,
+        rv.y, uv.y, fv.y,
+        rv.z, uv.z, fv.z
+    );
+}
+
+//アフィン変換用行列の逆行列の計算式
+float4x4 mat = UNITY_MATRIX_M;
+
+float3x3 temp0 = Inverse((float3x3) mat);
+float3 temp1 = -mul(temp0, mat._14_24_34);
+
+float4x4 imat = float4x4
+(
+	float4(temp0[0], temp1.x),
+	float4(temp0[1], temp1.y),
+	float4(temp0[2], temp1.z),
+	float4(0.0, 0.0, 0.0, 1.0)
+);
+
+
+
+uint Xorshift(uint seed)
+{
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return seed;
+}
+
+Xorshift( 0) → 00000000000000000000000000000000
+Xorshift( 1) → 00000000000001000010000000100001
+Xorshift( 2) → 00000000000010000100000001000010
+Xorshift( 3) → 00000000000011000110000001100011
+Xorshift( 4) → 00000000000100001000000010000100
+Xorshift( 5) → 00000000000101001010000010100101
+Xorshift( 6) → 00000000000110001100000011000110
+Xorshift( 7) → 00000000000111001110000011100111
+Xorshift( 8) → 00000000001000010000000100001000
+Xorshift( 9) → 00000000001001010010000100101001
+Xorshift(10) → 00000000001010010100000101001010
+Xorshift(11) → 00000000001011010110000101101011
+Xorshift(12) → 00000000001100011000000110001100
+Xorshift(13) → 00000000001101011010000110101101
+Xorshift(14) → 00000000001110011100000111001110
+Xorshift(15) → 00000000001111011110000111101111
+Xorshift(16) → 00000000010000100000001000110001
+
+
+
+https://www.reedbeta.com/blog/quadrilateral-interpolation-part-2
+
+ここでの^記号はウェッジ積
+
+0 = (−q + b1*u + b2*v + b3*u*v)^(b1 + b3*v)
+
+0 = (-q)^(b1) + (b1*u)^(b1) + (b2*v)^(b1) + (b3*u*v)^(b1) + (-q)^(b3*v) + (b1*u)^(b3*v) + (b2*v)^(b3*v) + (b3*u*v)^(b3*v)
+0 =   (-q^b1) +   (b1^b1)*u +   (b2^b1)*v +   (b3^b1)*u*v +   (-q^b3)*v +   (b1^b3)*u*v +   (b2^b3)*v*v + (b3^b3)*u*v*v
+
+0 = (-q^b1) + (b2^b1)*v + (b3^b1)*u*v + (-q^b3)*v + (b1^b3)*u*v + (b2^b3)*v*v
+0 = (-q^b1) + (b2^b1)*v + (-q^b3)*v + (b2^b3)*v*v + (b3^b1)*u*v + (b1^b3)*u*v
+
+0 = (-q^b1) + ((b2^b1)+(-q^b3))*v + (b2^b3)*v*v + ((b3^b1)+(b1^b3))*u*v
+0 = (-q^b1) + ((b2^b1)+(b3^ q))*v + (b2^b3)*v*v + ((b3^b1)-(b3^b1))*u*v
+0 = (b1^q)  + ((b3^ q)-(b1^b2))*v + (b2^b3)*v*v
+
+a = ★(b2 ⋀ b3)
+b = ★(b3 ⋀  q - b1 ⋀ b2)
+c = ★(b1 ⋀  q)
+
+v = 2次方程式の解の公式(a, b, c)
+
+
+
+float2 q, b1, b2, b3;
+float u, v;
+
+q = b1*u + b2*v + b3*u*v
+↓
+q.x = b1.x*u + b2.x*v + b3.x*u*v
+q.y = b1.y*u + b2.y*v + b3.y*u*v
+
+q.x = b1.x*u + b2.x*v + b3.x*u*v
+q.x - b2.x*v = b1.x*u + b3.x*u*v
+q.x - b2.x*v = (b1.x + b3.x*v)*u
+(q.x - b2.x*v) / (b1.x + b3.x*v) = u
+u = (q.x - b2.x*v) / (b1.x + b3.x*v)
+
+q.y = b1.y*u + b2.y*v + b3.y*u*v
+u = (q.y - b2.y*v) / (b1.y + b3.y*v)
+
+(q.x - b2.x*v) / (b1.x + b3.x*v) = (q.y - b2.y*v) / (b1.y + b3.y*v)
+(q.x - b2.x*v)*(b1.y + b3.y*v) = (q.y - b2.y*v)*(b1.x + b3.x*v)
+q.x*b1.y + q.x*b3.y*v - b2.x*v*b1.y - b2.x*v*b3.y*v = q.y*b1.x + q.y*b3.x*v - b2.y*v*b1.x - b2.y*v*b3.x*v
+q.x*b1.y + q.x*b3.y*v - b2.x*b1.y*v - b2.x*b3.y*v*v = q.y*b1.x + q.y*b3.x*v - b2.y*b1.x*v - b2.y*b3.x*v*v
+0 = q.y*b1.x + q.y*b3.x*v - b2.y*b1.x*v - b2.y*b3.x*v*v - q.x*b1.y - q.x*b3.y*v + b2.x*b1.y*v + b2.x*b3.y*v*v
+0 = q.y*b1.x - q.x*b1.y + q.y*b3.x*v - q.x*b3.y*v + b2.x*b1.y*v - b2.y*b1.x*v + b2.x*b3.y*v*v - b2.y*b3.x*v*v
+0 = (q.y*b1.x - q.x*b1.y) + (q.y*b3.x - q.x*b3.y + b2.x*b1.y - b2.y*b1.x)*v + (b2.x*b3.y - b2.y*b3.x)*v*v
+
+a = b2.x*b3.y - b2.y*b3.x                       //★(b2 ⋀ b3)と同じ
+b = q.y*b3.x - q.x*b3.y + b2.x*b1.y - b2.y*b1.x //★(b3 ⋀  q - b1 ⋀ b2)と同じ
+c = q.y*b1.x - q.x*b1.y                         //★(b1 ⋀  q)と同じ
+
+v = 2次方程式の解の公式(a, b, c)
+
+
+
+2次方程式の解の公式の色々な実装
+
+float a, b, c, result;
+float s = 1; // 1 or -1
+
+{
+    float d = b * b - 4.0 * a * c;
+    result = (-b + s*sqrt(d)) / (2.0 * a);
+}
+
+{
+    float d = b * b - 4.0 * a * c;
+    result = (2.0 * c) / (-b - s*sqrt(d));
+}
+
+{
+    b *= 0.5;
+    float d = b * b - a * c;
+    result = (-b + s*sqrt(d)) / a;
+}
+
+{
+    b *= 0.5;
+    float d = b * b - a * c;
+    result = c / (-b - s*sqrt(d));
+}
+
+
+
+
+
+
+
