@@ -126,7 +126,7 @@ V2F VertexShaderStage(I2V input)
 	
 	float3 wNormal = UnityObjectToWorldNormal(lNormal);
 	float3 wTangent = UnityObjectToWorldDir(lTangent);
-	float3 wBinormal = cross(wNormal, wTangent) * input.lTangent.w * unity_WorldTransformParams.w;
+	float3 wBinormal = cross(wNormal, wTangent) * (input.lTangent.w * unity_WorldTransformParams.w);
 	
 	// 頂点シェーダーからフラグメントシェーダーにデータを渡す場合、
 	// float3x4よりfloat4x3の方が裏で発生する変数の数を節約できる
