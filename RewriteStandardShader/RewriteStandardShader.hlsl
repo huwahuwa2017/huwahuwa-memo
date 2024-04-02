@@ -1,4 +1,4 @@
-// Ver1 2023-12-18 02:29
+// Ver2 2024-04-02 20:09
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardUtils.cginc UnityStandardCore.cginc UnityStandardShadow.cginc
@@ -56,10 +56,10 @@ half _Glossiness;
 
 fixed4 _LightColor0;
 
-half2 ParallaxOffset1Step(half h, half height, half3 viewDir)
+half2 ParallaxOffset1Step(half h, half height, half3 tViewDir)
 {
 	h = h * height - height / 2.0;
-	half3 v = normalize(viewDir);
+	half3 v = normalize(tViewDir);
 	v.z += 0.42;
 	return h * (v.xy / v.z);
 }
@@ -121,8 +121,8 @@ V2F VertexShaderStage(I2V input)
 	float3 lTangent = input.lTangent.xyz;
 	float3 lBinormal = cross(lNormal, lTangent) * input.lTangent.w;
 	
-	float3 tViewDir = mul((float3x3) UNITY_MATRIX_I_M, _WorldSpaceCameraPos - wPos);
-	tViewDir = mul(float3x3(lTangent, lBinormal, lNormal), tViewDir);
+	float3 lViewDir = mul((float3x3) UNITY_MATRIX_I_M, _WorldSpaceCameraPos - wPos);
+	float3 tViewDir = mul(float3x3(lTangent, lBinormal, lNormal), lViewDir);
 	
 	float3 wNormal = UnityObjectToWorldNormal(lNormal);
 	float3 wTangent = UnityObjectToWorldDir(lTangent);
@@ -245,8 +245,8 @@ V2F VertexShaderStage_ShadowCaster(I2V input)
 	float3 lTangent = input.lTangent.xyz;
 	float3 lBinormal = cross(lNormal, lTangent) * input.lTangent.w;
 	
-	float3x3 l2t = float3x3(lTangent, lBinormal, lNormal);
-	float3 tViewDir = mul(l2t, mul((float3x3) UNITY_MATRIX_I_M, _WorldSpaceCameraPos - wPos));
+	float3 lViewDir = mul((float3x3) UNITY_MATRIX_I_M, _WorldSpaceCameraPos - wPos);
+	float3 tViewDir = mul(float3x3(lTangent, lBinormal, lNormal), lViewDir);
 	
 	float4 opos = UnityClipSpaceShadowCasterPos(input.lPos, input.lNormal);
 	opos = UnityApplyLinearShadowBias(opos);
