@@ -1,4 +1,4 @@
-// Ver18 2024-03-23 04:37
+// Ver19 2024-04-05 04:36
 
 #ifndef HUWA_CELLULAR_NOISE_INCLUDED
 #define HUWA_CELLULAR_NOISE_INCLUDED
@@ -170,7 +170,7 @@ void CellularNoise(in float input, in uint repetition, out float distance0, out 
         
         uint random = ValueToRandom(target);
         float randomFloat = RandomToFloatAbs(random);
-        float tempRP = randomFloat - input + shift;
+        float tempRP = shift + randomFloat - input;
         
         float tempDistance = abs(tempRP);
         
@@ -198,7 +198,7 @@ void CellularNoise(in int type, in float2 input, in uint2 repetition, out float 
         
         uint random = ValueToRandom(target);
         float2 randomFloat = float2(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
-        float2 tempRP = randomFloat - input + shift;
+        float2 tempRP = shift + randomFloat - input;
         
         float2 tempAbs;
         float tempDistance;
@@ -249,7 +249,7 @@ void CellularNoise(in int type, in float3 input, in uint3 repetition, out float 
         
         uint random = ValueToRandom(target);
         float3 randomFloat = float3(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
-        float3 tempRP = randomFloat - input + shift;
+        float3 tempRP = shift + randomFloat - input;
         
         float3 tempAbs;
         float tempDistance;
@@ -300,7 +300,7 @@ void CellularNoise(in int type, in float4 input, in uint4 repetition, out float 
         
         uint random = ValueToRandom(target);
         float4 randomFloat = float4(RandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random), UpdateRandomToFloatAbs(random));
-        float4 tempRP = randomFloat - input + shift;
+        float4 tempRP = shift + randomFloat - input;
         
         float4 tempAbs;
         float tempDistance;
