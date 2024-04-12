@@ -1,4 +1,4 @@
-// Ver2 2024-04-02 20:15
+// Ver3 2024-04-13 07:43
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityGlobalIllumination.cginc UnityImageBasedLighting.cginc UnityStandardUtils.cginc
@@ -18,11 +18,6 @@ half3 Shade4PointLights(float3 wPos, half3 wNormal)
 	);
 }
 
-half3 SimpleShadeSHPerVertex(float3 wPos, half3 wNormal)
-{
-	return Shade4PointLights(wPos, wNormal) + max(0.0, ShadeSH9(half4(wNormal, 1.0)));
-}
-
 half3 ShadeSHPerVertex(half3 wNormal, half3 ambient)
 {
 #ifdef UNITY_COLORSPACE_GAMMA
@@ -36,18 +31,16 @@ half3 ShadeSHPerVertex(half3 wNormal, half3 ambient)
 
 half3 ShadeSHPerPixel(half3 wNormal, half3 ambient, float3 wPos)
 {
-	half3 ambient_contrib = 0.0;
-
 #if UNITY_LIGHT_PROBE_PROXY_VOLUME
 	if (unity_ProbeVolumeParams.x == 1.0)
-		ambient_contrib = SHEvalLinearL0L1_SampleProbeVolume(half4(wNormal, 1.0), wPos);
+		ambient += SHEvalLinearL0L1_SampleProbeVolume(half4(wNormal, 1.0), wPos);
 	else
-		ambient_contrib = SHEvalLinearL0L1(half4(wNormal, 1.0));
+		ambient += SHEvalLinearL0L1(half4(wNormal, 1.0));
 #else
-	ambient_contrib = SHEvalLinearL0L1(half4(wNormal, 1.0));
+	ambient += SHEvalLinearL0L1(half4(wNormal, 1.0));
 #endif
 
-	ambient = max(0.0, ambient + ambient_contrib);
+	ambient = max(0.0, ambient);
 
 #ifdef UNITY_COLORSPACE_GAMMA
 	ambient = LinearToGammaSpace(ambient);
