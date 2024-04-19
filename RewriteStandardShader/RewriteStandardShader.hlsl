@@ -1,4 +1,4 @@
-// Ver2 2024-04-02 20:09
+// Ver3 2024-04-20 04:56
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardUtils.cginc UnityStandardCore.cginc UnityStandardShadow.cginc
@@ -220,16 +220,16 @@ half4 FragmentShaderStage(V2F input) : SV_Target
 
 
 #if (defined(_MODE_ALPHABLEND_ON) || defined(_MODE_ALPHAPREMULTIPLY_ON)) && defined(UNITY_USE_DITHER_MASK_FOR_ALPHABLENDED_SHADOWS)
-#define UNITY_STANDARD_USE_DITHER_MASK 1
+#define REWRITE_STANDARD_USE_DITHER_MASK 1
 #endif
 
-#if defined(UNITY_STANDARD_USE_DITHER_MASK)
+#if defined(REWRITE_STANDARD_USE_DITHER_MASK)
 sampler3D _DitherMaskLOD;
 #endif
 
 void DitherMask(half alpha, half cutoff, float4 cPos)
 {
-#if defined(UNITY_STANDARD_USE_DITHER_MASK)
+#if defined(REWRITE_STANDARD_USE_DITHER_MASK)
     alpha = tex3D(_DitherMaskLOD, float3(cPos.xy * 0.25, alpha * 0.9375)).a;
     clip(alpha - 0.01);
 #else
