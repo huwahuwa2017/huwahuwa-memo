@@ -75,9 +75,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HPRW_TEXEL_GENERATION((input[0].vertexID * 2), output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[0].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_GENERATION((input[0].vertexID * 2 + 1), output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[0].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[1].data.xyz);
 				
@@ -88,9 +88,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HPRW_TEXEL_GENERATION((input[1].vertexID * 2), output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[1].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_GENERATION((input[1].vertexID * 2 + 1), output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[1].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[2].data.xyz);
 				
@@ -101,9 +101,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HPRW_TEXEL_GENERATION((input[2].vertexID * 2), output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[2].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_GENERATION((input[2].vertexID * 2 + 1), output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[2].vertexID * 2 + 1, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target
@@ -148,9 +148,10 @@
 				// _HuwaGrabPass_27349865 の情報を読み取り、頂点のワールド座標を取得
 
 				uint vid = input.vertexID * 2;
-
-				float4 data0 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid);
-				float4 data1 = HPRW_GET_TEXEL_DATA(_HuwaGrabPass_27349865, vid + 1);
+				
+				float4 data0, data1;
+				HPRW_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
+				HPRW_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
 
 				uint4 data2 = FP16ToR15bit(data0);
 				uint4 data3 = FP16ToR15bit(data1);

@@ -72,11 +72,11 @@
 
 				G2F output = (G2F)0;
 				output.data = input[0].data;
-				HPRW_TEXEL_GENERATION(input[0].vertexID, output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[0].vertexID, output.cPos, stream);
 				output.data = input[1].data;
-				HPRW_TEXEL_GENERATION(input[1].vertexID, output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[1].vertexID, output.cPos, stream);
 				output.data = input[2].data;
-				HPRW_TEXEL_GENERATION(input[2].vertexID, output.cPos, stream);
+				HPRW_TEXEL_WRITE(input[2].vertexID, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target
