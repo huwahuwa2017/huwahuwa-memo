@@ -46,26 +46,26 @@ return asfloat(temp0 | temp1 | temp2);
 
 float R15bitToFP16(uint input)
 {
-	uint temp0, temp1, temp2;
-	HPRW_R15BIT_TO_FP16
+    uint temp0, temp1, temp2;
+    HPRW_R15BIT_TO_FP16
 }
 
 float2 R15bitToFP16(uint2 input)
 {
-	uint2 temp0, temp1, temp2;
-	HPRW_R15BIT_TO_FP16
+    uint2 temp0, temp1, temp2;
+    HPRW_R15BIT_TO_FP16
 }
 
 float3 R15bitToFP16(uint3 input)
 {
-	uint3 temp0, temp1, temp2;
-	HPRW_R15BIT_TO_FP16
+    uint3 temp0, temp1, temp2;
+    HPRW_R15BIT_TO_FP16
 }
 
 float4 R15bitToFP16(uint4 input)
 {
-	uint4 temp0, temp1, temp2;
-	HPRW_R15BIT_TO_FP16
+    uint4 temp0, temp1, temp2;
+    HPRW_R15BIT_TO_FP16
 }
 
 #define HPRW_R14BIT_TO_FP16 \
@@ -76,26 +76,26 @@ return asfloat(temp0 | temp1);
 
 float R14bitToFP16(uint input)
 {
-	uint temp0, temp1;
-	HPRW_R14BIT_TO_FP16
+    uint temp0, temp1;
+    HPRW_R14BIT_TO_FP16
 }
 
 float2 R14bitToFP16(uint2 input)
 {
-	uint2 temp0, temp1;
-	HPRW_R14BIT_TO_FP16
+    uint2 temp0, temp1;
+    HPRW_R14BIT_TO_FP16
 }
 
 float3 R14bitToFP16(uint3 input)
 {
-	uint3 temp0, temp1;
-	HPRW_R14BIT_TO_FP16
+    uint3 temp0, temp1;
+    HPRW_R14BIT_TO_FP16
 }
 
 float4 R14bitToFP16(uint4 input)
 {
-	uint4 temp0, temp1;
-	HPRW_R14BIT_TO_FP16
+    uint4 temp0, temp1;
+    HPRW_R14BIT_TO_FP16
 }
 
 #define HPRW_R10BIT_TO_FP16 \
@@ -104,26 +104,26 @@ return asfloat(temp0 | 0x38800000);
 
 float R10bitToFP16(uint input)
 {
-	uint temp0;
-	HPRW_R10BIT_TO_FP16
+    uint temp0;
+    HPRW_R10BIT_TO_FP16
 }
 
 float2 R10bitToFP16(uint2 input)
 {
-	uint2 temp0;
-	HPRW_R10BIT_TO_FP16
+    uint2 temp0;
+    HPRW_R10BIT_TO_FP16
 }
 
 float3 R10bitToFP16(uint3 input)
 {
-	uint3 temp0;
-	HPRW_R10BIT_TO_FP16
+    uint3 temp0;
+    HPRW_R10BIT_TO_FP16
 }
 
 float4 R10bitToFP16(uint4 input)
 {
-	uint4 temp0;
-	HPRW_R10BIT_TO_FP16
+    uint4 temp0;
+    HPRW_R10BIT_TO_FP16
 }
 
 
@@ -138,26 +138,26 @@ return temp0 | temp1 | temp2;
 
 uint FP16ToR15bit(float input)
 {
-	uint data, temp0, temp1, temp2;
-	HPRW_FP16_TO_R15BIT
+    uint data, temp0, temp1, temp2;
+    HPRW_FP16_TO_R15BIT
 }
 
 uint2 FP16ToR15bit(float2 input)
 {
-	uint2 data, temp0, temp1, temp2;
-	HPRW_FP16_TO_R15BIT
+    uint2 data, temp0, temp1, temp2;
+    HPRW_FP16_TO_R15BIT
 }
 
 uint3 FP16ToR15bit(float3 input)
 {
-	uint3 data, temp0, temp1, temp2;
-	HPRW_FP16_TO_R15BIT
+    uint3 data, temp0, temp1, temp2;
+    HPRW_FP16_TO_R15BIT
 }
 
 uint4 FP16ToR15bit(float4 input)
 {
-	uint4 data, temp0, temp1, temp2;
-	HPRW_FP16_TO_R15BIT
+    uint4 data, temp0, temp1, temp2;
+    HPRW_FP16_TO_R15BIT
 }
 
 #define HPRW_FP16_TO_R14BIT \
@@ -169,26 +169,26 @@ return temp0 | temp1;
 
 uint FP16ToR14bit(float input)
 {
-	uint data, temp0, temp1;
-	HPRW_FP16_TO_R14BIT
+    uint data, temp0, temp1;
+    HPRW_FP16_TO_R14BIT
 }
 
 uint2 FP16ToR14bit(float2 input)
 {
-	uint2 data, temp0, temp1;
-	HPRW_FP16_TO_R14BIT
+    uint2 data, temp0, temp1;
+    HPRW_FP16_TO_R14BIT
 }
 
 uint3 FP16ToR14bit(float3 input)
 {
-	uint3 data, temp0, temp1;
-	HPRW_FP16_TO_R14BIT
+    uint3 data, temp0, temp1;
+    HPRW_FP16_TO_R14BIT
 }
 
 uint4 FP16ToR14bit(float4 input)
 {
-	uint4 data, temp0, temp1;
-	HPRW_FP16_TO_R14BIT
+    uint4 data, temp0, temp1;
+    HPRW_FP16_TO_R14BIT
 }
 
 #define HPRW_FP16_TO_R10BIT \
@@ -198,26 +198,26 @@ return temp0;
 
 uint FP16ToR10bit(float input)
 {
-	uint data, temp0;
-	HPRW_FP16_TO_R10BIT
+    uint data, temp0;
+    HPRW_FP16_TO_R10BIT
 }
 
 uint2 FP16ToR10bit(float2 input)
 {
-	uint2 data, temp0;
-	HPRW_FP16_TO_R10BIT
+    uint2 data, temp0;
+    HPRW_FP16_TO_R10BIT
 }
 
 uint3 FP16ToR10bit(float3 input)
 {
-	uint3 data, temp0;
-	HPRW_FP16_TO_R10BIT
+    uint3 data, temp0;
+    HPRW_FP16_TO_R10BIT
 }
 
 uint4 FP16ToR10bit(float4 input)
 {
-	uint4 data, temp0;
-	HPRW_FP16_TO_R10BIT
+    uint4 data, temp0;
+    HPRW_FP16_TO_R10BIT
 }
 
 #endif // !defined(HUWA_TEXEL_READ_WRITE)
