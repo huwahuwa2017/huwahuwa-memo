@@ -25,26 +25,32 @@
 			{
 				float4 lPos : POSITION;
 				uint vertexID : SV_VertexID;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct V2G
 			{
 				uint vertexID : TEXCOORD0;
 				float4 data : TEXCOORD1;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct G2F
 			{
 				float4 cPos : SV_POSITION;
 				float4 data : TEXCOORD0;
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
 			V2G VertexShaderStage(I2V input)
 			{
+				UNITY_SETUP_INSTANCE_ID(input);
+
 				// 今回は例として頂点のワールド座標を記憶させたいので、
 				// とりあえずここでワールド座標を計算
 
 				V2G output = (V2G)0;
+				UNITY_TRANSFER_INSTANCE_ID(input, output);
 				output.vertexID = input.vertexID;
 				output.data = mul(UNITY_MATRIX_M, input.lPos);
 				return output;
@@ -53,6 +59,8 @@
 			[maxvertexcount(36)]
 			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream)
 			{
+				UNITY_SETUP_INSTANCE_ID(input[0]);
+
 				// ここで保存したい情報をピクセルにする
 				// このジオメトリシェーダーは三角ポリゴン単位で処理している
 
@@ -61,6 +69,7 @@
 				// おそらく同じパラメータを持った頂点が合成されてしまうと予想している
 
 				G2F output = (G2F)0;
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 				float4 data0;
 				float4 data1;
@@ -138,18 +147,26 @@
 			struct I2V
 			{
 				uint vertexID : SV_VertexID;
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct V2F
 			{
 				float4 cPos : SV_POSITION;
 				float3 wPos : TEXCOORD0;
+				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
-			Texture2D _HuwaGrabPass_27349865;
+			#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+				Texture2DArray _HuwaGrabPass_27349865;
+			#else
+				Texture2D _HuwaGrabPass_27349865;
+			#endif
 
 			V2F VertexShaderStage(I2V input)
 			{
+				UNITY_SETUP_INSTANCE_ID(input);
+
 				// _HuwaGrabPass_27349865 の情報を読み取り、頂点のワールド座標を取得
 
 				uint vid = input.vertexID * 3;
@@ -171,6 +188,7 @@
 				float3 wPos = asfloat(data6);
 
 				V2F output = (V2F)0;
+				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 				output.cPos = mul(UNITY_MATRIX_VP, float4(wPos, 1.0));
 				output.wPos = wPos;
 				return output;
