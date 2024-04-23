@@ -35,6 +35,7 @@
 			};
 
 			Texture2D _DataTex;
+			float4 _DataTex_TexelSize;
 			
 			V2F VertexShaderStage(I2V input)
 			{

@@ -127,6 +127,8 @@
 
 			#pragma vertex VertexShaderStage
 			#pragma fragment FragmentShaderStage
+			
+			#include "HuwaTexelReadWrite.hlsl"
 
 			struct I2V
 			{
@@ -141,8 +143,6 @@
 
 			Texture2D _HuwaGrabPass_27349865;
 
-			#include "HuwaTexelReadWrite.hlsl"
-
 			V2F VertexShaderStage(I2V input)
 			{
 				// _HuwaGrabPass_27349865 の情報を読み取り、頂点のワールド座標を取得
@@ -150,8 +150,8 @@
 				uint vid = input.vertexID * 2;
 
 				float4 data0, data1;
-				HPRW_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
-				HPRW_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
+				HPRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
+				HPRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
 
 				uint4 data2 = FP16ToR14bit(data0);
 				uint4 data3 = FP16ToR14bit(data1);

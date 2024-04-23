@@ -1,11 +1,13 @@
-// Ver15 2024-04-20 11:06
+// Ver17 2024-04-23 19:11
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
 
 #include "UnityCG.cginc"
 
-static uint2 _HPRW_WriteTextureSize = uint2(_ScreenParams.xy + 0.5);
+static uint2 _ScreenSize = uint2(_ScreenParams.xy + 0.5);
+
+static uint2 _HPRW_WriteTextureSize = _ScreenSize;
 static float3 _HPRW_TexelSize = float3(2.0 / float(_HPRW_WriteTextureSize.x), 2.0 / float(_HPRW_WriteTextureSize.y) * _ProjectionParams.x, 0.0);
 static float2 _HPRW_TexelPosition = 0.0;
 
@@ -27,13 +29,22 @@ clipPosition.xy = _HPRW_TexelPosition + _HPRW_TexelSize.xy;\
 stream.Append(output);\
 stream.RestartStrip();
 
-
-
-static uint2 _HPRW_ReadTextureSize = 0.0;
+static uint _HPRW_ReadTexturewidth = 0;
 
 #define HPRW_TEXEL_READ(tex, id, result)\
-tex.GetDimensions(_HPRW_ReadTextureSize.x, _HPRW_ReadTextureSize.y);\
-result = tex[uint2((id) % _HPRW_ReadTextureSize.x, (id) / _HPRW_ReadTextureSize.x)];
+_HPRW_ReadTexturewidth = uint(tex##_TexelSize.z + 0.5);\
+result = tex[uint2((id) % _HPRW_ReadTexturewidth, (id) / _HPRW_ReadTexturewidth)];
+
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    #define HPRW_GRAB_PASS_TEXEL_READ(tex, id, result)\
+    result = tex[uint2(((id) % _ScreenSize.x) + (unity_StereoEyeIndex ? _ScreenSize.x : 0), (id) / _ScreenSize.x)];
+#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+    #define HPRW_GRAB_PASS_TEXEL_READ(tex, id, result)\
+    result = tex[uint3((id) % _ScreenSize.x, (id) / _ScreenSize.x, unity_StereoEyeIndex)];
+#else
+    #define HPRW_GRAB_PASS_TEXEL_READ(tex, id, result)\
+    result = tex[uint2((id) % _ScreenSize.x, (id) / _ScreenSize.x)];
+#endif
 
 
 
