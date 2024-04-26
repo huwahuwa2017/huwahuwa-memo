@@ -1,4 +1,4 @@
-﻿// Ver1 2023-12-18 02:29
+﻿// Ver2 2024-04-26 22:35
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 Standard.shader
@@ -90,7 +90,7 @@ Shader "Custom/RewriteStandardShader"
             #pragma target 3.0
 
             #pragma multi_compile_local _MODE_ALPHA_OFF _MODE_ALPHATEST_ON _MODE_ALPHABLEND_ON _MODE_ALPHAPREMULTIPLY_ON
-            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
 
             #pragma vertex VertexShaderStage
             #pragma fragment FragmentShaderStage
