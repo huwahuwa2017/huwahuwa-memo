@@ -47,7 +47,7 @@
 				// 頂点のワールド座標を取得
 
 				float4 data;
-				HPRW_TEXEL_READ(_DataTex, input.vertexID, data);
+				HTRW_TEXEL_READ(_DataTex, input.vertexID, data);
 				data.a = 1.0;
 
 				V2F output = (V2F)0;

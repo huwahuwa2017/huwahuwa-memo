@@ -66,7 +66,7 @@
 				// ポリゴンの中心のワールド座標を取得
 				
 				float4 data;
-				HPRW_TEXEL_READ(_DataTex, primitiveID, data);
+				HTRW_TEXEL_READ(_DataTex, primitiveID, data);
 
 				G2F output = (G2F)0;
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);

@@ -75,7 +75,7 @@
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 				output.data = (input[0].data + input[1].data + input[2].data) / 3.0;
-				HPRW_TEXEL_WRITE(primitiveID, output.cPos, stream);
+				HTRW_TEXEL_WRITE(primitiveID, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target

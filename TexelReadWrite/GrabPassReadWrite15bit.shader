@@ -84,9 +84,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HPRW_TEXEL_WRITE(input[0].vertexID * 2, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[0].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_WRITE(input[0].vertexID * 2 + 1, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[0].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[1].data.xyz);
 				
@@ -97,9 +97,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HPRW_TEXEL_WRITE(input[1].vertexID * 2, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[1].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_WRITE(input[1].vertexID * 2 + 1, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[1].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[2].data.xyz);
 				
@@ -110,9 +110,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HPRW_TEXEL_WRITE(input[2].vertexID * 2, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[2].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HPRW_TEXEL_WRITE(input[2].vertexID * 2 + 1, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[2].vertexID * 2 + 1, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target
@@ -167,8 +167,8 @@
 				uint vid = input.vertexID * 2;
 				
 				float4 data0, data1;
-				HPRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
-				HPRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
+				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
+				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
 
 				uint4 data2 = FP16ToR15bit(data0);
 				uint4 data3 = FP16ToR15bit(data1);
