@@ -1,18 +1,18 @@
-// Ver18 2024-05-01 13:09
+// Ver19 2024-06-18 18:36
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
 
 #include "UnityCG.cginc"
 
-static uint2 _ScreenSize = uint2(_ScreenParams.xy + 0.5);
+static uint2 _ScreenSize = uint2(_ScreenParams.xy);
 
 static uint2 _HTRW_WriteTextureSize = _ScreenSize;
 static float3 _HTRW_TexelSize = float3(2.0 / float(_HTRW_WriteTextureSize.x), 2.0 / float(_HTRW_WriteTextureSize.y) * _ProjectionParams.x, 0.0);
 static float2 _HTRW_TexelPosition = 0.0;
 
 #define HTRW_SET_WRITE_TEXTURE_SIZE(textureSize)\
-_HTRW_WriteTextureSize = uint2((textureSize) + 0.5);\
+_HTRW_WriteTextureSize = uint2(textureSize);\
 _HTRW_TexelSize = float3(2.0 / float(_HTRW_WriteTextureSize.x), 2.0 / float(_HTRW_WriteTextureSize.y) * _ProjectionParams.x, 0.0);
 
 #define HTRW_TEXEL_WRITE(id, clipPosition, stream)\
@@ -29,11 +29,11 @@ clipPosition.xy = _HTRW_TexelPosition + _HTRW_TexelSize.xy;\
 stream.Append(output);\
 stream.RestartStrip();
 
-static uint _HTRW_ReadTexturewidth = 0;
+static uint2 _HTRW_ReadTextureSize = 0;
 
 #define HTRW_TEXEL_READ(tex, id, result)\
-_HTRW_ReadTexturewidth = uint(tex##_TexelSize.z + 0.5);\
-result = tex[uint2((id) % _HTRW_ReadTexturewidth, (id) / _HTRW_ReadTexturewidth)];
+_HTRW_ReadTextureSize = uint2(tex##_TexelSize.zw);\
+result = tex[uint2((id) % _HTRW_ReadTextureSize.x, ((id) / _HTRW_ReadTextureSize.x) % _HTRW_ReadTextureSize.y)];
 
 #if defined(UNITY_SINGLE_PASS_STEREO)
     #define HTRW_GRAB_PASS_TEXEL_READ(tex, id, result)\
