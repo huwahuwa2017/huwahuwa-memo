@@ -1,4 +1,4 @@
-﻿// Ver2 2024-04-26 22:35
+﻿// Ver3 2024-07-09 16:46
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 Standard.shader
@@ -75,13 +75,13 @@ Shader "Custom/RewriteStandardShader"
 
     SubShader
     {
-        Tags
-        {
-            "LightMode" = "ForwardBase"
-        }
-
         Pass
         {
+            Tags
+            {
+                "LightMode" = "ForwardBase"
+            }
+
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
 
