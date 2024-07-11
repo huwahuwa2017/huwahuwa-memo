@@ -1,22 +1,22 @@
 ﻿Shader "AntiVisibilityJack/Background"
 {
-	SubShader
-	{
-		Tags
-		{
-			"Queue" = "Overlay-1"
-			"RenderType" = "Transparent"
-		}
+    SubShader
+    {
+        Tags
+        {
+            "Queue" = "Transparent+1"
+            "DisableBatching" = "True"
+        }
 
-		GrabPass
-		{
-			"_AVJ_BackgroundTexture"
-		}
+        GrabPass
+        {
+            "_AVJ_BackgroundTexture"
+        }
 
-		Pass
-		{
-			ZWrite Off
-			ColorMask 0
-		}
-	}
+        Pass
+        {
+            ZWrite Off
+            ColorMask 0
+        }
+    }
 }
