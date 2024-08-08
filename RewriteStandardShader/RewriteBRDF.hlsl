@@ -1,12 +1,10 @@
-// Ver2 2023-12-20 01:57
+// Ver3 2024-08-08 09:08
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardBRDF.cginc
 
 #if !defined(REWRITE_BRDF)
 #define REWRITE_BRDF
-
-#define REWRITE_UNITY_PI 3.14159265359
 
 sampler2D unity_NHxRoughness;
 
@@ -73,10 +71,10 @@ half SurfaceReduction(half perceptualRoughness, half roughness)
 half3 BRDF1_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half reflectivity, half smoothness, half3 giDiffuse, half3 giSpecular,
     float3 wNormal, float3 wViewDir, float3 wLightDir)
 {
-    float3 halfDir = Unity_SafeNormalize(wLightDir + wViewDir);
-    
     float nl = saturate(dot(wNormal, wLightDir));
     half nv = abs(dot(wNormal, wViewDir));
+    
+    float3 halfDir = Unity_SafeNormalize(wLightDir + wViewDir);
     float nh = saturate(dot(wNormal, halfDir));
     half lh = saturate(dot(wLightDir, halfDir));
     
@@ -108,10 +106,10 @@ half3 BRDF1_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half r
         {
             float a2 = roughness * roughness;
             float d = nh * nh * (a2 - 1.0) + 1.0;
-            D = a2 / (REWRITE_UNITY_PI * (d * d + 1e-7f));
+            D = a2 / (d * d + 1e-7f);
         }
         
-        float specularTerm = V * D * REWRITE_UNITY_PI;
+        float specularTerm = V * D;
         
 #if defined(UNITY_COLORSPACE_GAMMA)
         specularTerm = sqrt(max(1e-4h, specularTerm));
@@ -141,10 +139,10 @@ half3 BRDF1_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half r
 half3 BRDF2_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half reflectivity, half smoothness, half3 giDiffuse, half3 giSpecular,
     float3 wNormal, float3 wViewDir, float3 wLightDir)
 {
-    float3 halfDir = Unity_SafeNormalize(wLightDir + wViewDir);
-    
     half nl = saturate(dot(wNormal, wLightDir));
     half nv = saturate(dot(wNormal, wViewDir));
+    
+    float3 halfDir = Unity_SafeNormalize(wLightDir + wViewDir);
     float nh = saturate(dot(wNormal, halfDir));
     float lh = saturate(dot(wLightDir, halfDir));
     
