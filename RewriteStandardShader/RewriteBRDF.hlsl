@@ -1,4 +1,4 @@
-// Ver3 2024-08-08 09:08
+// Ver4 2024-08-09 12:16
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardBRDF.cginc
@@ -68,8 +68,8 @@ half SurfaceReduction(half perceptualRoughness, half roughness)
 
 
 // High Quality
-half3 BRDF1_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half reflectivity, half smoothness, half3 giDiffuse, half3 giSpecular,
-    float3 wNormal, float3 wViewDir, float3 wLightDir)
+half3 BRDF1_Unity_PBS(half3 diffColor, half3 specColor, half reflectivity, half smoothness,
+    float3 wNormal, float3 wViewDir, float3 wLightDir, half3 lightColor, half3 giDiffuse, half3 giSpecular)
 {
     float nl = saturate(dot(wNormal, wLightDir));
     half nv = abs(dot(wNormal, wViewDir));
@@ -136,8 +136,8 @@ half3 BRDF1_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half r
 
 
 // Medium Quality
-half3 BRDF2_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half reflectivity, half smoothness, half3 giDiffuse, half3 giSpecular,
-    float3 wNormal, float3 wViewDir, float3 wLightDir)
+half3 BRDF2_Unity_PBS(half3 diffColor, half3 specColor, half reflectivity, half smoothness,
+    float3 wNormal, float3 wViewDir, float3 wLightDir, half3 lightColor, half3 giDiffuse, half3 giSpecular)
 {
     half nl = saturate(dot(wNormal, wLightDir));
     half nv = saturate(dot(wNormal, wViewDir));
@@ -183,8 +183,8 @@ half3 BRDF2_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half r
 
 
 // Low Quality
-half3 BRDF3_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half reflectivity, half smoothness, half3 giDiffuse, half3 giSpecular,
-    float3 wNormal, float3 wViewDir, float3 wLightDir)
+half3 BRDF3_Unity_PBS(half3 diffColor, half3 specColor, half reflectivity, half smoothness,
+    float3 wNormal, float3 wViewDir, float3 wLightDir, half3 lightColor, half3 giDiffuse, half3 giSpecular)
 {
     half nl = saturate(dot(wNormal, wLightDir));
     half nv = saturate(dot(wNormal, wViewDir));
@@ -217,18 +217,18 @@ half3 BRDF3_Unity_PBS(half3 lightColor, half3 diffColor, half3 specColor, half r
 
 
 
-half3 BRDF(half3 lightColor, half3 diffColor, half3 specColor, half reflectivity, half smoothness, half3 giDiffuse, half3 giSpecular,
-    float3 wNormal, float3 wViewDir, float3 wLightDir)
+half3 UNITY_BRDF_PBS(half3 diffColor, half3 specColor, half reflectivity, half smoothness,
+    float3 wNormal, float3 wViewDir, float3 wLightDir, half3 lightColor, half3 giDiffuse, half3 giSpecular)
 {
 #if defined(UNITY_PBS_USE_BRDF3)
     // Low Quality
-    return BRDF3_Unity_PBS(lightColor, diffColor, specColor, reflectivity, smoothness, giDiffuse, giSpecular, wNormal, wViewDir, wLightDir);
+    return BRDF3_Unity_PBS(diffColor, specColor, reflectivity, smoothness, wNormal, wViewDir, wLightDir, lightColor, giDiffuse, giSpecular);
 #elif defined(UNITY_PBS_USE_BRDF2)
     // Medium Quality
-    return BRDF2_Unity_PBS(lightColor, diffColor, specColor, reflectivity, smoothness, giDiffuse, giSpecular, wNormal, wViewDir, wLightDir);
+    return BRDF2_Unity_PBS(diffColor, specColor, reflectivity, smoothness, wNormal, wViewDir, wLightDir, lightColor, giDiffuse, giSpecular);
 #elif defined(UNITY_PBS_USE_BRDF1)
     // High Quality
-    return BRDF1_Unity_PBS(lightColor, diffColor, specColor, reflectivity, smoothness, giDiffuse, giSpecular, wNormal, wViewDir, wLightDir);
+    return BRDF1_Unity_PBS(diffColor, specColor, reflectivity, smoothness, wNormal, wViewDir, wLightDir, lightColor, giDiffuse, giSpecular);
 #else
     return 0.0;
 #endif
