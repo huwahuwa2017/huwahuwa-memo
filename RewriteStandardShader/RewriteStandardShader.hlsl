@@ -1,4 +1,4 @@
-// Ver3 2024-04-20 04:56
+// Ver4 2024-08-09 12:17
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardUtils.cginc UnityStandardCore.cginc UnityStandardShadow.cginc
@@ -203,7 +203,7 @@ half4 FragmentShaderStage(V2F input) : SV_Target
     half3 giSpecular = 0.0;
 #endif
     
-    half3 color = BRDF(lightColor, diffColor, specColor, reflectivity, smoothness, giDiffuse, giSpecular, wNormal, wViewDir, wLightDir);
+    half3 color = UNITY_BRDF_PBS(diffColor, specColor, reflectivity, smoothness, wNormal, wViewDir, wLightDir, lightColor, giDiffuse, giSpecular);
     color += tex2D(_EmissionMap, uv).rgb * _EmissionColor;
     
 #if !(defined(_MODE_ALPHABLEND_ON) || defined(_MODE_ALPHAPREMULTIPLY_ON))
