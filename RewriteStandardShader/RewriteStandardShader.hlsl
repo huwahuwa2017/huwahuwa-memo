@@ -6,8 +6,8 @@
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
 
-#include "RewriteGlobalIllumination.hlsl"
-#include "RewriteBRDF.hlsl"
+#include "RewriteUnityGlobalIllumination.hlsl"
+#include "RewriteUnityStandardBRDF.hlsl"
 
 #if !defined(UNITY_MATRIX_I_M)
 #define UNITY_MATRIX_I_M unity_WorldToObject
