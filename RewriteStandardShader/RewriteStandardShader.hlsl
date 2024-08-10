@@ -1,4 +1,4 @@
-// Ver4 2024-08-09 12:17
+// Ver5 2024-08-11 02:44
 
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 // Created based on Unity 2022.3.8f1 UnityStandardUtils.cginc UnityStandardCore.cginc UnityStandardShadow.cginc
@@ -169,23 +169,19 @@ half4 FragmentShaderStage(V2F input) : SV_Target
     wNormal = normalize(mul(t2w, wNormal));
     
     float3 wViewDir = normalize(_WorldSpaceCameraPos - wPos);
-    float3 wReflectDir = reflect(-wViewDir, wNormal);
     float3 wLightDir = normalize(_WorldSpaceLightPos0.xyz - wPos * _WorldSpaceLightPos0.w);
     
     half2 mg = MetallicGloss(uv);
-    
-    half3 albedo = colorData.rgb;
     half metallic = mg.r;
     half smoothness = mg.g;
-    half occlusion = lerp(1.0, tex2D(_OcclusionMap, uv).g, _OcclusionStrength);
     
     half oneMinusReflectivity = unity_ColorSpaceDielectricSpec.a - metallic * unity_ColorSpaceDielectricSpec.a;
     half reflectivity = 1.0 - oneMinusReflectivity;
-    half perceptualRoughness = 1.0 - smoothness;
     
     half3 lightColor = _LightColor0.rgb;
     lightColor *= LightAttenuation(wPos) * UnityComputeForwardShadows(0.0, wPos, input.sPos);
     
+    half3 albedo = colorData.rgb;
     half3 diffColor = albedo * oneMinusReflectivity;
     
 #if defined(_MODE_ALPHAPREMULTIPLY_ON)
@@ -196,6 +192,10 @@ half4 FragmentShaderStage(V2F input) : SV_Target
     half3 specColor = lerp(unity_ColorSpaceDielectricSpec.rgb, albedo, metallic);
     
 #if defined(UNITY_PASS_FORWARDBASE)
+    float3 wReflectDir = reflect(-wViewDir, wNormal);
+    half perceptualRoughness = 1.0 - smoothness;
+    half occlusion = lerp(1.0, tex2D(_OcclusionMap, uv).g, _OcclusionStrength);
+    
     half3 giDiffuse = ShadeSHPerPixel(wNormal, input.ambient, wPos);
     half3 giSpecular = UnityGI_IndirectSpecular(wPos, wReflectDir, perceptualRoughness, occlusion);
 #else
