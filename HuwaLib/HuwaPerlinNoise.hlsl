@@ -1,6 +1,6 @@
-//Ver11 2023/08/06 09:00
+//Ver12 2024/09/03 20:34
 
-#ifndef HUWA_PERLIN_NOISE_INCLUDED
+#if !defined(HUWA_PERLIN_NOISE_INCLUDED)
 #define HUWA_PERLIN_NOISE_INCLUDED
 
 #include "HuwaRandomFunction.hlsl"
