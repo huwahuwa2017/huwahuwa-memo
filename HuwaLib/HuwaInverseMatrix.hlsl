@@ -1,11 +1,14 @@
-// Ver1 2024-03-12 00:58
+// Ver2 2024-09-03 16:40
 
-float2x2 inverse(float2x2 m)
+#ifndef HUWA_INVERSE_MATRIX_INCLUDED
+#define HUWA_INVERSE_MATRIX_INCLUDED
+
+float2x2 Inverse(float2x2 m)
 {
     return float2x2(m._22, -m._12, -m._21, m._11) * rcp(determinant(m));
 }
 
-float3x3 inverse(float3x3 m)
+float3x3 Inverse(float3x3 m)
 {
     float3x3 am;
     am._11_21_31 = mad(m._22_31_21, m._33_23_32, -m._32_21_31 * m._23_33_22);
@@ -20,7 +23,7 @@ float3x3 inverse(float3x3 m)
     return am;
 }
 
-float4x4 inverse(float4x4 m)
+float4x4 Inverse(float4x4 m)
 {
     float2 r12 = float2(mad(m._13, m._24, -m._23 * m._14), mad(m._11, m._22, -m._21 * m._12));
     float2 r13 = float2(mad(m._13, m._34, -m._33 * m._14), mad(m._11, m._32, -m._31 * m._12));
@@ -47,3 +50,5 @@ float4x4 inverse(float4x4 m)
     
     return am;
 }
+
+#endif // HUWA_INVERSE_MATRIX_INCLUDED
