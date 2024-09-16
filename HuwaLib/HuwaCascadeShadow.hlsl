@@ -1,4 +1,4 @@
-// Ver4 2024-09-09 00:12
+// Ver5 2024-09-16 16:10
 
 // #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
 
@@ -6,6 +6,10 @@
 #define HUWA_CASCADE_SHADOW
 
 #include "UnityCG.cginc"
+
+#if defined(DIRECTIONAL) && defined(SHADOWS_SCREEN) && !defined(UNITY_NO_SCREENSPACE_SHADOWS)
+    #define HUWA_CASCADE_SHADOW_IS_AVAILABLE
+#endif
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 Texture2DArray _ShadowMapTexture;
@@ -15,7 +19,7 @@ Texture2D _ShadowMapTexture;
 
 half HuwaCascadeShadow(uint2 pixelPos)
 {
-#if !(defined(DIRECTIONAL) && defined(SHADOWS_SCREEN) && !defined(UNITY_NO_SCREENSPACE_SHADOWS))
+#if !defined(HUWA_CASCADE_SHADOW_IS_AVAILABLE)
     return 1.0;
 #elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     return _ShadowMapTexture[uint3(pixelPos, unity_StereoEyeIndex)].r;
@@ -26,7 +30,7 @@ half HuwaCascadeShadow(uint2 pixelPos)
 
 half HuwaCascadeShadow_cPos(float3 cPos_XYW)
 {
-#if !(defined(DIRECTIONAL) && defined(SHADOWS_SCREEN) && !defined(UNITY_NO_SCREENSPACE_SHADOWS))
+#if !defined(HUWA_CASCADE_SHADOW_IS_AVAILABLE)
     return 1.0;
 #endif
     
@@ -48,7 +52,7 @@ half HuwaCascadeShadow_cPos(float3 cPos_XYW)
 // cnssPos_XYW = ComputeNonStereoScreenPos(float4).xyw
 half HuwaCascadeShadow_cnssPos(float3 cnssPos_XYW)
 {
-#if !(defined(DIRECTIONAL) && defined(SHADOWS_SCREEN) && !defined(UNITY_NO_SCREENSPACE_SHADOWS))
+#if !defined(HUWA_CASCADE_SHADOW_IS_AVAILABLE)
     return 1.0;
 #endif
     
@@ -68,7 +72,7 @@ half HuwaCascadeShadow_cnssPos(float3 cnssPos_XYW)
 // csPos_XYW = ComputeScreenPos(float4).xyw
 half HuwaCascadeShadow_csPos(float3 csPos_XYW)
 {
-#if !(defined(DIRECTIONAL) && defined(SHADOWS_SCREEN) && !defined(UNITY_NO_SCREENSPACE_SHADOWS))
+#if !defined(HUWA_CASCADE_SHADOW_IS_AVAILABLE)
     return 1.0;
 #endif
     
