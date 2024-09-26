@@ -1,4 +1,15 @@
-// Ver1 2024-09-16 17:10
+// Ver2 2024-09-26 22:37
+
+/*
+RewriteStandardShader(MediumQuality)Çå≥Ç…çÏê¨
+
+half nv = saturate(dot(wNormal, wViewDir));
+Pow4(1.0 - nv)
+Å´
+roughness = max(roughness, 0.002);
+half nv = abs(dot(wNormal, wViewDir));
+Pow5(1.0 - nv)
+*/
 
 #if !defined(HUWA_SIMPLE_LIT)
 #define HUWA_SIMPLE_LIT
@@ -7,7 +18,7 @@
 
 half4 _LightColor0;
 
-half SurfaceReduction(half perceptualRoughness, half roughness)
+half HSL_InternalFunction_SurfaceReduction(half perceptualRoughness, half roughness)
 {
 #if defined(UNITY_COLORSPACE_GAMMA)
     // 1-0.28*x^3 as approximation for (1/(x^4+1))^(1/2.2) on the domain [0;1]
@@ -18,7 +29,7 @@ half SurfaceReduction(half perceptualRoughness, half roughness)
 #endif
 }
 
-half3 BRDF_Lighting(float3 unpackNormal, float3 wViewDir, float3 wLightDir, half3 diffColor, half3 specColor, half3 lightColor, half roughness)
+half3 HSL_InternalFunction_Lighting(float3 unpackNormal, float3 wViewDir, float3 wLightDir, half3 diffColor, half3 specColor, half3 lightColor, half roughness)
 {
     half nl = saturate(dot(unpackNormal, wLightDir));
     float3 halfDir = normalize(wLightDir + wViewDir);
@@ -43,8 +54,8 @@ half3 BRDF_Lighting(float3 unpackNormal, float3 wViewDir, float3 wLightDir, half
     return (diffColor + specular) * lightColor * nl;
 }
 
-half4 BRDF(float3 wPos, float3 unpackNormal, float2 uv,
-           half4 mainColor, half3 emissionColor, half3 ambient, half metallic, half smoothness, half occlusion, half cascadeShadow)
+half4 BRDF(float3 wPos, float3 unpackNormal, half4 mainColor, half3 emissionColor, half3 ambient,
+    half metallic, half smoothness, half occlusion, half directionalLightShadow)
 {
     half alpha = mainColor.a;
     
@@ -81,7 +92,7 @@ half4 BRDF(float3 wPos, float3 unpackNormal, float2 uv,
         half3 giSpecular = UnityGI_IndirectSpecular(wPos, wReflectDir, perceptualRoughness, occlusion);
         
         half grazingTerm = saturate(smoothness + reflectivity);
-        half surfaceReduction = SurfaceReduction(perceptualRoughness, roughness);
+        half surfaceReduction = HSL_InternalFunction_SurfaceReduction(perceptualRoughness, roughness);
         
         float pow5 = 1.0 - nv;
         pow5 = pow5 * pow5 * pow5 * pow5 * pow5;
@@ -110,25 +121,25 @@ half4 BRDF(float3 wPos, float3 unpackNormal, float2 uv,
         pointLightDir3 = float3(toLightX.w, toLightY.w, toLightZ.w) * corr.w;
     }
     
-    half3 lightColor = _LightColor0.rgb * cascadeShadow;
+    half3 lightColor = _LightColor0.rgb * directionalLightShadow;
     float3 wLightDir = normalize(_WorldSpaceLightPos0.xyz - wPos * _WorldSpaceLightPos0.w);
-    color += BRDF_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[0].rgb * pointLightAtten.x;
     wLightDir = pointLightDir0;
-    color += BRDF_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[1].rgb * pointLightAtten.y;
     wLightDir = pointLightDir1;
-    color += BRDF_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[2].rgb * pointLightAtten.z;
     wLightDir = pointLightDir2;
-    color += BRDF_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[3].rgb * pointLightAtten.w;
     wLightDir = pointLightDir3;
-    color += BRDF_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
 #if !(defined(_MODE_ALPHABLEND_ON) || defined(_MODE_ALPHAPREMULTIPLY_ON))
     alpha = 1.0;
