@@ -1,4 +1,4 @@
-// Ver2 2024-09-26 22:37
+// Ver3 2024-09-27 20:53
 
 /*
 RewriteStandardShader(MediumQuality)Çå≥Ç…çÏê¨
@@ -11,8 +11,8 @@ half nv = abs(dot(wNormal, wViewDir));
 Pow5(1.0 - nv)
 */
 
-#if !defined(HUWA_SIMPLE_LIT)
-#define HUWA_SIMPLE_LIT
+#if !defined(HUWA_STANDARD_LIT)
+#define HUWA_STANDARD_LIT
 
 #include "RewriteUnityGlobalIllumination.hlsl"
 
@@ -148,4 +148,4 @@ half4 BRDF(float3 wPos, float3 unpackNormal, half4 mainColor, half3 emissionColo
     return half4(color, alpha);
 }
 
-#endif // #if !defined(HUWA_SIMPLE_LIT)
+#endif // #if !defined(HUWA_STANDARD_LIT)
