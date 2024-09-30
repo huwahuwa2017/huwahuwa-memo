@@ -1,4 +1,4 @@
-// Ver3 2024-09-27 20:53
+// Ver4 2024-09-30 22:04
 
 /*
 RewriteStandardShader(MediumQuality)Çå≥Ç…çÏê¨
@@ -54,7 +54,7 @@ half3 HSL_InternalFunction_Lighting(float3 unpackNormal, float3 wViewDir, float3
     return (diffColor + specular) * lightColor * nl;
 }
 
-half4 BRDF(float3 wPos, float3 unpackNormal, half4 mainColor, half3 emissionColor, half3 ambient,
+half4 BRDF(float3 wPos, float3 unpackNormal, float3 wRayStartPos, half4 mainColor, half3 emissionColor, half3 ambient,
     half metallic, half smoothness, half occlusion, half directionalLightShadow)
 {
     half alpha = mainColor.a;
@@ -63,7 +63,7 @@ half4 BRDF(float3 wPos, float3 unpackNormal, half4 mainColor, half3 emissionColo
     clip(alpha - _Cutoff);
 #endif
     
-    float3 wViewDir = normalize(_WorldSpaceCameraPos - wPos);
+    float3 wViewDir = normalize(wRayStartPos - wPos);
     float3 wReflectDir = reflect(-wViewDir, unpackNormal);
     
     half oneMinusReflectivity = unity_ColorSpaceDielectricSpec.a - metallic * unity_ColorSpaceDielectricSpec.a;
