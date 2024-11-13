@@ -1,4 +1,91 @@
-﻿
+﻿#if UNITY_EDITOR
+#endif
+
+
+
+//UnityEditor起動時に実行
+[InitializeOnLoad]
+[InitializeOnLoadMethod]
+
+
+
+//静的ではないメンバ
+//BindingFlags.Instance    4
+
+//静的なメンバ
+//BindingFlags.Static      8
+
+//パブリックなメンバ
+//BindingFlags.Public     16
+
+//パブリックではないメンバ
+//BindingFlags.NonPublic  32
+
+
+
+System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+
+
+// 以下のコードを記述したcsファイルのPathを取得できるらしい
+MonoScript thisObject = MonoScript.FromScriptableObject(this);
+string path = AssetDatabase.GetAssetPath(thisObject);
+
+
+
+// 以下のコードを記述したメソッドを実行したクラスの名前を取得できるらしい
+var caller = new System.Diagnostics.StackFrame(1, false);
+string callerClassName = caller.GetMethod().DeclaringType.FullName;
+System.Diagnostics.Debug.WriteLine(callerClassName + " クラスから呼び出されました。");
+
+
+
+// コンソール強制表示
+[DllImport("kernel32.dll")]
+private static extern bool AllocConsole();
+
+AllocConsole();
+Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+
+
+
+byte[] data = BitConverter.GetBytes(px[0].r);
+string temp0 = Convert.ToString(data[0], 2).PadLeft(8, '0');
+string temp1 = Convert.ToString(data[1], 2).PadLeft(8, '0');
+string temp2 = Convert.ToString(data[2], 2).PadLeft(8, '0');
+string temp3 = Convert.ToString(data[3], 2).PadLeft(8, '0');
+string text = $"data {temp3} {temp2} {temp1} {temp0}";
+Debug.Log(text);
+
+
+
+int _pid = VRCShader.PropertyToID("_Udon_HLb9p8y99nXw2H5X");
+VRCShader.SetGlobalTexture(_pid, _texture);
+
+
+
+// https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
+public Ray ViewportPointToRay(Camera camera, Vector4 position)
+{
+    Matrix4x4 viewportToWorldMatrix = (camera.projectionMatrix * camera.worldToCameraMatrix).inverse;
+
+    position.x = (position.x - 0.5f) * 2f;
+    position.y = (position.y - 0.5f) * 2f;
+    position.w = 1f;
+
+    position.z = -1f;
+    Vector4 rayStart = viewportToWorldMatrix * position;
+    rayStart = rayStart / rayStart.w;
+
+    position.z = -0.99f;
+    Vector4 rayEnd = viewportToWorldMatrix * position;
+    rayEnd = rayEnd / rayEnd.w;
+
+    return new Ray(rayStart, rayEnd - rayStart);
+}
+
+
+
 // GL.GetGPUProjectionMatrix
 private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderIntoTexture)
 {
@@ -22,6 +109,7 @@ private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderInto
 
     return proj;
 }
+
 
 
 //UnityEditor.InspectorWindow.DrawSplitLine(float y)
@@ -155,18 +243,6 @@ private static float DistanceCalculation(Vector3 targetPosition, PolygonData pol
 
     return result;
     */
-}
-
-private void OutputPNG()
-{
-    int width = texture2D.width;
-    int height = texture2D.height;
-    GraphicsFormat graphicsFormat = texture2D.graphicsFormat;
-
-    Texture2D newTexture2D = new Texture2D(width, height, graphicsFormat, TextureCreationFlags.None);
-    Graphics.CopyTexture(texture2D, 0, 0, newTexture2D, 0, 0);
-    byte[] bytes = newTexture2D.EncodeToPNG();
-    File.WriteAllBytes(@"C:\Users\TUF_Z390\Desktop\Test.png", bytes);
 }
 
 

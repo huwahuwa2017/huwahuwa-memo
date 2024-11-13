@@ -1,4 +1,6 @@
 
+
+
 FP32
 符号部  1bit
 指数部  8bit
@@ -14,6 +16,38 @@ FP32
 
 指数部 = 127 + 5 = 132 = 10000100
 仮数部 = 11001
+
+uint a;
+uint(x * (float)(1 << a))
+↓指数部がオーバーフローしなければ同じ結果
+uint(x) + (a << 23)
+
+
+
+// https://lipoyang.hatenablog.com/entry/2021/02/03/202242
+// 2^xの近似
+int32_t fxp_x = x * (float)(1 << 23);
+int32_t tmp = fxp_x + (127 << 23);
+float y = *(float*)&tmp;
+
+
+
+// int32_t fxp_x = x * (float)(1 << 23); の詳細
+// この操作により、少数部が23bitの固定小数点数ができあがる
+
+int32_t temp0 = *(int32_t*)&x;                           // floatからint32_tへの変換
+int32_t temp1 = temp0 & 0x007FFFFF | 0x00800000;         // 仮数部を抽出してケチ表現を追加
+int32_t temp2 = ((temp0 >> 23) & 0x000000FF) - 127;      // 指数を抽出
+temp1 = (temp2 >= 0) ? temp1 << temp2 : temp1 >> -temp2; // 仮数部を指数の回数ずらす
+temp1 = (temp0 & 0x80000000) ? -temp1 : temp1;           // 符号を考慮
+
+
+
+// https://lipoyang.hatenablog.com/entry/2021/02/03/202242
+// log2(x)の近似 (2^xの近似の逆の操作をしている)
+int32_t tmp = *(int32_t*)&x;
+int32_t fxp_y = tmp - (127 << 23);
+float y = (float)fxp_y / (float)(1 << 23);
 
 
 
@@ -93,6 +127,8 @@ a^x / b^x = (a / b)^x
 
 (a^x)^y = a^(x * y)
 
+(a^0.5) / (a^-0.5) = a
+
 exp(a) = exp2(a * 1.442695)
 e^a = (2^1.442695)^a = 2^(a * 1.442695)
 
@@ -110,6 +146,9 @@ tan((180 - 視野角) / 2) + 1
 angle = (angle >  180) and angle - 360 or (angle < -180) and angle + 360 or angle
 ↓
 angle = Mathf.DeltaAngle(0, angle)
+
+// ?
+Mathf.DeltaAngle(A, B) == Mathf.DeltaAngle(0f, B - A)
 
 
 
@@ -130,8 +169,8 @@ step(x,y) = x >= y
 (a.x == b.x || a.y == b.y || a.z == b.z) = any(a == b) = !all(a != b)
 
 ( 4.0) % ( 1.5) = fmod( 4.0,  1.5) =  1.0;
-( 4.0) % (-1.5) = fmod( 4.0, -1.5) =  1.0;
 (-4.0) % ( 1.5) = fmod(-4.0,  1.5) = -1.0;
+( 4.0) % (-1.5) = fmod( 4.0, -1.5) =  1.0;
 (-4.0) % (-1.5) = fmod(-4.0, -1.5) = -1.0;
 
 frac( 1.25) = 0.25
@@ -160,15 +199,6 @@ int result = (a & 0x80000000) ? -temp0 : temp0;
 
 
 matrix[0] よりも matrix._11_21_31_41 の方が命令数を節約できる
-
-
-
-//カメラが向いている方向(World)
-UNITY_MATRIX_I_V._m02_m12_m22
-UNITY_MATRIX_V[2].xyz
-
-//カメラが向いている方向(Local)
-UNITY_MATRIX_IT_MV[2] .xyz
 
 
 
@@ -287,6 +317,8 @@ BをAの逆行列と呼ぶ
  │g  h  i││p  q  r│   │Aの3行目・Bの1列目   Aの3行目・Bの2列目   Aの3行目・Bの3列目│   │(g, h, i)・(j, m, p)   (g, h, i)・(k, n, q)   (g, h, i)・(l, o, r)│
  └       ┘└       ┘   └                                                            ┘   └                                                                  ┘
 
+(AB)^t = B^t * A^t
+
 
 
 uint Xorshift(uint seed)
@@ -371,6 +403,182 @@ b = q.y*b3.x - q.x*b3.y + b2.x*b1.y - b2.y*b1.x //★(b3 ⋀  q - b1 ⋀ b2)と�
 c = q.y*b1.x - q.x*b1.y                         //★(b1 ⋀  q)と同じ
 
 v = 2次方程式の解の公式(a, b, c)
+
+
+
+(i(a.x) + j(a.y) + k(a.z) + a.w) * (i(b.x) + j(b.y) + k(b.z) + b.w)
+
+i(a.x) * i(b.x) = -1(a.x * b.x)
+i(a.x) * j(b.y) =  k(a.x * b.y)
+i(a.x) * k(b.z) = -j(a.x * b.z)
+i(a.x) *   b.w  =  i(a.x * b.w)
+j(a.y) * i(b.x) = -k(a.y * b.x)
+j(a.y) * j(b.y) = -1(a.y * b.y)
+j(a.y) * k(b.z) =  i(a.y * b.z)
+j(a.y) *   b.w  =  j(a.y * b.w)
+k(a.z) * i(b.x) =  j(a.z * b.x)
+k(a.z) * j(b.y) = -i(a.z * b.y)
+k(a.z) * k(b.z) = -1(a.z * b.z)
+k(a.z) *   b.w  =  k(a.z * b.w)
+  a.w  * i(b.x) =  i(a.w * b.x)
+  a.w  * j(b.y) =  j(a.w * b.y)
+  a.w  * k(b.z) =  k(a.w * b.z)
+  a.w  *   b.w  =   (a.w * b.w)
+
+i(+(a.x * b.w) +(a.y * b.z) -(a.z * b.y) +(a.w * b.x))
+j(-(a.x * b.z) +(a.y * b.w) +(a.z * b.x) +(a.w * b.y))
+k(+(a.x * b.y) -(a.y * b.x) +(a.z * b.w) +(a.w * b.z))
+ (-(a.x * b.x) -(a.y * b.y) -(a.z * b.z) +(a.w * b.w))
+
+i(+(a.w * b.x) -(a.z * b.y) +(a.y * b.z) +(a.x * b.w))
+j(+(a.z * b.x) +(a.w * b.y) -(a.x * b.z) +(a.y * b.w))
+k(-(a.y * b.x) +(a.x * b.y) +(a.w * b.z) +(a.z * b.w))
+ (-(a.x * b.x) -(a.y * b.y) -(a.z * b.z) +(a.w * b.w))
+
+
+
+x   0   0         0
+0   y   0         0
+0   0   n/(f-n)   nf/(f-n)
+0   0   -1        0
+
+x   0   0    0
+0   y   0    0
+0   0   0    nf/(f-n)
+0   0   -1   0
+
+x   0   0    0
+0   y   0    0
+0   0   -1   0
+0   0   0    nf/(f-n)
+
+
+
+ TX = dot(PM[0], vPos) / dot(PM[3], vPos)
+ TY = dot(PM[1], vPos) / dot(PM[3], vPos)
+1.0 = dot(PM[2], vPos) / dot(PM[3], vPos)
+  ? = dot(PM[3], vPos)
+	↓
+ TX * dot(PM[3], vPos) = dot(PM[0].xyz, vPos.xyz)
+ TY * dot(PM[3], vPos) = dot(PM[1].xyz, vPos.xyz)
+1.0 * dot(PM[3], vPos) = dot(PM[2].xyz, vPos.xyz)
+	↓
+ TX * (dot(PM[3].xyz, vPos.xyz) + PM33) = dot(PM[0].xyz, vPos.xyz)
+ TY * (dot(PM[3].xyz, vPos.xyz) + PM33) = dot(PM[1].xyz, vPos.xyz)
+1.0 * (dot(PM[3].xyz, vPos.xyz) + PM33) = dot(PM[2].xyz, vPos.xyz)
+	↓
+ ┌             ┐ ┌                ┐┌      ┐ ┌    ┐  ┌                ┐┌      ┐
+ │ TX, 0.0, 0.0│ │PM30, PM31, Pm32││vPos.x│ │PM33│  │PM00, PM01, PM02││vPos.x│
+ │0.0,  TY, 0.0│(│PM30, PM31, Pm32││vPos.y│+│PM33│)=│PM10, PM11, PM12││vPos.y│
+ │0.0, 0.0, 1.0│ │PM30, PM31, Pm32││vPos.z│ │PM33│  │PM20, PM21, PM22││vPos.z│
+ └             ┘ └                ┘└      ┘ └    ┘  └                ┘└      ┘
+
+ ┌             ┐┌                ┐┌      ┐ ┌             ┐┌    ┐ ┌                ┐┌      ┐
+ │ TX, 0.0, 0.0││PM30, PM31, Pm32││vPos.x│ │ TX, 0.0, 0.0││PM33│ │PM00, PM01, PM02││vPos.x│
+ │0.0,  TY, 0.0││PM30, PM31, Pm32││vPos.y│+│0.0,  TY, 0.0││PM33│=│PM10, PM11, PM12││vPos.y│
+ │0.0, 0.0, 1.0││PM30, PM31, Pm32││vPos.z│ │0.0, 0.0, 1.0││PM33│ │PM20, PM21, PM22││vPos.z│
+ └             ┘└                ┘└      ┘ └             ┘└    ┘ └                ┘└      ┘
+
+ ┌             ┐┌    ┐ ┌                ┐┌      ┐ ┌             ┐┌                ┐┌      ┐
+ │ TX, 0.0, 0.0││PM33│ │PM00, PM01, PM02││vPos.x│ │ TX, 0.0, 0.0││PM30, PM31, Pm32││vPos.x│
+ │0.0,  TY, 0.0││PM33│=│PM10, PM11, PM12││vPos.y│-│0.0,  TY, 0.0││PM30, PM31, Pm32││vPos.y│
+ │0.0, 0.0, 1.0││PM33│ │PM20, PM21, PM22││vPos.z│ │0.0, 0.0, 1.0││PM30, PM31, Pm32││vPos.z│
+ └             ┘└    ┘ └                ┘└      ┘ └             ┘└                ┘└      ┘
+
+ ┌             ┐┌    ┐  ┌                ┐ ┌             ┐┌                ┐ ┌      ┐
+ │ TX, 0.0, 0.0││PM33│  │PM00, PM01, PM02│ │ TX, 0.0, 0.0││PM30, PM31, Pm32│ │vPos.x│
+ │0.0,  TY, 0.0││PM33│=(│PM10, PM11, PM12│-│0.0,  TY, 0.0││PM30, PM31, Pm32│)│vPos.y│
+ │0.0, 0.0, 1.0││PM33│  │PM20, PM21, PM22│ │0.0, 0.0, 1.0││PM30, PM31, Pm32│ │vPos.z│
+ └             ┘└    ┘  └                ┘ └             ┘└                ┘ └      ┘
+
+  ┌                ┐ ┌             ┐┌                ┐ -1 ┌             ┐┌    ┐ ┌      ┐
+  │PM00, PM01, PM02│ │ TX, 0.0, 0.0││PM30, PM31, Pm32│    │ TX, 0.0, 0.0││PM33│ │vPos.x│
+ (│PM10, PM11, PM12│-│0.0,  TY, 0.0││PM30, PM31, Pm32│)   │0.0,  TY, 0.0││PM33│=│vPos.y│
+  │PM20, PM21, PM22│ │0.0, 0.0, 1.0││PM30, PM31, Pm32│    │0.0, 0.0, 1.0││PM33│ │vPos.z│
+  └                ┘ └             ┘└                ┘    └             ┘└    ┘ └      ┘
+
+
+
+cPos.x = dot(pm[0], vPos)
+cPos.y = dot(pm[1], vPos)
+cPos.z = dot(pm[2], vPos)
+cPos.w = dot(pm[3], vPos)
+	↓
+cPos.x = dot(pm[0].xyz, vPos.xyz) + pm[0].w
+cPos.y = dot(pm[1].xyz, vPos.xyz) + pm[1].w
+cPos.z = dot(pm[2].xyz, vPos.xyz) + pm[2].w
+	↓
+ ┌      ┐ ┌                      ┐┌      ┐ ┌     ┐
+ │cPos.x│ │pm.m00  pm.m01  pm.m02││vPos.x│ │pm.03│
+ │cPos.y│=│pm.m10  pm.m11  pm.m12││vPos.y│+│pm.13│
+ │cPos.z│ │pm.m20  pm.m21  pm.m22││vPos.z│ │pm.23│
+ └      ┘ └                      ┘└      ┘ └     ┘
+
+ ┌      ┐ ┌     ┐ ┌                      ┐┌      ┐
+ │cPos.x│ │pm.03│ │pm.m00  pm.m01  pm.m02││vPos.x│
+ │cPos.y│-│pm.13│=│pm.m10  pm.m11  pm.m12││vPos.y│
+ │cPos.z│ │pm.23│ │pm.m20  pm.m21  pm.m22││vPos.z│
+ └      ┘ └     ┘ └                      ┘└      ┘
+
+ ┌                      ┐-1 ┌      ┐ ┌     ┐  ┌      ┐
+ │pm.m00  pm.m01  pm.m02│   │cPos.x│ │pm.03│  │vPos.x│
+ │pm.m10  pm.m11  pm.m12│  (│cPos.y│-│pm.13│)=│vPos.y│
+ │pm.m20  pm.m21  pm.m22│   │cPos.z│ │pm.23│  │vPos.z│
+ └                      ┘   └      ┘ └     ┘  └      ┘
+
+
+
+length(cameraPos + Ray * n) = 1.0
+↓
+dot(cameraPos + Ray*n, cameraPos + Ray*n) = 1.0
+↓
+dot(cameraPos + Ray*n, Ray*n) + dot(cameraPos + Ray*n, cameraPos) = 1.0
+↓
+dot(Ray*n, Ray*n) + dot(cameraPos, Ray*n) + dot(cameraPos, cameraPos) + dot(Ray*n, cameraPos) = 1.0
+↓
+dot(Ray*n, Ray*n) + 2*dot(cameraPos, Ray*n) + dot(cameraPos, cameraPos) = 1.0
+↓
+(n^2)*dot(Ray, Ray) + n*2*dot(cameraPos, Ray) + dot(cameraPos, cameraPos) = 1.0
+↓
+n^2 + n*2*dot(cameraPos, Ray) + dot(cameraPos, cameraPos) - 1.0 = 0.0
+
+
+
+sqrt(dot(a, a)) / r
+↓
+sqrt(dot(a, a)) / sqrt(r * r)
+↓
+sqrt(dot(a, a) / r * r)
+↓
+sqrt(dot(a/r, a/r))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

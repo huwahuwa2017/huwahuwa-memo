@@ -1,0 +1,29 @@
+﻿
+
+
+Unityで負荷を計測する前に、垂直同期をオンにしてからオフにした方が良いかも
+なんか挙動が怪しい
+
+
+
+C:\Program Files\Unity\Hub\Editor\2022.3.8f1\Editor\Data\NetStandard\ref\2.1.0\netstandard.dll
+
+
+
+GUI.skin.labelなどのGUIStyleを取得する処理を実行するとき、
+EditorWindowのOnGUI内とMonoBehaviourのOnGUI内で違う結果になる可能性がある
+
+C#で生成したマテリアルをCommand Bufferで使用するとき、
+そのマテリアルの参照をフィールドなどに保持しておく必要がある
+そうしないとバグるときがある
+GC関係の仕様が影響してるのではないかと予想しているが詳細はよくわからない
+
+
+
+AssetBundleは二種類存在する
+普通のAssetBundleとStreamedSceneAssetBundle
+
+
+
+
+

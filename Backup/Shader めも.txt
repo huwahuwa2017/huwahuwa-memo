@@ -1,4 +1,5 @@
-順番
+
+
 
 Tags
 
@@ -13,6 +14,60 @@ Stencil
 #pragma
 #define
 #include
+
+
+
+CameraのClearFlagsの挙動
+    SkyBox : Depthを初期化した後SkyBoxを描画してからMeshを描画
+SolidColor : Depthを初期化した後指定した色で塗りつぶしてからMeshを描画
+ DepthOnly : Depthだけ初期化してMeshを描画
+Don'tClear : 何も初期化せずにMeshを描画
+
+
+
+UNITY_PASS_FORWARDBASE
+UNITY_PASS_FORWARDADD
+UNITY_PASS_SHADOWCASTER
+
+
+
+half nv = saturate(dot(wNormal, wViewDir));
+Pow4(1.0 - nv)
+↓
+roughness = max(roughness, 0.002);
+half nv = abs(dot(wNormal, wViewDir));
+Pow5(1.0 - nv)
+
+
+
+lerp(a, 1.0, b) = lerp(b, 1.0, a)
+lerp(a, b, c) = lerp(b, a, 1.0 - c)
+
+
+
+unity_4LightAtten0 = 25.0 / (Range * Range)
+unity_4LightAtten0 * (Range * Range) = 25.0
+(Range * Range) = 25.0 / unity_4LightAtten0
+Range = sqrt(25.0 / unity_4LightAtten0)
+
+
+
+Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
+
+
+
+destColor はすでに描画している色
+ srcColor は生成した色
+
+Blend srcColorのブレンド係数 destColorのブレンド係数
+
+Blend SrcAlpha OneMinusSrcAlpha
+↓
+result = srcColor * srcColor.a + destColor * (1.0 - srcColor.a)
+
+Blend OneMinusDstColor OneMinusSrcAlpha
+↓
+result = srcColor * (1.0 - destColor) + destColor * (1.0 - srcColor.a)
 
 
 
@@ -76,18 +131,18 @@ ShaderLabではDX11をDX9っぽく書けるようにするために色々な関�
 
 
 
-UNITY_STEREO_MULTIVIEW_ENABLED
-
 UNITY_SINGLE_PASS_STEREO
 
 UNITY_STEREO_INSTANCING_ENABLED
 
+UNITY_STEREO_MULTIVIEW_ENABLED
+
 
 
 #if defined(UNITY_REVERSED_Z)
-	// DirectX系のP行列
+	// DirectX
 #else
-	// OpenGL系のP行列
+	// OpenGL
 #endif
 
 
@@ -101,7 +156,21 @@ UNITY_STEREO_INSTANCING_ENABLED
 
 "Queue" = "Overlay+2147479647"
 "Queue" = "Overlay+815199"
-(819200-1?)
+(8192 * 100 - 1 ?)
+
+
+
+float3 objectOriginWorldPos = UNITY_MATRIX_M._m03_m13_m23;
+
+
+
+//カメラが向いている方向(World)
+float3 wCameraDir = -UNITY_MATRIX_I_V._m02_m12_m22
+float3 wCameraDir = -UNITY_MATRIX_V._m20_m21_m22
+float3 wCameraDir = -UNITY_MATRIX_V[2].xyz
+
+//カメラが向いている方向(Local)
+float3 lCameraDir = -UNITY_MATRIX_IT_MV[2] .xyz
 
 
 
@@ -115,12 +184,10 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 Texture2D.Load(int3(cPos.x, cPos.y, mipLevel), int2(offset.x, offset.y));
 ↓
 Texture2D.mips[mipLevel][uint2(input.cPos.xy)];
+
+Texture2D.mips[0][uint2(input.cPos.xy)];
 ↓
 Texture2D[uint2(input.cPos.xy)];
-
-
-
-output.uv = input[0].uv * bary.x + input[1].uv * bary.y + input[2].uv * bary.z;
 
 
 
@@ -130,7 +197,7 @@ output.uv = input[0].uv * bary.x + input[1].uv * bary.y + input[2].uv * bary.z;
 
 
 
-距離 / 140000 = Zファイティングが発生する距離の目安
+vPos.z / 140000 = Zファイティングが発生するポリゴン同士の距離の目安
 
 
 
@@ -147,6 +214,26 @@ UV座標　　　　float
 
 
 
+Unityでよく使う圧縮形式
+
+DXT1(BC1)
+RGB形式で使える
+pixelあたりの情報量は4bit
+
+DXT5(BC3)
+RGBA形式で使える
+pixelあたりの情報量は8bit
+
+DTXnm
+ノーマルマップ用 DTX5と似ているらしい
+pixelあたりの情報量は8bit
+
+BC7
+RGB,RGBA形式で使える HighQualityCompressionで出現
+pixelあたりの情報量は8bit
+
+
+
 色空間
 色をそのまま足したり掛けたりするのがガンマワークフロー
 色をリニア空間に変換（逆ガンマ補正）をしてから足したり掛けたりした後にガンマ空間に変換（ガンマ補正）するのがリニアワークフロー
@@ -155,7 +242,7 @@ UV座標　　　　float
 逆ガンマ補正(Gamma To Linear)で黒っぽくなる
   ガンマ補正(Linear To Gamma)で白っぽくなる
 
-Unityはリニアワークフローを推奨しているくせにUnity2019のデフォルト設定はガンマワークフローになっている（罠）
+Unityはリニアワークフローを推奨しているがUnity2019のデフォルト設定はガンマワークフローになっている（罠）
 VRChatはリニアワークフローである
 
 テクスチャのインポート設定にsRGBのチェックボックスがある
@@ -165,7 +252,7 @@ VRChatはリニアワークフローである
 ちなみにガンマワークフローでsRGBのチェックを入れたり外したりしてもなにもおきない
 
 ガンマワークフローで sRGB がオン
-テクスチャ →              → シェーダー               → モニター
+テクスチャ                 → シェーダー               → モニター
 
 ガンマワークフローで sRGB がオフ
 テクスチャ                 → シェーダー               → モニター
@@ -189,6 +276,75 @@ source → 逆ガンマ補正 → シェーダー →            → dest
 
 source の sRGB がオン   dest の sRGB がオン
 source → 逆ガンマ補正 → シェーダー → ガンマ補正 → dest
+
+
+
+UNITY_VERTEX_INPUT_INSTANCE_ID の処理
+Stage の入力構造体に変数を追加する
+
+	(defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && defined(SHADER_API_PSSL)
+	uint instanceID;
+
+	(defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && !defined(SHADER_API_PSSL)
+	uint instanceID : SV_InstanceID;
+
+
+
+UNITY_VERTEX_OUTPUT_STEREO の処理
+FragmentShaderStage の入力構造体に変数を追加する
+
+	defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE))
+	uint stereoTargetEyeIndexSV : SV_RenderTargetArrayIndex;
+	uint stereoTargetEyeIndex : BLENDINDICES0;
+
+	defined(UNITY_STEREO_INSTANCING_ENABLED) && !(defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE))
+	uint stereoTargetEyeIndex : SV_RenderTargetArrayIndex;
+
+	!defined(UNITY_STEREO_INSTANCING_ENABLED) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+	uint stereoTargetEyeIndex : BLENDINDICES0;
+
+
+
+UNITY_SETUP_INSTANCE_ID(input) の処理
+unity_StereoEyeIndex や unity_InstanceID の上書きとその影響を受ける変数やマクロの更新
+
+
+
+UNITY_TRANSFER_INSTANCE_ID(input, output) の処理
+次の Stage へ instanceID を渡すときに使う
+
+	defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+	output.instanceID = UNITY_GET_INSTANCE_ID(input)
+
+
+
+UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output) の処理
+unity_StereoEyeIndex を FragmentShaderStage へ渡したり、RenderTarget を変更したりする
+
+	defined(UNITY_STEREO_INSTANCING_ENABLED) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE))
+	output.stereoTargetEyeIndexSV = unity_StereoEyeIndex;
+	output.stereoTargetEyeIndex = unity_StereoEyeIndex;
+
+	defined(UNITY_STEREO_INSTANCING_ENABLED) && !(defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE))
+	output.stereoTargetEyeIndex = unity_StereoEyeIndex    // ←なぜかセミコロンが無い
+
+	!defined(UNITY_STEREO_INSTANCING_ENABLED) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+	output.stereoTargetEyeIndex = unity_StereoEyeIndex;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
