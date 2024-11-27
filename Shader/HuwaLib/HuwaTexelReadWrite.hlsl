@@ -1,4 +1,4 @@
-// Ver20 2024-11-27 05:09
+// Ver21 2024-11-27 13:41
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
@@ -48,6 +48,7 @@ result = tex[uint2((id) % _HTRW_ReadTextureSize.x, ((id) / _HTRW_ReadTextureSize
 
 
 
+// Convert right side 15bit to FP16
 #define HTRW_R15BIT_TO_FP16(type)\
 type temp0 = (input & 0x000003FF) << 13;\
 type temp1 = (((input & 0x00003C00) >> 10) + 113) << 23;\
@@ -59,6 +60,7 @@ float2 R15bitToFP16(uint2 input) { HTRW_R15BIT_TO_FP16(uint2) }
 float3 R15bitToFP16(uint3 input) { HTRW_R15BIT_TO_FP16(uint3) }
 float4 R15bitToFP16(uint4 input) { HTRW_R15BIT_TO_FP16(uint4) }
 
+// Convert right side 14bit to FP16
 #define HTRW_R14BIT_TO_FP16(type)\
 type temp0 = (input & 0x000003FF) << 13;\
 type temp1 = (((input & 0x00003C00) >> 10) + 113) << 23;\
@@ -69,6 +71,7 @@ float2 R14bitToFP16(uint2 input) { HTRW_R14BIT_TO_FP16(uint2) }
 float3 R14bitToFP16(uint3 input) { HTRW_R14BIT_TO_FP16(uint3) }
 float4 R14bitToFP16(uint4 input) { HTRW_R14BIT_TO_FP16(uint4) }
 
+// Convert right side 10bit to FP16
 #define HTRW_R10BIT_TO_FP16(type)\
 type temp0 = (input & 0x000003FF) << 13;\
 return asfloat(temp0 | 0x38800000);
@@ -80,6 +83,7 @@ float4 R10bitToFP16(uint4 input) { HTRW_R10BIT_TO_FP16(uint4) }
 
 
 
+// Convert FP16 to right side 15bit
 #define HTRW_FP16_TO_R15BIT(type)\
 type data = asuint(input);\
 type temp0 = (data & 0x007FE000) >> 13;\
@@ -92,6 +96,7 @@ uint2 FP16ToR15bit(float2 input) { HTRW_FP16_TO_R15BIT(uint2) }
 uint3 FP16ToR15bit(float3 input) { HTRW_FP16_TO_R15BIT(uint3) }
 uint4 FP16ToR15bit(float4 input) { HTRW_FP16_TO_R15BIT(uint4) }
 
+// Convert FP16 to right side 14bit
 #define HTRW_FP16_TO_R14BIT(type)\
 type data = asuint(input);\
 type temp0 = (data & 0x007FE000) >> 13;\
@@ -103,6 +108,7 @@ uint2 FP16ToR14bit(float2 input) { HTRW_FP16_TO_R14BIT(uint2) }
 uint3 FP16ToR14bit(float3 input) { HTRW_FP16_TO_R14BIT(uint3) }
 uint4 FP16ToR14bit(float4 input) { HTRW_FP16_TO_R14BIT(uint4) }
 
+// Convert FP16 to right side 10bit
 #define HTRW_FP16_TO_R10BIT(type)\
 type data = asuint(input);\
 type temp0 = (data & 0x007FE000) >> 13;\
