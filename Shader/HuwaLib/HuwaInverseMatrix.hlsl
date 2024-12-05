@@ -25,30 +25,28 @@ float3x3 Inverse(float3x3 m)
 
 float4x4 Inverse(float4x4 m)
 {
-    float2 r12 = float2(mad(m._13, m._24, -m._23 * m._14), mad(m._11, m._22, -m._21 * m._12));
-    float2 r13 = float2(mad(m._13, m._34, -m._33 * m._14), mad(m._11, m._32, -m._31 * m._12));
-    float2 r14 = float2(mad(m._13, m._44, -m._43 * m._14), mad(m._11, m._42, -m._41 * m._12));
-    float2 r23 = float2(mad(m._23, m._34, -m._33 * m._24), mad(m._21, m._32, -m._31 * m._22));
-    float2 r24 = float2(mad(m._23, m._44, -m._43 * m._24), mad(m._21, m._42, -m._41 * m._22));
-    float2 r34 = float2(mad(m._33, m._44, -m._43 * m._34), mad(m._31, m._42, -m._41 * m._32));
+    float4 det1 = mad(m._33_31_13_11, m._44_42_24_22, -m._34_32_14_12 * m._43_41_23_21);
+    float4 det2 = mad(m._23_21_13_11, m._44_42_34_32, -m._24_22_14_12 * m._43_41_33_31);
+    float4 det3 = mad(m._23_21_13_11, m._34_32_44_42, -m._24_22_14_12 * m._33_31_43_41);
     
-    float4x4 am;
-    am._11_21_31_41 = mad(m._22_21_24_23, r34.xxyy, mad(m._32_31_34_33, -r24.xxyy, m._42_41_44_43 * r23.xxyy));
-    am._12_22_32_42 = mad(m._12_11_14_13, r34.xxyy, mad(m._32_31_34_33, -r14.xxyy, m._42_41_44_43 * r13.xxyy));
-    am._13_23_33_43 = mad(m._12_11_14_13, r24.xxyy, mad(m._22_21_24_23, -r14.xxyy, m._42_41_44_43 * r12.xxyy));
-    am._14_24_34_44 = mad(m._12_11_14_13, r23.xxyy, mad(m._22_21_24_23, -r13.xxyy, m._32_31_34_33 * r12.xxyy));
-    am._21_41 = -am._21_41;
-    am._12_32 = -am._12_32;
-    am._23_43 = -am._23_43;
-    am._14_34 = -am._14_34;
+    float4x4 im;
+    im._11_21_31_41 = mad(m._22_21_24_23, det1.xxyy, mad(-m._32_31_34_33, det2.xxyy, m._42_41_44_43 * det3.xxyy));
+    im._12_22_32_42 = mad(m._12_11_14_13, det1.xxyy, mad(-m._32_31_34_33, det3.zzww, m._42_41_44_43 * det2.zzww));
+    im._13_23_33_43 = mad(m._12_11_14_13, det2.xxyy, mad(-m._22_21_24_23, det3.zzww, m._42_41_44_43 * det1.zzww));
+    im._14_24_34_44 = mad(m._12_11_14_13, det3.xxyy, mad(-m._22_21_24_23, det2.zzww, m._32_31_34_33 * det1.zzww));
     
-    float invDet = rcp(dot(m[0], am._11_21_31_41));
-    am._11_21_31_41 *= invDet;
-    am._12_22_32_42 *= invDet;
-    am._13_23_33_43 *= invDet;
-    am._14_24_34_44 *= invDet;
+    im._21_41 = -im._21_41;
+    im._12_32 = -im._12_32;
+    im._23_43 = -im._23_43;
+    im._14_34 = -im._14_34;
     
-    return am;
+    float invDet = rcp(dot(m[0], im._11_21_31_41));
+    im._11_21_31_41 *= invDet;
+    im._12_22_32_42 *= invDet;
+    im._13_23_33_43 *= invDet;
+    im._14_24_34_44 *= invDet;
+    
+    return im;
 }
 
 #endif // HUWA_INVERSE_MATRIX_INCLUDED
