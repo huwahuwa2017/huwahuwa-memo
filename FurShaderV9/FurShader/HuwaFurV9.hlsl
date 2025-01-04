@@ -1,4 +1,4 @@
-// Ver1 2024-09-16 17:28
+// v2 2025-01-04 09:19
 
 #define UNITY_MATRIX_I_M unity_WorldToObject
 
@@ -60,7 +60,7 @@ float _FurAlphaCutoff;
 static int _MaxFurCount = 25;
 static int _MaxVertexCount = _MaxFurCount * 4;
 
-static float _ShadowNormalOffset = 0.002;
+//static float _ShadowNormalOffset = 0.002;
 static float _FurCulling = 0.5;
 static float _LOD = 15.0;
 
@@ -281,8 +281,7 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
         
         float3 lengthAndSink = TEXTURE_READ(_FurLengthTex, uv).rgb;
         float furLength = lengthAndSink.r;
-        //float density = lengthAndSink.g;
-        float sink = lengthAndSink.b;
+        float sink = lengthAndSink.g;
         
         if (furLength < 0.01)
             continue;
@@ -333,8 +332,9 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
         float cascadeShadow = 1.0;
         
 #if defined(HUWA_CASCADE_SHADOW_IS_AVAILABLE)
-        float vz = abs(dot(UNITY_MATRIX_V._m20_m21_m22, wPosition - _WorldSpaceCameraPos));
-        float4 shadow_cPos = UnityWorldToClipPos(wPosition - wNormal * vz * _ShadowNormalOffset);
+        //float vz = abs(dot(UNITY_MATRIX_V._m20_m21_m22, wPosition - _WorldSpaceCameraPos));
+        //float4 shadow_cPos = UnityWorldToClipPos(wPosition - wNormal * vz * _ShadowNormalOffset);
+        float4 shadow_cPos = UnityWorldToClipPos(wPosition);
         cascadeShadow = HuwaCascadeShadow_cPos(shadow_cPos.xyw);
 #endif
         
