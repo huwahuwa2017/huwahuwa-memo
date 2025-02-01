@@ -1,4 +1,12 @@
 ﻿
+TransformPoint     : 回転とスケールと位置
+TransformVector    : 回転とスケール
+TransformDirection : 回転
+
+
+
+copy /y "$(TargetPath)" "$(ProjectDir)DLL"
+
 
 
 Unityで負荷を計測する前に、垂直同期をオンにしてからオフにした方が良いかも

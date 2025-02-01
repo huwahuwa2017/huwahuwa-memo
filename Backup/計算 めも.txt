@@ -1,26 +1,75 @@
 
 
 
+// 球面調和のごく一部
+┌             ┐┌ ┐ ┌ ┐
+│0.707  -0.707││x│=│a│
+│0.707   0.707││y│ │b│
+└             ┘└ ┘ └ ┘
+
+a = x*0.707 - y*0.707
+b = x*0.707 + y*0.707
+
+a = 0.707 * (x - y)
+b = 0.707 * (x + y)
+
+a * b = (0.707 * (x - y)) * (0.707 * (x + y))
+      = 0.5 * (x - y) * (x + y)
+      = 0.5 * (x*x*-y*y)
+
+
+
+無限回微分可能な関数はこのような形で近似することができる
+
+f(x) = a[0]*x^0 + a[1]*x^1 + a[2]*x^2 + ...
+
+マクローリン展開
+a[n] = f(n)(0) / n!
+
+
+
+FP16
+符号部  1bit
+指数部  5bit
+仮数部 10bit
+
+(2^(指数部 - 15)) * 1.仮数部
+
+例
+57 → 111001 → 1.11001 << 5
+
+指数部 = 5 + 15 = 20 = 10100
+仮数部 = 1100100000
+
+最小
+0x33800000
+0.000000000000000000000001
+
+
+
 FP32
 符号部  1bit
 指数部  8bit
 仮数部 23bit
 
-(1 << (指数部 - 127)) * 1.仮数部
+(2^(指数部 - 127)) * 1.仮数部
 
-57
-↓
-111001
-↓
-1.11001 << 5
+例
+57 → 111001 → 1.11001 << 5
 
-指数部 = 127 + 5 = 132 = 10000100
-仮数部 = 11001
+指数部 = 5 + 127 = 132 = 10000100
+仮数部 = 11001000000000000000000
 
+
+
+float x;
 uint a;
-uint(x * (float)(1 << a))
+
+x * (float)pow(2, a)
+↓
+x * (float)(1 << a)
 ↓指数部がオーバーフローしなければ同じ結果
-uint(x) + (a << 23)
+asfloat(uint(x) + (a << 23))
 
 
 
@@ -48,6 +97,11 @@ temp1 = (temp0 & 0x80000000) ? -temp1 : temp1;           // 符号を考慮
 int32_t tmp = *(int32_t*)&x;
 int32_t fxp_y = tmp - (127 << 23);
 float y = (float)fxp_y / (float)(1 << 23);
+
+
+
+Blenderで十角形から五芒星を作るための呪文
+(3 - sqrt(5)) / 2
 
 
 
@@ -88,7 +142,9 @@ float temp0 = length(rp - (edge * h));
 
 
 
-//4ヶ所の座標
+// ベジェ曲線
+
+// 4ヶ所の座標
 float3 v0, v1, v2, v3;
 
 float3 lerp(float3 a, float3 b ,float t)
@@ -139,22 +195,8 @@ e^a = (2^1.442695)^a = 2^(a * 1.442695)
 
 
 
-tan((180 - 視野角) / 2) + 1
-
-
-
-angle = (angle >  180) and angle - 360 or (angle < -180) and angle + 360 or angle
-↓
-angle = Mathf.DeltaAngle(0, angle)
-
-// ?
-Mathf.DeltaAngle(A, B) == Mathf.DeltaAngle(0f, B - A)
-
-
-
-TransformPoint     : 回転とスケールと位置
-TransformVector    : 回転とスケール
-TransformDirection : 回転
+lerp(a, 1.0, b) = lerp(b, 1.0, a)
+lerp(a, b, c) = lerp(b, a, 1.0 - c)
 
 
 
@@ -177,93 +219,6 @@ frac( 1.25) = 0.25
 frac(-1.25) = 0.75
 frac( 1.75) = 0.75
 frac(-1.75) = 0.25
-
-
-
-int a, b;
-int result = a / b;
-↓
-int a, b;
-int temp0 = uint(max(a, -a)) / uint(max(b, -b));
-int result = ((a ^ b) & 0x80000000) ? -temp0 : temp0;
-
-
-
-int a, b;
-int result = a % b;
-↓
-int a, b;
-int temp0 = uint(max(a, -a)) % uint(max(b, -b));
-int result = (a & 0x80000000) ? -temp0 : temp0;
-
-
-
-matrix[0] よりも matrix._11_21_31_41 の方が命令数を節約できる
-
-
-
-正規化ベクトル → ノーマルマップ
-v * 0.5 + 0.5
-(v + 1.0) * 0.5
-
-ノーマルマップ → 正規化ベクトル
-v * 2.0 - 1.0
-(v - 0.5) * 2.0
-
-R X = tangent
-G Y = binormal
-B Z = normal
-
-float3 lNormal = input.lNormal;
-float3 lTangent = input.lTangent.xyz;
-float3 lBinormal = cross(lNormal, lTangent) * input.lTangent.w;
-
-float3 wNormal = UnityObjectToWorldNormal(lNormal);
-float3 wTangent = UnityObjectToWorldDir(lTangent);
-float3 wBinormal = cross(wNormal, wTangent) * (input.lTangent.w * unity_WorldTransformParams.w);
-
-float3 unpackNormal= UnpackNormal(tex2Dlod(_NormalMap, float4(uv, 0.0, 0.0)));
-float3 unpackNormal= UnpackNormal(tex2D(_NormalMap, uv));
-
-unpackNormal = wTangent * unpackNormal.x + wBinormal * unpackNormal.y + wNormal * unpackNormal.z;
-
-
-
-Tangent (接空間) 座標系
-
- ↓ transpose(float4x3(wTangent, wBinormal, wNormal, wPos)) で変換
-
-World 座標系
-
-
-
-Object (Local) 座標系
-
- ↓ Model 行列 (UNITY_MATRIX_M) で変換
-
-World 座標系
-
- ↓ View 行列 (UNITY_MATRIX_V) で変換
-
-View 座標系
-
- ↓ Projection 行列 (UNITY_MATRIX_P) で変換
-
-Clip 座標系
-
- ↓ ComputeNonStereoScreenPos 関数で変換 (DesktopかVRかで変わるかも)
-
-Screen 座標系
-
-
-
-// Clip 座標系から Screen 座標系へ変換
-(cPos.xy / cPos.w) * 0.5 + 0.5
-↓
-(cPos.xy / cPos.w + 1.0) * 0.5
-↓
-// ComputeNonStereoScreenPos とほぼ同じ処理
-(cPos.xy + cPos.ww) * 0.5 / cPos.w
 
 
 
@@ -290,9 +245,10 @@ BをAの逆行列と呼ぶ
 正則行列 可逆行列 非特異行列
 逆行列が存在できる行列
 
-┌─┐
-│  │
-└─┘
+─
+┌┐
+││
+└┘
 
 ベクトルの内積
 各成分を掛け算して足し合わせるだけ
@@ -321,31 +277,161 @@ BをAの逆行列と呼ぶ
 
 
 
-uint Xorshift(uint seed)
-{
-    seed ^= seed << 13;
-    seed ^= seed >> 17;
-    seed ^= seed << 5;
-    return seed;
-}
+       ┌              ┐
+       │AxBx AxBy AxBz│
+A ⊗ B =│AyBx AyBy AyBz│
+       │AzBx AzBy AzBz│
+       └              ┘
 
-Xorshift( 0) → 00000000000000000000000000000000
-Xorshift( 1) → 00000000000001000010000000100001
-Xorshift( 2) → 00000000000010000100000001000010
-Xorshift( 3) → 00000000000011000110000001100011
-Xorshift( 4) → 00000000000100001000000010000100
-Xorshift( 5) → 00000000000101001010000010100101
-Xorshift( 6) → 00000000000110001100000011000110
-Xorshift( 7) → 00000000000111001110000011100111
-Xorshift( 8) → 00000000001000010000000100001000
-Xorshift( 9) → 00000000001001010010000100101001
-Xorshift(10) → 00000000001010010100000101001010
-Xorshift(11) → 00000000001011010110000101101011
-Xorshift(12) → 00000000001100011000000110001100
-Xorshift(13) → 00000000001101011010000110101101
-Xorshift(14) → 00000000001110011100000111001110
-Xorshift(15) → 00000000001111011110000111101111
-Xorshift(16) → 00000000010000100000001000110001
+A ∧ B = A ⊗ B - B ⊗ A
+        ┌              ┐ ┌              ┐
+        │AxBx AxBy AxBz│ │BxAx BxAy BxAz│
+A ∧ B =│AyBx AyBy AyBz│-│ByAx ByAy ByAz│
+        │AzBx AzBy AzBz│ │BzAx BzAy BzAz│
+        └              ┘ └              ┘
+        ┌                             ┐
+        │        0 AxBy-BxAy AxBz-BxAz│
+A ∧ B =│AyBx-ByAx         0 AyBz-ByAz│
+        │AzBx-BzAx AzBy-BzAy         0│
+        └                             ┘
+
+|A ∧ B| = 0 + (AxBy-BxAy)(AyBz-ByAz)(AzBx-BzAx) + (AxBz-BxAz)(AyBx-ByAx)(AzBy-BzAy) - 0 - 0 - 0
+
+|A ∧ B| = 0
+
+
+
+  C
+
+A   B
+
+float2 uvA, uvB, uvC;
+float3 posA, posB, posC;
+
+float2 uvA2B = uvB - uvA;
+float2 uvA2C = uvC - uvA;
+
+float3 posA2B = posB - posA;
+float3 posA2C = posC - posA;
+
+                           ┌                  ┐┌                ┐-1┌ ┐
+                           │posA2B.x  posA2C.x││uvA2B.x  uvA2C.x│  │1│
+float3 tangent = normalize(│posA2B.y  posA2C.y││uvA2B.y  uvA2C.y│  │0│)
+                           │posA2B.z  posA2C.z│└                ┘  └ ┘
+                           └                  ┘
+
+
+
+4つの地点の距離
+float AD, BD, CD, DD
+
+4つの地点の座標
+float3 AP, BP, CP, DP
+
+求めたい座標
+float3 TP
+
+AD = length(AP - TP)
+BD = length(BP - TP)
+CD = length(CP - TP)
+DD = length(DP - TP)
+
+
+AD = length(AP - TP)
+↓
+AD^2 = dot(AP - TP, AP - TP)
+↓
+AD^2 = (AP.x - TP.x)^2 + (AP.y - TP.y)^2 + (AP.z - TP.z)^2
+↓
+AD^2 = (AP.x^2 + TP.x^2 - 2*AP.x*TP.x) + (AP.y^2 + TP.y^2 - 2*AP.y*TP.y) + (AP.z^2 + TP.z^2 - 2*AP.z*TP.z)
+↓
+AD^2 = dot(AP, AP) + dot(TP, TP) - 2*AP.x*TP.x - 2*AP.y*TP.y - 2*AP.z*TP.z
+↓
+AD^2 - dot(AP, AP) = -2*AP.x*TP.x - 2*AP.y*TP.y - 2*AP.z*TP.z + dot(TP, TP)
+
+
+AD^2 - dot(AP, AP) = -2*AP.x*TP.x - 2*AP.y*TP.y - 2*AP.z*TP.z + dot(TP, TP)
+BD^2 - dot(BP, BP) = -2*BP.x*TP.x - 2*BP.y*TP.y - 2*BP.z*TP.z + dot(TP, TP)
+CD^2 - dot(CP, CP) = -2*CP.x*TP.x - 2*CP.y*TP.y - 2*CP.z*TP.z + dot(TP, TP)
+DD^2 - dot(DP, DP) = -2*DP.x*TP.x - 2*DP.y*TP.y - 2*DP.z*TP.z + dot(TP, TP)
+↓
+┌    ┐ ┌           ┐ ┌                            ┐┌           ┐
+│AD^2│ │dot(AP, AP)│ │-2*AP.x  -2*AP.y  -2*AP.z  1││   TP.x    │
+│BD^2│-│dot(BP, BP)│=│-2*BP.x  -2*BP.y  -2*BP.z  1││   TP.y    │
+│CD^2│ │dot(CP, CP)│ │-2*CP.x  -2*CP.y  -2*CP.z  1││   TP.z    │
+│DD^2│ │dot(DP, DP)│ │-2*DP.x  -2*DP.y  -2*DP.z  1││dot(TP, TP)│
+└    ┘ └           ┘ └                            ┘└           ┘
+↓
+┌                            ┐^-1 ┌    ┐ ┌           ┐  ┌           ┐
+│-2*AP.x  -2*AP.y  -2*AP.z  1│    │AD^2│ │dot(AP, AP)│  │   TP.x    │
+│-2*BP.x  -2*BP.y  -2*BP.z  1│   (│BD^2│-│dot(BP, BP)│)=│   TP.y    │
+│-2*CP.x  -2*CP.y  -2*CP.z  1│    │CD^2│ │dot(CP, CP)│  │   TP.z    │
+│-2*DP.x  -2*DP.y  -2*DP.z  1│    │DD^2│ │dot(DP, DP)│  │dot(TP, TP)│
+└                            ┘    └    ┘ └           ┘  └           ┘
+
+上記の式に値を代入してみる
+AP = float3(  n, 0.0, 0.0)
+BP = float3(0.0,   n, 0.0)
+CP = float3(0.0, 0.0,   n)
+DP = float3(0.0, 0.0, 0.0)
+
+┌                   ┐^-1 ┌    ┐ ┌   ┐  ┌           ┐
+│-2*n   0     0    1│    │AD^2│ │n^2│  │   TP.x    │
+│ 0    -2*n   0    1│   (│BD^2│-│n^2│)=│   TP.y    │
+│ 0     0    -2*n  1│    │CD^2│ │n^2│  │   TP.z    │
+│ 0     0     0    1│    │DD^2│ │ 0 │  │dot(TP, TP)│
+└                   ┘    └    ┘ └   ┘  └           ┘
+↓
+┌                                       ┐ ┌    ┐ ┌   ┐  ┌           ┐
+│1/(-2*n)     0         0      -1/(-2*n)│ │AD^2│ │n^2│  │   TP.x    │
+│   0      1/(-2*n)     0      -1/(-2*n)│(│BD^2│-│n^2│)=│   TP.y    │
+│   0         0      1/(-2*n)  -1/(-2*n)│ │CD^2│ │n^2│  │   TP.z    │
+│   0         0         0          1    │ │DD^2│ │ 0 │  │dot(TP, TP)│
+└                                       ┘ └    ┘ └   ┘  └           ┘
+↓
+┌                             ┐┌          ┐ ┌           ┐
+│-0.5/n    0       0     0.5/n││AD^2 - n^2│ │   TP.x    │
+│  0     -0.5/n    0     0.5/n││BD^2 - n^2│=│   TP.y    │
+│  0       0     -0.5/n  0.5/n││CD^2 - n^2│ │   TP.z    │
+│  0       0       0       1  ││DD^2      │ │dot(TP, TP)│
+└                             ┘└          ┘ └           ┘
+↓
+TP.x = (0.5/n) * (DD^2 - (AD^2 - n^2))
+TP.y = (0.5/n) * (DD^2 - (BD^2 - n^2))
+TP.z = (0.5/n) * (DD^2 - (CD^2 - n^2))
+↓
+TP.x = (0.5/n) * (DD^2 - AD^2 + n^2)
+TP.y = (0.5/n) * (DD^2 - BD^2 + n^2)
+TP.z = (0.5/n) * (DD^2 - CD^2 + n^2)
+
+n = 0.5の場合
+TP.x = DD^2 - AD^2 + 0.25
+TP.y = DD^2 - BD^2 + 0.25
+TP.z = DD^2 - CD^2 + 0.25
+↓
+float4 temp = float4(AD, BD, CD, DD);
+temp = temp * temp;
+TP = (temp.w + 0.25) - temp.xyz;
+
+
+
+seiryu_k
+ようするに座標を回転させたうえで回転後の座標系で平行移動させる行列ですよね。 
+で、ここで行列の線形性を最大限活かしていくわけですが
+4x4行列の回転部をA、平行移動部をWとすると、
+4x4行列の変換は実際のところ、
+Av+W＝v'という変換です。
+（w成分は点群の座標で考えるとあんまり意味がないのでいったん無視）
+vからv'を求めるのが順方向の行列なら、その逆行列はv'からvが求まればいいので、
+道中がどうであれ、最終的にはv'がvとなるような行列が求まればそれが逆行列といえます。
+ここまでを踏まえて、
+上のベクトル式にA^-1を両辺掛けると
+     Av+W  = v'
+A^-1(Av+W) = A^-1v'
+   v+A^-1W = A^-1v'
+         v = A^-1v'-A^-1W
+         v = A^-1(v'-W)
+です。
 
 
 
@@ -406,6 +492,7 @@ v = 2次方程式の解の公式(a, b, c)
 
 
 
+// たぶんクォータニオン同士の掛け算
 (i(a.x) + j(a.y) + k(a.z) + a.w) * (i(b.x) + j(b.y) + k(b.z) + b.w)
 
 i(a.x) * i(b.x) = -1(a.x * b.x)
@@ -437,97 +524,21 @@ k(-(a.y * b.x) +(a.x * b.y) +(a.w * b.z) +(a.z * b.w))
 
 
 
+// 投影行列 DirectX
 x   0   0         0
 0   y   0         0
 0   0   n/(f-n)   nf/(f-n)
 0   0   -1        0
 
-x   0   0    0
-0   y   0    0
-0   0   0    nf/(f-n)
-0   0   -1   0
-
-x   0   0    0
-0   y   0    0
-0   0   -1   0
-0   0   0    nf/(f-n)
+// 逆Depth
+x   0   0          0
+0   y   0          0
+0   0   n/(f-n)   -n*n/(f-n)
+0   0   -1         n+f
 
 
 
- TX = dot(PM[0], vPos) / dot(PM[3], vPos)
- TY = dot(PM[1], vPos) / dot(PM[3], vPos)
-1.0 = dot(PM[2], vPos) / dot(PM[3], vPos)
-  ? = dot(PM[3], vPos)
-	↓
- TX * dot(PM[3], vPos) = dot(PM[0].xyz, vPos.xyz)
- TY * dot(PM[3], vPos) = dot(PM[1].xyz, vPos.xyz)
-1.0 * dot(PM[3], vPos) = dot(PM[2].xyz, vPos.xyz)
-	↓
- TX * (dot(PM[3].xyz, vPos.xyz) + PM33) = dot(PM[0].xyz, vPos.xyz)
- TY * (dot(PM[3].xyz, vPos.xyz) + PM33) = dot(PM[1].xyz, vPos.xyz)
-1.0 * (dot(PM[3].xyz, vPos.xyz) + PM33) = dot(PM[2].xyz, vPos.xyz)
-	↓
- ┌             ┐ ┌                ┐┌      ┐ ┌    ┐  ┌                ┐┌      ┐
- │ TX, 0.0, 0.0│ │PM30, PM31, Pm32││vPos.x│ │PM33│  │PM00, PM01, PM02││vPos.x│
- │0.0,  TY, 0.0│(│PM30, PM31, Pm32││vPos.y│+│PM33│)=│PM10, PM11, PM12││vPos.y│
- │0.0, 0.0, 1.0│ │PM30, PM31, Pm32││vPos.z│ │PM33│  │PM20, PM21, PM22││vPos.z│
- └             ┘ └                ┘└      ┘ └    ┘  └                ┘└      ┘
-
- ┌             ┐┌                ┐┌      ┐ ┌             ┐┌    ┐ ┌                ┐┌      ┐
- │ TX, 0.0, 0.0││PM30, PM31, Pm32││vPos.x│ │ TX, 0.0, 0.0││PM33│ │PM00, PM01, PM02││vPos.x│
- │0.0,  TY, 0.0││PM30, PM31, Pm32││vPos.y│+│0.0,  TY, 0.0││PM33│=│PM10, PM11, PM12││vPos.y│
- │0.0, 0.0, 1.0││PM30, PM31, Pm32││vPos.z│ │0.0, 0.0, 1.0││PM33│ │PM20, PM21, PM22││vPos.z│
- └             ┘└                ┘└      ┘ └             ┘└    ┘ └                ┘└      ┘
-
- ┌             ┐┌    ┐ ┌                ┐┌      ┐ ┌             ┐┌                ┐┌      ┐
- │ TX, 0.0, 0.0││PM33│ │PM00, PM01, PM02││vPos.x│ │ TX, 0.0, 0.0││PM30, PM31, Pm32││vPos.x│
- │0.0,  TY, 0.0││PM33│=│PM10, PM11, PM12││vPos.y│-│0.0,  TY, 0.0││PM30, PM31, Pm32││vPos.y│
- │0.0, 0.0, 1.0││PM33│ │PM20, PM21, PM22││vPos.z│ │0.0, 0.0, 1.0││PM30, PM31, Pm32││vPos.z│
- └             ┘└    ┘ └                ┘└      ┘ └             ┘└                ┘└      ┘
-
- ┌             ┐┌    ┐  ┌                ┐ ┌             ┐┌                ┐ ┌      ┐
- │ TX, 0.0, 0.0││PM33│  │PM00, PM01, PM02│ │ TX, 0.0, 0.0││PM30, PM31, Pm32│ │vPos.x│
- │0.0,  TY, 0.0││PM33│=(│PM10, PM11, PM12│-│0.0,  TY, 0.0││PM30, PM31, Pm32│)│vPos.y│
- │0.0, 0.0, 1.0││PM33│  │PM20, PM21, PM22│ │0.0, 0.0, 1.0││PM30, PM31, Pm32│ │vPos.z│
- └             ┘└    ┘  └                ┘ └             ┘└                ┘ └      ┘
-
-  ┌                ┐ ┌             ┐┌                ┐ -1 ┌             ┐┌    ┐ ┌      ┐
-  │PM00, PM01, PM02│ │ TX, 0.0, 0.0││PM30, PM31, Pm32│    │ TX, 0.0, 0.0││PM33│ │vPos.x│
- (│PM10, PM11, PM12│-│0.0,  TY, 0.0││PM30, PM31, Pm32│)   │0.0,  TY, 0.0││PM33│=│vPos.y│
-  │PM20, PM21, PM22│ │0.0, 0.0, 1.0││PM30, PM31, Pm32│    │0.0, 0.0, 1.0││PM33│ │vPos.z│
-  └                ┘ └             ┘└                ┘    └             ┘└    ┘ └      ┘
-
-
-
-cPos.x = dot(pm[0], vPos)
-cPos.y = dot(pm[1], vPos)
-cPos.z = dot(pm[2], vPos)
-cPos.w = dot(pm[3], vPos)
-	↓
-cPos.x = dot(pm[0].xyz, vPos.xyz) + pm[0].w
-cPos.y = dot(pm[1].xyz, vPos.xyz) + pm[1].w
-cPos.z = dot(pm[2].xyz, vPos.xyz) + pm[2].w
-	↓
- ┌      ┐ ┌                      ┐┌      ┐ ┌     ┐
- │cPos.x│ │pm.m00  pm.m01  pm.m02││vPos.x│ │pm.03│
- │cPos.y│=│pm.m10  pm.m11  pm.m12││vPos.y│+│pm.13│
- │cPos.z│ │pm.m20  pm.m21  pm.m22││vPos.z│ │pm.23│
- └      ┘ └                      ┘└      ┘ └     ┘
-
- ┌      ┐ ┌     ┐ ┌                      ┐┌      ┐
- │cPos.x│ │pm.03│ │pm.m00  pm.m01  pm.m02││vPos.x│
- │cPos.y│-│pm.13│=│pm.m10  pm.m11  pm.m12││vPos.y│
- │cPos.z│ │pm.23│ │pm.m20  pm.m21  pm.m22││vPos.z│
- └      ┘ └     ┘ └                      ┘└      ┘
-
- ┌                      ┐-1 ┌      ┐ ┌     ┐  ┌      ┐
- │pm.m00  pm.m01  pm.m02│   │cPos.x│ │pm.03│  │vPos.x│
- │pm.m10  pm.m11  pm.m12│  (│cPos.y│-│pm.13│)=│vPos.y│
- │pm.m20  pm.m21  pm.m22│   │cPos.z│ │pm.23│  │vPos.z│
- └                      ┘   └      ┘ └     ┘  └      ┘
-
-
-
+// なにこれ？
 length(cameraPos + Ray * n) = 1.0
 ↓
 dot(cameraPos + Ray*n, cameraPos + Ray*n) = 1.0
@@ -551,26 +562,6 @@ sqrt(dot(a, a)) / sqrt(r * r)
 sqrt(dot(a, a) / r * r)
 ↓
 sqrt(dot(a/r, a/r))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

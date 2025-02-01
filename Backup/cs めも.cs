@@ -3,6 +3,44 @@
 
 
 
+angle = (angle > 180) and angle - 360 or (angle < -180) and angle + 360 or angle
+↓
+angle = Mathf.DeltaAngle(0, angle)
+
+// ?
+Mathf.DeltaAngle(A, B) == Mathf.DeltaAngle(0f, B - A)
+
+
+
+// UnityのIMGUIで、Tabキーを押したときにTextFieldにfocusが移動する処理をやめさせる
+Event current = Event.current;
+
+if (current.type == EventType.KeyDown && (current.keyCode == KeyCode.Tab || current.character == '\t'))
+    current.Use();
+
+
+
+// 入力した場所にある Assembly を読み込むだけ
+Assembly.LoadFile("Path");
+
+// 依存している Assembly も読み込む
+Assembly.LoadFrom("Path");
+
+
+
+// Byte表示
+byte[] bytes = BitConverter.GetBytes(val);
+string text0 = Convert.ToString(bytes[0], 2).PadLeft(8, '0');
+string text1 = Convert.ToString(bytes[1], 2).PadLeft(8, '0');
+string text2 = Convert.ToString(bytes[2], 2).PadLeft(8, '0');
+string text3 = Convert.ToString(bytes[3], 2).PadLeft(8, '0');
+Debug.Log($"bytes : {text3} {text2} {text1} {text0}");
+
+// 二進数 ゼロ埋め
+string text = Convert.ToString(val, 2).PadLeft(32, '0');
+
+
+
 //UnityEditor起動時に実行
 [InitializeOnLoad]
 [InitializeOnLoadMethod]
@@ -64,6 +102,7 @@ VRCShader.SetGlobalTexture(_pid, _texture);
 
 
 
+// 画面上の点からRayを発射する方法
 // https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
 public Ray ViewportPointToRay(Camera camera, Vector4 position)
 {
@@ -86,7 +125,7 @@ public Ray ViewportPointToRay(Camera camera, Vector4 position)
 
 
 
-// GL.GetGPUProjectionMatrix
+// GL.GetGPUProjectionMatrixの再現
 private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderIntoTexture)
 {
     GraphicsDeviceType gdt = SystemInfo.graphicsDeviceType;
@@ -112,6 +151,7 @@ private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderInto
 
 
 
+// Editor拡張のGUIで色々やってた時に作った謎のコード
 //UnityEditor.InspectorWindow.DrawSplitLine(float y)
 private void DrawSplitLine()
 {
@@ -179,6 +219,7 @@ private void Line()
 
 
 
+// 三角形のSDF
 private static float LineSDF(Vector3 edge, Vector3 rp)
 {
     float h = Mathf.Clamp01(Vector3.Dot(rp, edge) / Vector3.Dot(edge, edge));
@@ -247,6 +288,7 @@ private static float DistanceCalculation(Vector3 targetPosition, PolygonData pol
 
 
 
+// ByteデータをUV座標に書き込む例
 private float FourByteToFloat(byte x, byte y, byte z, byte w)
 {
     uint data0 = ((uint)x << 24) | ((uint)y << 16) | ((uint)z << 8) | ((uint)w);
@@ -286,6 +328,7 @@ private void Test10()
 
 
 
+// 通信用データ生成の例
 public static byte[] BinaryData(string assetName, bool sRGB, byte[] fileBytes)
 {
     /*

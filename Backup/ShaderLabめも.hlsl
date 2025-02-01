@@ -31,13 +31,19 @@ Tags
     "LightMode" = "Always" "ForwardBase" "ForwardAdd" "ShadowCaster"
 }
 
+Blend SrcAlpha OneMinusSrcAlpha
+
 Cull Back Front Off
+
+Offset
 
 ZClip False
 
 ZTest Always
 
 ZWrite Off
+
+Stencil
 
 #pragma require tessellation
 #pragma require geometry
@@ -84,13 +90,54 @@ struct G2F
 
 #define COMPUTE_VIEW_NORMAL normalize(mul((float3x3)UNITY_MATRIX_IT_MV, v.normal))
 
+SamplerState _InlineSampler_Linear_Repeat;
+
+SamplerState _InlineSampler_Point_Clamp;
 
 
 
+#if defined(UNITY_PASS_FORWARDBASE)
+#endif
 
+#if defined(UNITY_PASS_FORWARDADD)
+#endif
+
+#if defined(UNITY_PASS_SHADOWCASTER)
+#endif
+
+UNITY_SINGLE_PASS_STEREO
+
+UNITY_STEREO_INSTANCING_ENABLED
+
+UNITY_STEREO_MULTIVIEW_ENABLED
+
+#if defined(UNITY_REVERSED_Z)
+    // DirectX
+#else
+    // OpenGL
+#endif
+
+
+
+// nan
 asfloat(0xFFFFFFFF)
 
+static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
+↓
+float _VRChatMirrorMode;
+static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
+
+
+//カメラが向いている方向(World)
+float3 wCameraDir = -UNITY_MATRIX_I_V._m02_m12_m22;
+
+float3 wCameraDir = -UNITY_MATRIX_V._m20_m21_m22;
+
+float3 wCameraDir = -UNITY_MATRIX_V[2].xyz;
+
+//カメラが向いている方向(Local)
+float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
 
 
 
@@ -111,7 +158,7 @@ float4 atten = saturate(saturate((25.0 - lengthSq * unity_4LightAtten0) * 0.1113
 
 void MatrixMemoryLayout()
 {
-    float4x3 a;
+    float4x4 a;
 
     float4x3
     (
@@ -136,15 +183,17 @@ void MatrixMemoryLayout()
         a._31, a._32, a._33,
         a._41, a._42, a._43
     );
-}
-
-
-
-
-
-float SafeDivision(float a, float b)
-{
-    return (b == 0.0) ? 0.0 : a / b;
+    
+    float4x4
+    (
+        a._11, a._12, a._13, a._14,
+    
+        a._21, a._22, a._23, a._24,
+    
+        a._31, a._32, a._33, a._34,
+    
+        a._41, a._42, a._43, a._44
+    );
 }
 
 
@@ -178,6 +227,82 @@ void Temp0()
         float d = b * b - a * c;
         result = c / (-b - s * sqrt(d));
     }
+}
+
+
+
+
+
+// 接空間の計算メモ
+void Temo1(I2V input)
+{
+    float3 lNormal = input.lNormal;
+    float3 lTangent = input.lTangent.xyz;
+    float3 lBinormal = cross(lNormal, lTangent) * input.lTangent.w;
+
+    float3 wNormal = UnityObjectToWorldNormal(lNormal);
+    float3 wTangent = UnityObjectToWorldDir(lTangent);
+    float3 wBinormal = cross(wNormal, wTangent) * (input.lTangent.w * unity_WorldTransformParams.w);
+
+    //float3 unpackNormal = UnpackNormal(tex2Dlod(_NormalMap, float4(uv, 0.0, 0.0)));
+    //float3 unpackNormal = UnpackNormal(tex2D(_BumpMap, uv));
+    float3 unpackNormal = UnpackScaleNormalRGorAG(tex2D(_BumpMap, uv), _BumpScale);
+    
+    // R = tangent
+    // G = binormal
+    // B = normal
+    unpackNormal = wTangent * unpackNormal.r + wBinormal * unpackNormal.g + wNormal * unpackNormal.b;
+    unpackNormal = normalize(unpackNormal);
+}
+
+
+
+
+
+//もっと良い実装があるはず
+float SafeDivision(float a, float b)
+{
+    return (b == 0.0) ? 0.0 : a / b;
+}
+
+//もっと良い実装があるはず
+float3 SafeNormalize(float3 inVec)
+{
+    float dp3 = dot(inVec, inVec);
+    return inVec * rsqrt(dp3 + (dp3 == 0.0));
+}
+
+float ClampNormalize(float value, float min, float max)
+{
+    return saturate((value - min) / (max - min));
+}
+
+float3 PositionExtraction(float4x4 targetMatrix)
+{
+    return targetMatrix._14_24_34;
+}
+
+float3x3 ScalarMul(float3x3 mat, float scalar)
+{
+    return mat * scalar;
+}
+
+
+
+
+
+float3x3 LookRotation(float3 fv, float3 uv)
+{
+    fv = normalize(fv);
+    float3 rv = normalize(cross(uv, fv));
+    uv = cross(fv, rv);
+
+    return float3x3
+    (
+        rv.x, uv.x, fv.x,
+        rv.y, uv.y, fv.y,
+        rv.z, uv.z, fv.z
+    );
 }
 
 
@@ -234,128 +359,7 @@ float4 SVPosToCPos(float4 svPos)
 
 
 
-float3 Huwa_ObjectToWorldUnnormalizedDirection(float3 direction)
-{
-    return mul((float3x3) UNITY_MATRIX_M, direction);
-}
-
-float3 Huwa_ObjectToWorldUnnormalizedNormal(float3 normal)
-{
-#if defined(UNITY_ASSUME_UNIFORM_SCALING)
-    return Huwa_ObjectToWorldUnnormalizedDirection(normal);
-#else
-    return mul(normal, (float3x3) UNITY_MATRIX_I_M);
-#endif
-}
-
-float4 Huwa_ObjectToWorldUnnormalizedTangent(float4 tangent)
-{
-    return float4(Huwa_ObjectToWorldUnnormalizedDirection(tangent.xyz), tangent.w);
-}
-
-float3 Huwa_ObjectToWorldDirection(float3 direction)
-{
-    return normalize(Huwa_ObjectToWorldUnnormalizedDirection(direction));
-}
-
-float3 Huwa_ObjectToWorldNormal(float3 normal)
-{
-    return normalize(Huwa_ObjectToWorldUnnormalizedNormal(normal));
-}
-
-float4 Huwa_ObjectToWorldTangent(float4 tangent)
-{
-    return float4(Huwa_ObjectToWorldDirection(tangent.xyz), tangent.w);
-}
-
-
-
-
-
-float3 Huwa_SafeNormalize(float3 inVec)
-{
-    float dp3 = dot(inVec, inVec);
-    return inVec * rsqrt(dp3 + (dp3 == 0.0));
-}
-
-float ClampNormalize(float value, float min, float max)
-{
-    return saturate((value - min) / (max - min));
-}
-
-float3 PositionExtraction(float4x4 targetMatrix)
-{
-    return targetMatrix._14_24_34;
-}
-
-float3x3 ScalarMul(float3x3 mat, float scalar)
-{
-    return mat * scalar;
-}
-
-
-
-
-
-float3x3 LookRotation(float3 fv, float3 uv)
-{
-    fv = normalize(fv);
-    float3 rv = normalize(cross(uv, fv));
-    uv = cross(fv, rv);
-
-    return float3x3
-    (
-        rv.x, uv.x, fv.x,
-        rv.y, uv.y, fv.y,
-        rv.z, uv.z, fv.z
-    );
-}
-
-//アフィン変換用行列の逆行列の計算式
-float4x4 AffineInverse(float4x4 mat)
-{
-    float3x3 temp0 = Inverse((float3x3) mat);
-    float3 temp1 = -mul(temp0, mat._14_24_34);
-
-    return float4x4
-    (
-        float4(temp0[0], temp1.x),
-        float4(temp0[1], temp1.y),
-        float4(temp0[2], temp1.z),
-        float4(0.0, 0.0, 0.0, 1.0)
-    );
-}
-
-// 複数の親オブジェクトがある場合は使えない
-float3 ScaleExtraction(float4x4 targetMatrix)
-{
-    float x = length(targetMatrix._11_21_31);
-    float y = length(targetMatrix._12_22_32);
-    float z = length(targetMatrix._13_23_33);
-    
-    return float3(x, y, z);
-}
-
-// 複数の親オブジェクトがある場合は使えない
-float3x3 RotationExtraction(float4x4 targetMatrix)
-{
-    float3 rv = normalize(targetMatrix._11_21_31);
-    float3 uv = normalize(targetMatrix._12_22_32);
-    float3 fv = normalize(targetMatrix._13_23_33);
-    
-    return float3x3
-    (
-        rv.x, uv.x, fv.x,
-        rv.y, uv.y, fv.y,
-        rv.z, uv.z, fv.z
-    );
-}
-
-
-
-
-
-// near clip面を考慮したRayの開始位置をWorld座標系で返す
+// Rayの開始位置をWorld座標系で返す
 // 特殊な投影行列では使えないことがある
 float3 WorldRayStartPos(float4 cPos)
 {
@@ -383,6 +387,18 @@ float3 WorldRayStartPos(float4 cPos)
 // 正確だが負荷が高い FragmentShader専用
 float4 ViewRayStartPos(float4 vPos)
 {
+    float4 cPos = mul(unity_CameraProjection, vPos);
+    cPos.xy /= cPos.w;
+    cPos.z = -1.0;
+    cPos.w = 1.0;
+    
+    float4 result = mul(unity_CameraInvProjection, cPos);
+    return result / result.w;
+}
+
+// 上記の処理をunity_CameraInvProjectionや平行投影用の逆行列の式で高速化
+float4 ViewRayStartPos(float4 vPos)
+{
     float4 cPos;
     float4 result;
     
@@ -394,7 +410,7 @@ float4 ViewRayStartPos(float4 vPos)
     if(all(mp[3] == float4(0.0, 0.0, 0.0, 1.0)))
     {
         cPos = mul(mp, vPos);
-        cPos.xy /= cPos.w; // ここいらないかも
+        //cPos.xy /= cPos.w;    平行投影だとcPos.w=1.0になるので必要ないかも
         
 #if defined(UNITY_REVERSED_Z)
         cPos.z = 1.0;
@@ -414,20 +430,6 @@ float4 ViewRayStartPos(float4 vPos)
     cPos.w = 1.0;
     
     result = mul(unity_CameraInvProjection, cPos);
-    return result / result.w;
-}
-
-// https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
-// near clip面を考慮したRayの開始位置をView座標系で返す
-// 正確だが負荷が高い FragmentShader専用
-float4 ViewRayStartPos(float4 vPos)
-{
-    float4 cPos = mul(unity_CameraProjection, vPos);
-    cPos.xy /= cPos.w;
-    cPos.z = -1.0;
-    cPos.w = 1.0;
-    
-    float4 result = mul(unity_CameraInvProjection, cPos);
     return result / result.w;
 }
 

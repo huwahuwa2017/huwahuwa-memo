@@ -1,19 +1,97 @@
 
 
 
-Tags
+// int型の割り算や余りの計算をhlslでコンパイルすると結構複雑になる
+int a, b;
+int result = a / b;
+↓
+int a, b;
+int temp0 = uint(max(a, -a)) / uint(max(b, -b));
+int result = ((a ^ b) & 0x80000000) ? -temp0 : temp0;
 
-Cull
-ZWrite
-ZTest
-Offset
-Blend
+int a, b;
+int result = a % b;
+↓
+int a, b;
+int temp0 = uint(max(a, -a)) % uint(max(b, -b));
+int result = (a & 0x80000000) ? -temp0 : temp0;
 
-Stencil
 
-#pragma
-#define
-#include
+
+matrix[0] よりも matrix._11_21_31_41 の方が命令数を節約できる
+
+
+
+Tangent (接空間) 座標系
+
+ ↓ transpose(float4x3(wTangent, wBinormal, wNormal, wPos)) で変換
+
+World 座標系
+
+
+
+Object (Local) 座標系
+
+ ↓ Model 行列 (UNITY_MATRIX_M) で変換
+
+World 座標系
+
+ ↓ View 行列 (UNITY_MATRIX_V) で変換
+
+View 座標系
+
+ ↓ Projection 行列 (UNITY_MATRIX_P) で変換
+
+Clip 座標系
+
+ ↓ ComputeNonStereoScreenPos 関数で変換 (DesktopかVRかで変わるかも)
+
+Screen 座標系
+
+
+
+// Clip 座標系から Screen 座標系へ変換
+(cPos.xy / cPos.w) * 0.5 + 0.5
+↓
+(cPos.xy / cPos.w + 1.0) * 0.5
+↓
+// ComputeNonStereoScreenPos とほぼ同じ処理
+(cPos.xy + cPos.ww) * 0.5 / cPos.w
+
+
+
+Shader の頂点ID (SV_VertexID) は、異なるSubMeshでも共通 (たぶん)
+Shader のポリゴンID (SV_PrimitiveID) は、異なるSubMeshで共通ではなく、0から始まる
+
+
+
+Unity で PSIZE セマンティクスは使えない
+
+
+
+透視投影の場合、以下の三つの値はほぼ同じ (多少の誤差は発生する DirectX11のみ確認)
+LinearEyeDepth(_CameraDepthTexture[uint2(input.cPos.xy)].r)
+Linear01Depth(_CameraDepthTexture[uint2(input.cPos.xy)].r) * _ProjectionParams.z
+DecodeFloatRG(_CameraDepthNormalsTexture[uint2(input.cPos.xy)].ba) * _ProjectionParams.z
+
+
+
+Camera.depthTextureMode の初期状態は DepthTextureMode.None
+
+DepthTextureMode は Flags 属性付き
+
+DepthTextureMode.Depth
+Texture2D _CameraDepthTexture;
+
+DepthTextureMode.DepthNormals
+Texture2D _CameraDepthNormalsTexture;
+
+DepthTextureMode.MotionVectors
+Texture2D _CameraMotionVectorsTexture;
+
+
+
+ShadeSH9などの関数は、LightMode が Always だと動かない
 
 
 
@@ -25,34 +103,10 @@ Don'tClear : 何も初期化せずにMeshを描画
 
 
 
-UNITY_PASS_FORWARDBASE
-UNITY_PASS_FORWARDADD
-UNITY_PASS_SHADOWCASTER
-
-
-
-half nv = saturate(dot(wNormal, wViewDir));
-Pow4(1.0 - nv)
-↓
-roughness = max(roughness, 0.002);
-half nv = abs(dot(wNormal, wViewDir));
-Pow5(1.0 - nv)
-
-
-
-lerp(a, 1.0, b) = lerp(b, 1.0, a)
-lerp(a, b, c) = lerp(b, a, 1.0 - c)
-
-
-
 unity_4LightAtten0 = 25.0 / (Range * Range)
 unity_4LightAtten0 * (Range * Range) = 25.0
 (Range * Range) = 25.0 / unity_4LightAtten0
 Range = sqrt(25.0 / unity_4LightAtten0)
-
-
-
-Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
 
 
 
@@ -90,6 +144,14 @@ Camera.projectionMatrix から得られる射影行列は OpenGL 形式のはず
 
 
 
+Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
+
+
+
+V行列はShaderAPIに関わらず不変？（未検証）
+
+
+
 PNGとして出力と入力が両方可能な形式
 R8G8B8A8_UNorm
 R8_UNorm
@@ -99,7 +161,7 @@ R16_UNorm
 
 channel0 (TEXCOORD0) 普通のUV座標
 channel1 (TEXCOORD1) ライトマップ用UV座標
-channel2 (TEXCOORD2) リアルタイムライトマップ用UV座標
+channel2 (TEXCOORD2) リアルタイムライトマップ用UV座標？
 
 
 
@@ -131,22 +193,6 @@ ShaderLabではDX11をDX9っぽく書けるようにするために色々な関�
 
 
 
-UNITY_SINGLE_PASS_STEREO
-
-UNITY_STEREO_INSTANCING_ENABLED
-
-UNITY_STEREO_MULTIVIEW_ENABLED
-
-
-
-#if defined(UNITY_REVERSED_Z)
-	// DirectX
-#else
-	// OpenGL
-#endif
-
-
-
 頂点シェーダーからフラグメントシェーダーに方向を表すベクトルを送る時、
 頂点シェーダー側で正規化してさらにフラグメントシェーダー側でも正規化していたのだが、
 頂点シェーダー側の正規化は基本的には必要ないかもしれない
@@ -157,27 +203,6 @@ UNITY_STEREO_MULTIVIEW_ENABLED
 "Queue" = "Overlay+2147479647"
 "Queue" = "Overlay+815199"
 (8192 * 100 - 1 ?)
-
-
-
-float3 objectOriginWorldPos = UNITY_MATRIX_M._m03_m13_m23;
-
-
-
-//カメラが向いている方向(World)
-float3 wCameraDir = -UNITY_MATRIX_I_V._m02_m12_m22
-float3 wCameraDir = -UNITY_MATRIX_V._m20_m21_m22
-float3 wCameraDir = -UNITY_MATRIX_V[2].xyz
-
-//カメラが向いている方向(Local)
-float3 lCameraDir = -UNITY_MATRIX_IT_MV[2] .xyz
-
-
-
-static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
-↓
-float _VRChatMirrorMode;
-static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
