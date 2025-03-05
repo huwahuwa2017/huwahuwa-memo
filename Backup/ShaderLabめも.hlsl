@@ -56,7 +56,9 @@ Stencil
 
 #define 
 
-#include 
+#include "UnityCG.cginc"
+#include "AutoLight.cginc"
+#include "Lighting.cginc"
 
 struct TessellationFactor
 {
@@ -93,6 +95,15 @@ struct G2F
 SamplerState _InlineSampler_Linear_Repeat;
 
 SamplerState _InlineSampler_Point_Clamp;
+
+
+
+sampler2D _MainTex;
+
+Texture2D _MainTex;
+SamplerState sampler_MainTex;
+
+float4 _MainTex_TexelSize;
 
 
 
@@ -151,6 +162,10 @@ pointLightAtten = max(0.0, pointLightAtten);
 
 //https://github.com/lilxyzw/OpenLit/blob/main/Assets/OpenLit/core.hlsl
 float4 atten = saturate(saturate((25.0 - lengthSq * unity_4LightAtten0) * 0.111375) / (0.987725 + lengthSq * unity_4LightAtten0));
+
+
+
+float3 wPos = mul(UNITY_MATRIX_M, input.lPos).xyz;
 
 
 

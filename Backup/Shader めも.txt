@@ -125,13 +125,25 @@ result = srcColor * (1.0 - destColor) + destColor * (1.0 - srcColor.a)
 
 
 
-shader_featureはキーワードが一切定義されていないバリアントもコンパイルする
-なので以下の書き方ができる
-#pragma shader_feature_local _TEST ← 動作する
+multi_compile や shader_feature の使い方
 
-multi_compile_localはオフ用の定義を自動生成してくれない
-#pragma multi_compile_local _TEST ← 動作しない
-#pragma multi_compile_local _ _TEST ← 動作する
+#pragma multi_compile_local TEST_A TEST_B TEST_C
+#pragma shader_feature_local TEST_A TEST_B TEST_C
+
+Material.EnableKeyword や Material.DisableKeyword などのメソッドで、
+それぞれのキーワードの有効・無効を切り替えることができる
+
+すべてのキーワードが無効の場合、一番左側にあるキーワード（上の例だと TEST_A）が define される
+複数のキーワードが有効になっている場合、有効になっている一番左側にあるキーワードが define される
+
+例外
+shader_feature で一つだけキーワードを宣言した場合
+
+#pragma shader_feature_local TEST_A
+↓
+#pragma shader_feature_local _ TEST_A
+
+このように解釈される
 
 
 

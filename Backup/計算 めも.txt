@@ -1,4 +1,13 @@
 
+// ∞
+sqrt(cos(x)) * abs(sin(x)) - abs(y) = 0
+
+
+
+1/i = i^-1 = -i
+
+i^x = e^ixtau/4
+
 
 
 // 球面調和のごく一部
