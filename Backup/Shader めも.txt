@@ -1,6 +1,11 @@
 
 
 
+FilterMode が Bilinera の tex2Dlod の lod は0.5で切り上げた値となる
+floor(lod + 0.5)と同じ
+
+
+
 // int型の割り算や余りの計算をhlslでコンパイルすると結構複雑になる
 int a, b;
 int result = a / b;
