@@ -96,7 +96,7 @@ Texture2D _CameraMotionVectorsTexture;
 
 
 
-ShadeSH9などの関数は、LightMode が Always だと動かない
+ShadeSH9などの関数を使用したい場合は、LightMode を ForwardBase にする必要がある
 
 
 

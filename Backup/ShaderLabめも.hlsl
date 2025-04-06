@@ -28,6 +28,8 @@ GrabPass
 // Pass
 Tags
 {
+    // LightMode に Unity が想定していない文字列を入れると、そのパスは実行されなくなる（要検証）
+    // これを利用しているのが lilToon の "LightMode" = "Never"
     "LightMode" = "Always" "ForwardBase" "ForwardAdd" "ShadowCaster"
 }
 
@@ -59,6 +61,22 @@ Stencil
 #include "UnityCG.cginc"
 #include "AutoLight.cginc"
 #include "Lighting.cginc"
+
+
+
+// UnityCG.cginc
+#define UNITY_PI            3.14159265359f
+#define UNITY_TWO_PI        6.28318530718f
+#define UNITY_FOUR_PI       12.56637061436f
+#define UNITY_INV_PI        0.31830988618f
+#define UNITY_INV_TWO_PI    0.15915494309f
+#define UNITY_INV_FOUR_PI   0.07957747155f
+#define UNITY_HALF_PI       1.57079632679f
+#define UNITY_INV_HALF_PI   0.636619772367f
+
+#define UNITY_HALF_MIN      6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
+
+
 
 struct TessellationFactor
 {
@@ -210,6 +228,66 @@ void MatrixMemoryLayout()
         a._41, a._42, a._43, a._44
     );
 }
+
+
+
+
+
+// ShadeSH9 の調査
+
+void SH(float3 n)
+{
+    float3 color = 0.0;
+
+    color += float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w); // Y(0, 0)
+    
+    color += float3(unity_SHAr.y, unity_SHAg.y, unity_SHAb.y) * n.y; // Y(1, -1)
+    color += float3(unity_SHAr.z, unity_SHAg.z, unity_SHAb.z) * n.z; // Y(1,  0)
+    color += float3(unity_SHAr.x, unity_SHAg.x, unity_SHAb.x) * n.x; // Y(1,  1)
+
+    color += float3(unity_SHBr.x, unity_SHBg.x, unity_SHBb.x) * n.x * n.y; // Y(2, -2)
+    color += float3(unity_SHBr.y, unity_SHBg.y, unity_SHBb.y) * n.y * n.z; // Y(2, -1)
+    color += float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) * n.z * n.z; // Y(2,  0)
+    color += float3(unity_SHBr.w, unity_SHBg.w, unity_SHBb.w) * n.z * n.x; // Y(2,  1)
+    color += unity_SHC * (n.x * n.x - n.y * n.y); // Y(2,  2)
+}
+
+void SH(float3 n)
+{
+    float3 color = 0.0;
+    
+    color += SphericalHarmonicsL2[0];
+
+    color += SphericalHarmonicsL2[1] * n.y;
+    color += SphericalHarmonicsL2[2] * n.z;
+    color += SphericalHarmonicsL2[3] * n.x;
+
+    color += SphericalHarmonicsL2[4] * n.x * n.y;
+    color += SphericalHarmonicsL2[5] * n.y * n.z;
+    color += SphericalHarmonicsL2[6] * (3.0 * n.z * n.z - 1.0);
+    color += SphericalHarmonicsL2[7] * n.z * n.x;
+    color += SphericalHarmonicsL2[8] * (n.x * n.x - n.y * n.y);
+}
+
+void SH(float3 n)
+{
+    float3 color = 0.0;
+
+    color += float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) + (float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0); // Y(0, 0)
+    
+    color += float3(unity_SHAr.y, unity_SHAg.y, unity_SHAb.y) * n.y; // Y(1, -1)
+    color += float3(unity_SHAr.z, unity_SHAg.z, unity_SHAb.z) * n.z; // Y(1,  0)
+    color += float3(unity_SHAr.x, unity_SHAg.x, unity_SHAb.x) * n.x; // Y(1,  1)
+
+    color += float3(unity_SHBr.x, unity_SHBg.x, unity_SHBb.x) * n.x * n.y;                       // Y(2, -2)
+    color += float3(unity_SHBr.y, unity_SHBg.y, unity_SHBb.y) * n.y * n.z;                       // Y(2, -1)
+    color += (float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) / 3.0) * (3.0 * n.z * n.z - 1.0); // Y(2,  0)
+    color += float3(unity_SHBr.w, unity_SHBg.w, unity_SHBb.w) * n.z * n.x;                       // Y(2,  1)
+    color += unity_SHC * (n.x * n.x - n.y * n.y);                                                // Y(2,  2)
+}
+
+// float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) = SphericalHarmonicsL2[6] * 3.0;
+// float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) = SphericalHarmonicsL2[0] - SphericalHarmonicsL2[6]
 
 
 
