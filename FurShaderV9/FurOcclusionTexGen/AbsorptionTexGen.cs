@@ -1,4 +1,6 @@
-﻿#if UNITY_EDITOR
+﻿// v2 2024-12-30 13:17
+
+#if UNITY_EDITOR
 
 using FlowPaintTool;
 using System;
@@ -19,9 +21,6 @@ public class AbsorptionTexGen : MonoBehaviour
 
     [SerializeField]
     private Material _paintMaterial = null;
-
-    [SerializeField]
-    private Renderer _renderer = null;
 
     [SerializeField]
     private int _targetSubMesh = 0;
@@ -66,6 +65,13 @@ public class AbsorptionTexGen : MonoBehaviour
     [ContextMenu("Generate")]
     private void Generate()
     {
+        Renderer renderer = GetComponent<Renderer>();
+
+        if(renderer == null)
+        {
+            Debug.LogError("Rendererが見つからないぜ");
+        }
+
         FPT_Assets assets = FPT_Assets.GetSingleton();
         Material fillMaterial = assets.GetFillMaterial();
 
@@ -82,7 +88,7 @@ public class AbsorptionTexGen : MonoBehaviour
             CommandBuffer fillCommandBuffer = new CommandBuffer();
             fillCommandBuffer.GetTemporaryRT(_tempRT_SPIDs[0], rtd_R8);
             fillCommandBuffer.SetRenderTarget(_tempRT_SPIDs[0]);
-            fillCommandBuffer.DrawRenderer(_renderer, fillMaterial, _targetSubMesh);
+            fillCommandBuffer.DrawRenderer(renderer, fillMaterial, _targetSubMesh);
             fillCommandBuffer.Blit(_tempRT_SPIDs[0], _fillRenderTextureArray[0], assets.GetFillBleedMaterial());
             fillCommandBuffer.ReleaseTemporaryRT(_tempRT_SPIDs[0]);
 
@@ -107,7 +113,7 @@ public class AbsorptionTexGen : MonoBehaviour
         bleedCommandBuffer.GetTemporaryRT(_tempRT_SPIDs[1], rtd_main);
 
         bleedCommandBuffer.SetRenderTarget(_tempRT_SPIDs[0]);
-        bleedCommandBuffer.DrawRenderer(_renderer, _paintMaterial, _targetSubMesh);
+        bleedCommandBuffer.DrawRenderer(renderer, _paintMaterial, _targetSubMesh);
 
         int temp1 = 0;
 

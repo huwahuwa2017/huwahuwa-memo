@@ -1,4 +1,4 @@
-// Ver? 2023/11/18 12:34
+// v2 2025-01-05 16:11
 
 #include "UnityCG.cginc"
 #include "HuwaCellularNoise.hlsl"
@@ -27,14 +27,10 @@ struct F2O
 };
 
 sampler2D _FurDirectionTex;
-sampler2D _FurLengthTex;
-
 float4 _FurDirectionTex_TexelSize;
-float4 _FurLengthTex_TexelSize;
 
 float _FurLength;
 float _FurDensity;
-float _ColorPow;
 int _BakeMode;
 
 V2F VertexShaderStage_Skin(I2V input)
@@ -74,35 +70,36 @@ F2O FragmentShaderStage_Skin(V2F input)
     float3 furDir = UnpackNormal(tex2Dlod(_FurDirectionTex, float4(input.uv, 0.0, 0.0)));
     furDir = normalize(wTangent * furDir.x + wBinormal * furDir.y);
     
-    float furLength = tex2Dlod(_FurLengthTex, float4(input.uv, 0.0, 0.0)).r;
-    furLength *= _FurLength;
-    
     float d0;
     float d1;
     float3 c;
     float3 rp;
     
-    float m = 9.9;
-    
     float3 rayDir = -furDir;
     float3 rayPos = input.wPos * _FurDensity;
     
-    float moving = 0.0;
+    float div = 64.0;
+    float rcpDiv = rcp(div);
     
-    while (moving < (furLength * _FurDensity))
+    float temp9 = _FurLength * _FurDensity;
+    float temp1 = 0.0;
+    
+    for (float moving = rcpDiv; moving < 1.0; moving += rcpDiv)
     {
-        CellularNoise(1, rayPos, 0, d0, d1, c, rp);
+        CellularNoise(3, rayPos + rayDir * (moving * temp9), 0, d0, d1, c, rp);
         
-        float temp0 = abs(dot(rayDir, rp));
-        temp0 = (temp0 < 0.001) ? 0.01 : temp0;
-        
-        rayPos += rayDir * temp0;
-        moving += temp0;
-        
-        m = min(m, d0);
-    }
+        float val = saturate(1.0 - d0);
     
-    float temp1 = pow(1.0 - saturate(m), _ColorPow);
+        val = val * val;
+        val = val * val;
+        val = val * val;
+        val = val * val;
+        val = val * val;
+        
+        val = val * sin(moving * UNITY_PI);
+        
+        temp1 = max(val, temp1);
+    }
     
     F2O output = (F2O) 0;
     output.target0 = float4(temp1.xxx, 1.0);

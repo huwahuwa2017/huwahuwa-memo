@@ -1,6 +1,6 @@
-// Ver19 2024-04-05 04:36
+// Ver20 2024/09/03 20:34
 
-#ifndef HUWA_CELLULAR_NOISE_INCLUDED
+#if !defined(HUWA_CELLULAR_NOISE_INCLUDED)
 #define HUWA_CELLULAR_NOISE_INCLUDED
 
 #include "HuwaRandomFunction.hlsl"
