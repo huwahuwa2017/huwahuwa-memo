@@ -3,11 +3,27 @@
 
 
 
+[MenuItem("Assets/Mesh select")]
+private static void ExportMenu()
+{
+    Object[] temp1 = Selection.objects.Where(I => I.GetType() == typeof(Mesh)).ToArray();
+
+    if (temp1.Length != 1)
+    {
+        Debug.LogError("Mesh を一つだけ選択してください");
+        return;
+    }
+
+    Mesh mesh = temp1[0] as Mesh;
+}
+
+
+
 angle = (angle > 180) and angle - 360 or (angle < -180) and angle + 360 or angle
 ↓
 angle = Mathf.DeltaAngle(0, angle)
 
-// ?
+// 未検証
 Mathf.DeltaAngle(A, B) == Mathf.DeltaAngle(0f, B - A)
 
 
@@ -25,19 +41,6 @@ Assembly.LoadFile("Path");
 
 // 依存している Assembly も読み込む
 Assembly.LoadFrom("Path");
-
-
-
-// Byte表示
-byte[] bytes = BitConverter.GetBytes(val);
-string text0 = Convert.ToString(bytes[0], 2).PadLeft(8, '0');
-string text1 = Convert.ToString(bytes[1], 2).PadLeft(8, '0');
-string text2 = Convert.ToString(bytes[2], 2).PadLeft(8, '0');
-string text3 = Convert.ToString(bytes[3], 2).PadLeft(8, '0');
-Debug.Log($"bytes : {text3} {text2} {text1} {text0}");
-
-// 二進数 ゼロ埋め
-string text = Convert.ToString(val, 2).PadLeft(32, '0');
 
 
 
@@ -87,13 +90,30 @@ Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true
 
 
 
-byte[] data = BitConverter.GetBytes(px[0].r);
-string temp0 = Convert.ToString(data[0], 2).PadLeft(8, '0');
-string temp1 = Convert.ToString(data[1], 2).PadLeft(8, '0');
-string temp2 = Convert.ToString(data[2], 2).PadLeft(8, '0');
-string temp3 = Convert.ToString(data[3], 2).PadLeft(8, '0');
-string text = $"data {temp3} {temp2} {temp1} {temp0}";
-Debug.Log(text);
+public static uint AsUInt(float value)
+{
+    byte[] bytes = BitConverter.GetBytes(value);
+    return BitConverter.ToUInt32(bytes, 0);
+}
+
+public static float AsFloat(uint value)
+{
+    byte[] bytes = BitConverter.GetBytes(value);
+    return BitConverter.ToSingle(bytes, 0);
+}
+
+
+
+// Byte表示
+byte[] bytes = BitConverter.GetBytes(val);
+string temp0 = Convert.ToString(bytes[0], 2).PadLeft(8, '0');
+string temp1 = Convert.ToString(bytes[1], 2).PadLeft(8, '0');
+string temp2 = Convert.ToString(bytes[2], 2).PadLeft(8, '0');
+string temp3 = Convert.ToString(bytes[3], 2).PadLeft(8, '0');
+Debug.Log($"bytes : {temp3} {temp2} {temp1} {temp0}");
+
+// 二進数 ゼロ埋め
+string text = Convert.ToString(val, 2).PadLeft(32, '0');
 
 
 
@@ -252,38 +272,6 @@ private static float DistanceCalculation(Vector3 targetPosition, PolygonData pol
     }
 
     return Mathf.Min(Mathf.Min(LineSDF(a2b, a2t), LineSDF(b2c, b2t)), LineSDF(c2a, c2t));
-
-    /*
-    float result = float.MaxValue;
-
-    flagA = Vector3.Dot(b2c, b2t) > 0 && Vector3.Dot(-b2c, c2t) > 0;
-    flagB = Vector3.Dot(c2a, c2t) > 0 && Vector3.Dot(-c2a, a2t) > 0;
-    flagC = Vector3.Dot(a2b, a2t) > 0 && Vector3.Dot(-a2b, b2t) > 0;
-
-    if (flagA)
-    {
-        float temp0 = Vector3.Magnitude(Vector3.Cross(b2c, b2t)) / Vector3.Magnitude(b2c);
-        result = Mathf.Min(result, temp0);
-    }
-
-    if (flagB)
-    {
-        float temp0 = Vector3.Magnitude(Vector3.Cross(c2a, c2t)) / Vector3.Magnitude(c2a);
-        result = Mathf.Min(result, temp0);
-    }
-
-    if (flagC)
-    {
-        float temp0 = Vector3.Magnitude(Vector3.Cross(a2b, a2t)) / Vector3.Magnitude(a2b);
-        result = Mathf.Min(result, temp0);
-    }
-
-    result = Mathf.Min(result, Vector3.Magnitude(a2t));
-    result = Mathf.Min(result, Vector3.Magnitude(b2t));
-    result = Mathf.Min(result, Vector3.Magnitude(c2t));
-
-    return result;
-    */
 }
 
 
@@ -295,6 +283,7 @@ private float FourByteToFloat(byte x, byte y, byte z, byte w)
     return BitConverter.ToSingle(BitConverter.GetBytes(data0), 0);
 }
 
+// ByteデータをUV座標に書き込む例
 [ContextMenu("Test10")]
 private void Test10()
 {

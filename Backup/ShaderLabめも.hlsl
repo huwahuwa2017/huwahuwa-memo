@@ -1,6 +1,9 @@
 
     Properties
     {
+        [NoScaleOffset]
+		_MainTex("Skin Color Texture", 2D) = "white" {}
+
         _Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
 
         [HDR]
@@ -55,6 +58,8 @@ Stencil
 #pragma domain DomainShaderStage
 #pragma geometry GeometryShaderStage
 #pragma fragment FragmentShaderStage
+
+#pragma multi_compile_local 
 
 #define 
 
@@ -288,6 +293,36 @@ void SH(float3 n)
 
 // float3(unity_SHBr.z, unity_SHBg.z, unity_SHBb.z) = SphericalHarmonicsL2[6] * 3.0;
 // float3(unity_SHAr.w, unity_SHAg.w, unity_SHAb.w) = SphericalHarmonicsL2[0] - SphericalHarmonicsL2[6]
+
+            #define SH_Y0_0 sqrt(1.0 / (4.0 * _Pi))
+
+            #define SH_Y1M1 sqrt(3.0 / (4.0 * _Pi)) * y
+            #define SH_Y1_0 sqrt(3.0 / (4.0 * _Pi)) * z
+            #define SH_Y1P1 sqrt(3.0 / (4.0 * _Pi)) * x
+
+            #define SH_Y2M2 sqrt(15.0 / ( 4.0 * _Pi)) * x * y
+            #define SH_Y2M1 sqrt(15.0 / ( 4.0 * _Pi)) * y * z
+            #define SH_Y2_0 sqrt( 5.0 / (16.0 * _Pi)) * (3.0 * z * z - 1.0)
+            #define SH_Y2P1 sqrt(15.0 / ( 4.0 * _Pi)) * z * x
+            #define SH_Y2P2 sqrt(15.0 / (16.0 * _Pi)) * (x * x - y * y)
+
+            #define SH_Y3M3 sqrt( 35.0 / (32.0 * _Pi)) * y * (3.0 * x * x - y * y)
+            #define SH_Y3M2 sqrt(105.0 / ( 4.0 * _Pi)) * x * y * z
+            #define SH_Y3M1 sqrt( 21.0 / (32.0 * _Pi)) * y * (5.0 * z * z - 1.0)
+            #define SH_Y3_0 sqrt(  7.0 / (16.0 * _Pi)) * z * (5.0 * z * z - 3.0)
+            #define SH_Y3P1 sqrt( 21.0 / (32.0 * _Pi)) * x * (5.0 * z * z - 1.0)
+            #define SH_Y3P2 sqrt(105.0 / (16.0 * _Pi)) * z * (x * x - y * y)
+            #define SH_Y3P3 sqrt( 35.0 / (32.0 * _Pi)) * x * (x * x - 3.0 * y * y)
+
+            #define SH_Y4M4 sqrt(315.0 / ( 16.0 * _Pi)) * x * y * (x * x - y * y)
+            #define SH_Y4M3 sqrt(315.0 / ( 32.0 * _Pi)) * y * z * (3.0 * x * x - y * y)
+            #define SH_Y4M2 sqrt( 45.0 / ( 16.0 * _Pi)) * x * y * (7.0 * z * z - 1.0)
+            #define SH_Y4M1 sqrt( 45.0 / ( 32.0 * _Pi)) * y * z * (7.0 * z * z - 3.0)
+            #define SH_Y4_0 sqrt(  9.0 / (256.0 * _Pi)) * (35.0 * z * z * z * z - 30.0 * z * z + 3.0)
+            #define SH_Y4P1 sqrt( 45.0 / ( 32.0 * _Pi)) * z * x * (7.0 * z * z - 3.0)
+            #define SH_Y4P2 sqrt( 45.0 / ( 64.0 * _Pi)) * (x * x - y * y) * (7.0 * z * z - 1.0)
+            #define SH_Y4P3 sqrt(315.0 / ( 32.0 * _Pi)) * x * z * (x * x - 3.0 * y * y)
+            #define SH_Y4P4 sqrt(315.0 / (256.0 * _Pi)) * (x * x * (x * x - 3.0 * y * y) - y * y * (3.0 * x * x - y * y))
 
 
 
