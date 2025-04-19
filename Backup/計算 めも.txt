@@ -11,7 +11,9 @@ sqrt(cos(x)) * abs(sin(x)) - abs(y) = 0
 
 1/i = i^-1 = -i
 
-i^x = e^ixtau/4
+i^x = e^(iπx/2)
+
+n^(iπx) = e^(iπxlog(n))
 
 
 
@@ -38,9 +40,6 @@ FP16
 指数部 = 5 + 15 = 20 = 10100
 仮数部 = 1100100000
 
-最小
-0x33800000
-
 
 
 FP32
@@ -63,7 +62,7 @@ FP32
 log2(a) ≈ (asuint(a) >> 23) - 127
 log2(a) ≈ asuint(a) / 2^23 - 127
 
-// 2^xの近似 (log2(x)の近似の逆の操作をしている)
+// 2^xの近似
 2^x ≈ asfloat((uint(x) + 127) << 23)
 2^x ≈ asfloat(uint((x + 127) * 2^23))
 
