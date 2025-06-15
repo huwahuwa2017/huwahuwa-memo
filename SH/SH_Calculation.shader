@@ -1,4 +1,4 @@
-﻿// v1 2025-04-08 01:59
+﻿// v2 2025-06-16 00:55
 
 Shader "Custom/SH_Calculation"
 {
@@ -80,36 +80,36 @@ Shader "Custom/SH_Calculation"
                 return output;
             }
 
-            float3 Test1(float3 normal)
+            float3 Test1(float3 direction)
             {
-                float x = normal.x;
-                float y = normal.y;
-                float z = normal.z;
+                float x = direction.x;
+                float y = direction.y;
+                float z = direction.z;
                 float sh = TARGET_SH;
-                return _CubeMap.SampleLevel(_InlineSampler_Point_Clamp, normal, 0.0).rgb * sh;
+                return _CubeMap.SampleLevel(_InlineSampler_Point_Clamp, direction, 0.0).rgb * sh;
             }
 
-            float3 Test0(float3 normal)
+            float3 Test0(float3 direction)
             {
                 // 立方体を構成する6つの面を積分する
 
                 float3 output = 0.0;
-                output += Test1(normal); // normalize(float3(x, y,  1.0))
+                output += Test1(direction); // normalize(float3(x, y,  1.0))
 
-                normal.z = -normal.z;
-                output += Test1(normal); // normalize(float3(x, y, -1.0))
+                direction.z = -direction.z;
+                output += Test1(direction); // normalize(float3(x, y, -1.0))
 
-                normal = normal.yzx;
-                output += Test1(normal); // normalize(float3(y, -1.0, x))
+                direction = direction.yzx;
+                output += Test1(direction); // normalize(float3(y, -1.0, x))
 
-                normal.y = -normal.y;
-                output += Test1(normal); // normalize(float3(y,  1.0, x))
+                direction.y = -direction.y;
+                output += Test1(direction); // normalize(float3(y,  1.0, x))
 
-                normal = normal.yzx;
-                output += Test1(normal); // normalize(float3( 1.0, x, y))
+                direction = direction.yzx;
+                output += Test1(direction); // normalize(float3( 1.0, x, y))
 
-                normal.x = -normal.x;
-                output += Test1(normal); // normalize(float3(-1.0, x, y))
+                direction.x = -direction.x;
+                output += Test1(direction); // normalize(float3(-1.0, x, y))
 
                 return output;
             }
@@ -118,27 +118,35 @@ Shader "Custom/SH_Calculation"
             {
                 float2 uv = input.uv;
 
-                // 正規化と立体角の計算
+                // キューブマップを2x2x2の立方体とする
+                // このときキューブマップを構成するピクセルを、半径が1の球体に投影した時のおおまかな面積は
+                // (キューブマップの一辺の解像度 / 2)^2 * dot(ピクセルの重心の方向, 法線) / ピクセルの重心の距離^2
+                // となる
+
+                // このシェーダーでは(キューブマップの一辺の解像度 / 2)^2部分を省いている
+                // これは次の工程でmipmapを利用して、
+                // ピクセルごとの計算結果の合計と(キューブマップの一辺の解像度 / 2)^2を同時に計算するからである
+
                 /*
                 float3 vec = float3(uv,  1.0);
                 float sqrL = dot(vec, vec);
-                float3 normal = normalize(vec)
-                float weight = dot(normal, float3(0.0, 0.0, 1.0)) / sqrL
+                float3 direction = normalize(vec);
+                float area = dot(direction, float3(0.0, 0.0, 1.0)) / sqrL;
                 */
-
+                
                 float3 vec = float3(uv,  1.0);
                 float len = length(vec);
-                float3 normal = vec / len;
-                float weight = 1.0 / (len * len * len);
-
+                float3 direction = vec / len;
+                float area = 1.0 / (len * len * len);
+                
                 // 立方体を構成する6つの面をさらに4つに分割して計算する
                 float3 output = 0.0;
-                output += Test0(float3( normal.x,  normal.y, normal.z)); // 第一象限
-                output += Test0(float3(-normal.x,  normal.y, normal.z)); // 第二象限
-                output += Test0(float3(-normal.x, -normal.y, normal.z)); // 第三象限
-                output += Test0(float3( normal.x, -normal.y, normal.z)); // 第四象限
+                output += Test0(float3( direction.x,  direction.y, direction.z)); // 第一象限
+                output += Test0(float3(-direction.x,  direction.y, direction.z)); // 第二象限
+                output += Test0(float3(-direction.x, -direction.y, direction.z)); // 第三象限
+                output += Test0(float3( direction.x, -direction.y, direction.z)); // 第四象限
 
-                return float4(output, 6.0 * 4.0) * weight;
+                return float4(output, 6.0 * 4.0) * area;
             }
 
             ENDCG

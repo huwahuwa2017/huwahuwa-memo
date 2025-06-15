@@ -1,4 +1,4 @@
-// v1 2025-04-08 01:59
+// v2 2025-06-16 00:55
 
 using FlowPaintTool;
 using UnityEngine;
@@ -109,10 +109,9 @@ public class SH_Calculation : MonoBehaviour
         FPT_TextureOperation.DataTransfer(_temp1, _memory);
         Color color = _memory.GetPixel(0, 0);
 
-        // weight の合計を確認したい時用の Debug.Log
-        // 結果はほぼ 4Pi になるのだが、低解像度だと少しズレるので気になる人は確認してみてね
-        // 私は何もせずに放置するぜ
-        //Debug.Log(color.a.ToString());
+        // area の合計を確認したい時用の Debug.Log
+        // 結果はほぼ 4pi になるのだが、低解像度だと4piより少し大きくなるので気になる人は確認してみてね
+        Debug.Log(color.a.ToString());
 
         Vector3 temp0 = new Vector3(color.r, color.g, color.b) * _SH_Multiply[index];
         _material2.SetVector(_spid[index], temp0);
