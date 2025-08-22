@@ -3,6 +3,11 @@
 
 
 
+// ドキュメントのPathを取得できる
+Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+
+
 [MenuItem("Assets/Mesh select")]
 private static void ExportMenu()
 {
@@ -81,12 +86,36 @@ System.Diagnostics.Debug.WriteLine(callerClassName + " クラスから呼び出�
 
 
 
+using System.Runtime.InteropServices;
+using System.IO;
+using System.Text;
+
 // コンソール強制表示
 [DllImport("kernel32.dll")]
 private static extern bool AllocConsole();
 
 AllocConsole();
 Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+
+Console.OutputEncoding = Encoding.UTF8
+Console.OutputEncoding = Encoding.GetEncoding("utf-8");
+Console.OutputEncoding = Encoding.GetEncoding("shift-jis"); // Unityでは簡単には使えないらしい
+
+
+
+[DllImport("kernel32.dll")]
+private static extern bool AllocConsole();
+private static bool _test0 = false;
+
+if (!_test0)
+{
+    AllocConsole();
+    Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+    Console.OutputEncoding = Encoding.GetEncoding("shift-jis");
+    _test0 = true;
+}
+
+
 
 
 

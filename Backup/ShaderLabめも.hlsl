@@ -156,6 +156,9 @@ UNITY_STEREO_MULTIVIEW_ENABLED
 // nan
 asfloat(0xFFFFFFFF)
 
+
+
+// É~ÉâÅ[
 static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
 Å´
 float _VRChatMirrorMode;
@@ -235,6 +238,35 @@ void MatrixMemoryLayout()
 }
 
 
+
+// ìôçÇê¸
+half4 Contour(float2 uv)
+{
+    float sdf = SDF(uv);
+    float sdfX = SDF(float2(uv.x + _Epsilon, uv.y));
+    float sdfY = SDF(float2(uv.x, uv.y + _Epsilon));
+
+    float2 gradientVector = float2(sdfX - sdf, sdfY - sdf);
+    gradientVector = normalize(gradientVector);
+    float sdfXY = SDF(uv + gradientVector * _Epsilon);
+    float gradient = (sdfXY - sdf) / _Epsilon;
+    float result = abs(sdf / gradient);
+
+    return result;
+}
+Å´
+half4 Contour(float2 uv)
+{
+    float sdf = SDF(uv);
+    float sdfX = SDF(float2(uv.x + _Epsilon, uv.y));
+    float sdfY = SDF(float2(uv.x, uv.y + _Epsilon));
+
+    float2 gradientVector = float2(sdfX - sdf, sdfY - sdf);
+    float gradient = length(gradientVector / _Epsilon);
+    float result = abs(sdf / gradient);
+
+    return result;
+}
 
 
 
