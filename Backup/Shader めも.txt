@@ -6,7 +6,7 @@ floor(lod + 0.5)と同じ
 
 
 
-// int型の割り算や余りの計算をhlslでコンパイルすると結構複雑になる
+// 両辺がint型の割り算や余りの計算をhlslでコンパイルすると結構複雑になる
 int a, b;
 int result = a / b;
 ↓
@@ -20,6 +20,20 @@ int result = a % b;
 int a, b;
 int temp0 = uint(max(a, -a)) % uint(max(b, -b));
 int result = (a & 0x80000000) ? -temp0 : temp0;
+
+// uint と int が混在している場合は、 int を uint に変換して計算する
+// (割り算で確認 それ以外の演算子は知らん)
+
+int a = -4;
+uint b = 2;
+
+int result = a / b;
+↓
+int result = ((uint)a) / b;
+↓
+int result = 4294967292 / b;
+↓
+int result = 2147483646
 
 
 
