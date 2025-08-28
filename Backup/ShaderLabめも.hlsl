@@ -1,73 +1,112 @@
 
+Shader"Custom/Example"
+{
+    // https://docs.unity3d.com/ja/2022.3/Manual/SL-Properties.html
+    // https://docs.unity3d.com/ja/2022.3/Manual/SL-PropertiesInPrograms.html
+    // https://artawa.hatenablog.com/entry/2020/08/30/200211
     Properties
     {
         [NoScaleOffset]
 		_MainTex("Skin Color Texture", 2D) = "white" {}
-
+        
         _Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
-
+        
         [HDR]
         _EmissionColor("Emission Color", Color) = (0,0,0)
-
+        
         _Metallic("Metallic", Range(0.0, 1.0)) = 1.0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
-
+        
         _MaxSize("Max Size", Float) = 0.1
+        
+        // Unity 2020 以前
+        _Integer("Integer", Int) = 0
+        
+        // Unity 2021 以後
+        _ExampleName ("Integer display name", Integer) = 1
     }
-
-// SubShader
-Tags
-{
-    "Queue" = "Background" "Geometry" "AlphaTest" "Transparent" "Overlay+1"
-    "DisableBatching" = "True"
-    "IgnoreProjector" = "True"
+    
+	SubShader
+	{
+        CGINCLUDE
+        // ここにコードを書くと、
+        // すべてのパスでこのコードを書き込んだことになる
+        ENDCG
+        
+        // https://docs.unity3d.com/ja/2022.3/Manual/SL-SubShaderTags.html
+        Tags
+        {
+            "Queue" = "Background" "Geometry" "AlphaTest" "Transparent" "Overlay" "Overlay+815199"
+            "DisableBatching" = "True"
+            "IgnoreProjector" = "True"
+            
+            // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderReplacement.html
+            // Shaderを置き換えるときの判定に使う
+            // DepthTextureMode.DepthNormals でも使うらしい
+            "RenderType" = "Opaque" "TransparentCutout" "Transparent"
+            
+            // VRChat専用
+            // https://creators.vrchat.com/avatars/shader-fallback-system/
+			"VRCFallback" = "Hidden"
+        }
+        
+        GrabPass
+        {
+            "_GrabPass"
+        }
+        
+		Pass
+		{
+            // https://docs.unity3d.com/ja/2022.3/Manual/shader-shaderlab-commands.html
+            Blend SrcAlpha OneMinusSrcAlpha
+            Cull Back Front Off
+            Offset
+            ZClip False
+            ZTest Always
+            ZWrite Off
+            
+            Stencil
+            {
+                Ref 2
+                Comp Always
+                Pass Replace
+            }
+            
+            // https://docs.unity3d.com/ja/2022.3/Manual/shader-predefined-pass-tags-built-in.html
+            Tags
+            {
+                // LightMode に Unity が想定していない文字列を入れると、そのパスは実行されなくなる（要検証）
+                // これを利用しているのが lilToon の "LightMode" = "Never"
+                "LightMode" = "Always" "ForwardBase" "ForwardAdd" "ShadowCaster"
+            }
+            
+            CGPROGRAM
+            
+            // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderCompileTargets.html
+            #pragma target 3.0
+			#pragma require tessellation
+            #pragma require geometry
+            
+            #pragma vertex VertexShaderStage
+            #pragma hull HullShaderStage
+            #pragma domain DomainShaderStage
+            #pragma geometry GeometryShaderStage
+            #pragma fragment FragmentShaderStage
+            
+            // https://docs.unity3d.com/ja/2022.3/Manual/SL-MultipleProgramVariants.html
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile_local _MODE_ALPHA_OFF _MODE_ALPHATEST_ON _MODE_ALPHABLEND_ON _MODE_ALPHAPREMULTIPLY_ON
+            
+            #define 
+            
+            #include "UnityCG.cginc"
+            #include "AutoLight.cginc"
+            #include "Lighting.cginc"
+            
+			ENDCG
+        }
+    }
 }
-
-GrabPass
-{
-    "_GrabPass"
-}
-
-// Pass
-Tags
-{
-    // LightMode に Unity が想定していない文字列を入れると、そのパスは実行されなくなる（要検証）
-    // これを利用しているのが lilToon の "LightMode" = "Never"
-    "LightMode" = "Always" "ForwardBase" "ForwardAdd" "ShadowCaster"
-}
-
-Blend SrcAlpha OneMinusSrcAlpha
-
-Cull Back Front Off
-
-Offset
-
-ZClip False
-
-ZTest Always
-
-ZWrite Off
-
-Stencil
-
-#pragma require tessellation
-#pragma require geometry
-
-#pragma vertex VertexShaderStage
-#pragma hull HullShaderStage
-#pragma domain DomainShaderStage
-#pragma geometry GeometryShaderStage
-#pragma fragment FragmentShaderStage
-
-#pragma multi_compile_local 
-
-#define 
-
-#include "UnityCG.cginc"
-#include "AutoLight.cginc"
-#include "Lighting.cginc"
-
-
 
 // UnityCG.cginc
 #define UNITY_PI            3.14159265359f
@@ -79,16 +118,20 @@ Stencil
 #define UNITY_HALF_PI       1.57079632679f
 #define UNITY_INV_HALF_PI   0.636619772367f
 
-#define UNITY_HALF_MIN      6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
+// 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
+#define UNITY_HALF_MIN      6.103515625e-5  
 
 
 
-struct TessellationFactor
-{
-    float tessFactor[3] : SV_TessFactor;
-    float insideTessFactor : SV_InsideTessFactor;
-};
+#if !defined(UNITY_MATRIX_I_M)
+#define UNITY_MATRIX_I_M unity_WorldToObject
+#endif
 
+#define COMPUTE_VIEW_NORMAL normalize(mul((float3x3)UNITY_MATRIX_IT_MV, v.normal))
+
+
+
+// https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderSemantics.html
 struct I2V
 {
     float4 lPos : POSITION;
@@ -109,17 +152,17 @@ struct G2F
     float2 uv : TEXCOORD0;
 };
 
-#if !defined(UNITY_MATRIX_I_M)
-#define UNITY_MATRIX_I_M unity_WorldToObject
-#endif
+struct TessellationFactor
+{
+    float tessFactor[3] : SV_TessFactor;
+    float insideTessFactor : SV_InsideTessFactor;
+};
 
-#define COMPUTE_VIEW_NORMAL normalize(mul((float3x3)UNITY_MATRIX_IT_MV, v.normal))
 
+
+// https://docs.unity3d.com/ja/2022.3/Manual/SL-SamplerStates.html
 SamplerState _InlineSampler_Linear_Repeat;
-
 SamplerState _InlineSampler_Point_Clamp;
-
-
 
 sampler2D _MainTex;
 
@@ -127,6 +170,14 @@ Texture2D _MainTex;
 SamplerState sampler_MainTex;
 
 float4 _MainTex_TexelSize;
+
+
+
+// ミラー
+static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
+↓
+float _VRChatMirrorMode;
+static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
@@ -139,11 +190,29 @@ float4 _MainTex_TexelSize;
 #if defined(UNITY_PASS_SHADOWCASTER)
 #endif
 
+
+
 UNITY_SINGLE_PASS_STEREO
 
 UNITY_STEREO_INSTANCING_ENABLED
 
 UNITY_STEREO_MULTIVIEW_ENABLED
+
+
+
+// UNITY_UV_STARTS_AT_TOP の定義
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
+#define UNITY_UV_STARTS_AT_TOP 1
+#endif
+
+// UNITY_REVERSED_Z  の定義
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
+#define UNITY_REVERSED_Z 1
+#endif
+
+// UNITY_UV_STARTS_AT_TOP と UNITY_REVERSED_Z は同じ
+
+
 
 #if defined(UNITY_REVERSED_Z)
     // DirectX
@@ -155,14 +224,6 @@ UNITY_STEREO_MULTIVIEW_ENABLED
 
 // nan
 asfloat(0xFFFFFFFF)
-
-
-
-// ミラー
-static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
-↓
-float _VRChatMirrorMode;
-static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
