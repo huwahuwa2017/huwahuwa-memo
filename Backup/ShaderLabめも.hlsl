@@ -140,6 +140,15 @@ struct I2V
     float2 uv : TEXCOORD0;
 };
 
+struct V2F
+{
+    float4 cPos : SV_POSITION;
+    float2 uv : TEXCOORD0;
+    float3 wTangent : TEXCOORD1;
+    float3 wBinormal : TEXCOORD2;
+    float3 wNormal : TEXCOORD3;
+};
+
 struct V2G
 {
     float4 cPos : TEXCOORD0;
@@ -222,8 +231,18 @@ UNITY_STEREO_MULTIVIEW_ENABLED
 
 
 
+// サンプラーを無視して処理速度を優先する
+#define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(saturate(uv) * tex##_TexelSize.zw)]
+#define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
+
+
+
 // nan
 asfloat(0xFFFFFFFF)
+
+
+
+tex2D(_MainTex, TRANSFORM_TEX(uv, _MainTex));
 
 
 
@@ -285,17 +304,53 @@ void MatrixMemoryLayout()
         a._31, a._32, a._33,
         a._41, a._42, a._43
     );
-    
-    float4x4
-    (
-        a._11, a._12, a._13, a._14,
-    
-        a._21, a._22, a._23, a._24,
-    
-        a._31, a._32, a._33, a._34,
-    
-        a._41, a._42, a._43, a._44
-    );
+}
+
+
+
+uint TessFactor2TriangleCount(float factor)
+{
+    factor = ceil(factor);
+    return floor(factor * factor * 1.5);
+}
+
+uint TriangleCount2TessFactor(float count)
+{
+    return sqrt(count / 1.5f);
+}
+
+
+
+// 1メートルあたりのピクセル数
+
+// cPos_W = UnityWorldToClipPos(wPos).w
+// cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPos, 1.0))
+float PixelPerMeter(float cPos_W)
+{
+    float2 temp0 = _ScreenParams.xy * (abs(UNITY_MATRIX_P._m00_m11) / cPos_W);
+    return max(temp0.x, temp0.y) * 0.5;
+}
+
+
+
+// ガウス関数 (の一種)
+float GaussianFunction(float input)
+{
+    return exp(-2.5 * input * input);
+}
+
+// ガウス関数の近似
+float ApproximateGaussianFunction1(float input)
+{
+    float temp0 = 1.0 - abs(input);
+    return temp0 * temp0 * (3.0 - (2.0 * temp0));
+}
+
+// こちらの方が負荷が少ない
+float ApproximateGaussianFunction2(float input)
+{
+    float temp0 = abs(input);
+    return 1.0 - temp0 * temp0 * (3.0 - (2.0 * temp0));
 }
 
 
@@ -315,7 +370,7 @@ half4 Contour(float2 uv)
 
     return result;
 }
-↓
+
 half4 Contour(float2 uv)
 {
     float sdf = SDF(uv);

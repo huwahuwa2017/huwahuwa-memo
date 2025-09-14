@@ -3,6 +3,32 @@
 
 
 
+private Quaternion mul(Quaternion a, Quaternion b)
+{
+    // (i(a.x) + j(a.y) + k(a.z) + a.w) * (i(b.x) + j(b.y) + k(b.z) + b.w)
+
+    Vector4 temp0 = new Vector4(a.w, a.z, -a.y, -a.x);
+    Vector4 temp1 = new Vector4(-a.z, a.w, a.x, -a.y);
+    Vector4 temp2 = new Vector4(a.y, -a.x, a.w, -a.z);
+    Vector4 temp3 = new Vector4(a.x, a.y, a.z, a.w);
+
+    Vector4 temp4 = (temp0 * b.x) + (temp1 * b.y) + (temp2 * b.z) + (temp3 * b.w);
+    return new Quaternion(temp4.x, temp4.y, temp4.z, temp4.w);
+}
+
+
+
+public void GeneratePointMesh(Mesh mesh)
+{
+    Mesh newMesh = Instantiate(mesh);
+    newMesh.SetIndices(Enumerable.Range(0, newMesh.vertexCount).ToArray(), MeshTopology.Points, 0);
+
+    AssetDatabase.CreateAsset(newMesh, "Assets/Points.asset");
+    AssetDatabase.SaveAssets();
+}
+
+
+
 // ドキュメントのPathを取得できる
 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 

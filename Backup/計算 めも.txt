@@ -4,7 +4,7 @@
 
 
 
-// 何かの役に立ちそうな曲線
+// 何かの役に立ちそうな関数
 a = 0.0 ~ 1.0
 min(x / a, (1 - x) / (1 - a));
 
@@ -176,7 +176,7 @@ a^x / a^y = a^(x-y)
 a^x * b^x = (a * b)^x
 a^x / b^x = (a / b)^x
 
-(a^x)^y = a^(x * y)
+a^(x * y) = (a^x)^y = (a^y)^x
 
 (a^0.5) / (a^-0.5) = a
 
@@ -250,8 +250,8 @@ step(x,y) = x >= y
 
 
 
-lerp(a, 1.0, b) = lerp(b, 1.0, a)
 lerp(a, b, c) = lerp(b, a, 1.0 - c)
+lerp(a, 1.0, b) = lerp(b, 1.0, a)
 
 
 
