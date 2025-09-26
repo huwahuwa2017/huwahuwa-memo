@@ -1,5 +1,11 @@
 
 
+MToon NOTE
+tangent Sign は本来、+1 か -1 の値が望まれる。そしてこれは通常、三角形内ですべておなじ値である。
+しかし Unity 純正の Mesh.RecalculateTangents() を呼び出すと、頂点ごとに異なる tangent Sign を持つ三角形が生まれることがある。
+その場合 interpolate されて 0 となり、ゼロ除算と NaN が発生し、Android 環境等でビジュアルアーティファクトが出る場合があるため、二値化する。
+
+
 
 FilterMode が Bilinera の tex2Dlod の lod は0.5で切り上げた値となる
 floor(lod + 0.5)と同じ
@@ -82,9 +88,12 @@ Screen 座標系
 Shader の頂点ID (SV_VertexID) は、異なるSubMeshでも共通 (たぶん)
 Shader のポリゴンID (SV_PrimitiveID) は、異なるSubMeshで共通ではなく、0から始まる
 
+GeometryShader を使用している場合、 VertexShaderStage で SV_PrimitiveID を取得するとめちゃくちゃになる
+Tessellation は問題ない
 
 
-Unity で PSIZE セマンティクスは使えない
+
+Unity かつ DX11 では PSIZE セマンティクスは使えない
 
 
 

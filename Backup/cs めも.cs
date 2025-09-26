@@ -18,6 +18,73 @@ private Quaternion mul(Quaternion a, Quaternion b)
 
 
 
+// https://math.stackexchange.com/questions/893984/conversion-of-rotation-matrix-to-quaternion
+// https://d3cw3dd2w32x2b.cloudfront.net/wp-content/uploads/2015/01/matrix-to-quat.pdf
+private static Quaternion LookRotation(Vector3 forward, Vector3 upwards)
+{
+    Vector3 zAxis = Vector3.Normalize(forward);
+    Vector3 xAxis = Vector3.Normalize(Vector3.Cross(upwards, zAxis));
+    Vector3 yAxis = Vector3.Cross(zAxis, xAxis);
+
+    float m00 = xAxis.x;
+    float m10 = xAxis.y;
+    float m20 = xAxis.z;
+
+    float m01 = yAxis.x;
+    float m11 = yAxis.y;
+    float m21 = yAxis.z;
+
+    float m02 = zAxis.x;
+    float m12 = zAxis.y;
+    float m22 = zAxis.z;
+
+    float t;
+    Vector4 q;
+
+    float add0 = m21 + m12;
+    float add1 = m02 + m20;
+    float add2 = m10 + m01;
+
+    float sub0 = m21 - m12;
+    float sub1 = m02 - m20;
+    float sub2 = m10 - m01;
+
+    if (m22 < 0f)
+    {
+        if (m00 > m11)
+        {
+            t = 1f + m00 - m11 - m22;
+            q = new Vector4(t, add2, add1, sub0);
+        }
+        else
+        {
+            t = 1f - m00 + m11 - m22;
+            q = new Vector4(add2, t, add0, sub1);
+        }
+    }
+    else
+    {
+        if (m00 < -m11)
+        {
+            t = 1f - m00 - m11 + m22;
+            q = new Vector4(add1, add0, t, sub2);
+        }
+        else
+        {
+            t = 1f + m00 + m11 + m22;
+            q = -new Vector4(sub0, sub1, sub2, t);
+        }
+    }
+
+    q *= 0.5f / Mathf.Sqrt(t);
+
+    Quaternion quaternion = new Quaternion(q.x, q.y, q.z, q.w);
+
+    return quaternion;
+}
+
+
+
 public void GeneratePointMesh(Mesh mesh)
 {
     Mesh newMesh = Instantiate(mesh);

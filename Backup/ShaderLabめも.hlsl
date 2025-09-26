@@ -7,12 +7,14 @@ Shader"Custom/Example"
     Properties
     {
         [NoScaleOffset]
-		_MainTex("Skin Color Texture", 2D) = "white" {}
+        _MainTex("Skin Color Texture", 2D) = "white" {}
         
         _Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
         
         [HDR]
         _EmissionColor("Emission Color", Color) = (0,0,0)
+        
+		_TestVector0("Vector0", Vector) = (1.0, 1.0, 1.0, 1.0)
         
         _Metallic("Metallic", Range(0.0, 1.0)) = 1.0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
@@ -26,8 +28,8 @@ Shader"Custom/Example"
         _ExampleName ("Integer display name", Integer) = 1
     }
     
-	SubShader
-	{
+    SubShader
+    {
         CGINCLUDE
         // ここにコードを書くと、
         // すべてのパスでこのコードを書き込んだことになる
@@ -47,7 +49,7 @@ Shader"Custom/Example"
             
             // VRChat専用
             // https://creators.vrchat.com/avatars/shader-fallback-system/
-			"VRCFallback" = "Hidden"
+            "VRCFallback" = "Hidden"
         }
         
         GrabPass
@@ -55,10 +57,11 @@ Shader"Custom/Example"
             "_GrabPass"
         }
         
-		Pass
-		{
+        Pass
+        {
             // https://docs.unity3d.com/ja/2022.3/Manual/shader-shaderlab-commands.html
             Blend SrcAlpha OneMinusSrcAlpha
+            ColorMask 0
             Cull Back Front Off
             Offset
             ZClip False
@@ -84,7 +87,7 @@ Shader"Custom/Example"
             
             // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderCompileTargets.html
             #pragma target 3.0
-			#pragma require tessellation
+            #pragma require tessellation
             #pragma require geometry
             
             #pragma vertex VertexShaderStage
@@ -103,7 +106,7 @@ Shader"Custom/Example"
             #include "AutoLight.cginc"
             #include "Lighting.cginc"
             
-			ENDCG
+            ENDCG
         }
     }
 }
@@ -308,12 +311,14 @@ void MatrixMemoryLayout()
 
 
 
+// Tessellation係数から三角形の数を計算する (partitioning("integer"))
 uint TessFactor2TriangleCount(float factor)
 {
     factor = ceil(factor);
     return floor(factor * factor * 1.5);
 }
 
+// 三角形の数からTessellation係数を計算する (partitioning("integer"))
 uint TriangleCount2TessFactor(float count)
 {
     return sqrt(count / 1.5f);
@@ -346,6 +351,7 @@ float ApproximateGaussianFunction1(float input)
     return temp0 * temp0 * (3.0 - (2.0 * temp0));
 }
 
+// ガウス関数の近似
 // こちらの方が負荷が少ない
 float ApproximateGaussianFunction2(float input)
 {
@@ -387,7 +393,6 @@ half4 Contour(float2 uv)
 
 
 // ShadeSH9 の調査
-
 void SH(float3 n)
 {
     float3 color = 0.0;
@@ -510,7 +515,7 @@ void Temp0()
 
 
 // 接空間の計算メモ
-void Temo1(I2V input)
+void TangentSpace(I2V input)
 {
     float3 lNormal = input.lNormal;
     float3 lTangent = input.lTangent.xyz;
@@ -522,7 +527,8 @@ void Temo1(I2V input)
 
     //float3 unpackNormal = UnpackNormal(tex2Dlod(_NormalMap, float4(uv, 0.0, 0.0)));
     //float3 unpackNormal = UnpackNormal(tex2D(_BumpMap, uv));
-    float3 unpackNormal = UnpackScaleNormalRGorAG(tex2D(_BumpMap, uv), _BumpScale);
+    //float3 unpackNormal = UnpackScaleNormalRGorAG(tex2D(_BumpMap, uv), _BumpScale);
+    float3 unpackNormal = UnpackNormalWithScale(tex2D(_BumpMap, uv), _BumpScale);
     
     // R = tangent
     // G = binormal
@@ -535,37 +541,10 @@ void Temo1(I2V input)
 
 
 
-//もっと良い実装があるはず
-float SafeDivision(float a, float b)
-{
-    return (b == 0.0) ? 0.0 : a / b;
-}
-
-//もっと良い実装があるはず
-float3 SafeNormalize(float3 inVec)
-{
-    float dp3 = dot(inVec, inVec);
-    return inVec * rsqrt(dp3 + (dp3 == 0.0));
-}
-
-float ClampNormalize(float value, float min, float max)
-{
-    return saturate((value - min) / (max - min));
-}
-
-float3 PositionExtraction(float4x4 targetMatrix)
-{
-    return targetMatrix._14_24_34;
-}
-
 float3x3 ScalarMul(float3x3 mat, float scalar)
 {
     return mat * scalar;
 }
-
-
-
-
 
 float3x3 LookRotation(float3 fv, float3 uv)
 {
