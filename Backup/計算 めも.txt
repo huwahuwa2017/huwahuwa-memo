@@ -848,6 +848,61 @@ sqrt(dot(a/r, a/r))
 
 
 
+// 行列はベクトルの内積で表せる
+Vector3 a, b;
+float result = dot(a, b);
+             = a.x * b.x + a.y * b.y + a.z * b.z;
+
+
+
+
+
+// 説明用
+
+// AxisX, AxisY, AxisZ は長さが1 かつ直交(90度で交わる)しているとする
+Vector3 AxisX; // ローカル座標系の X軸の方向
+Vector3 AxisY; // ローカル座標系の Y軸の方向
+Vector3 AxisZ; // ローカル座標系の Z軸の方向
+
+// lPos は localPosition の略  ローカル座標系のベクトル
+Vector3 lPos;
+
+// wPos は worldPosition の略  ワールド座標系のベクトル
+Vector3 wPos;
+
+
+
+ローカル座標系からワールド座標系の式
+
+wPos = AxisX * lPos.x + AxisY * lPos.y + AxisZ * lPos.z
+	↓
+wPos.x = dot((AxisX.x, AxisY.x, AxisZ.x), lPos)
+wPos.y = dot((AxisX.y, AxisY.y, AxisZ.y), lPos)
+wPos.x = dot((AxisX.z, AxisY.z, AxisZ.z), lPos)
+	↓
+┌      ┐ ┌                         ┐┌      ┐
+│wPos.x│ │AxisX.x, AxisY.x, AxisZ.x││lPos.x│
+│wPos.y│=│AxisX.y, AxisY.y, AxisZ.y││lPos.y│
+│wPos.z│ │AxisX.z, AxisY.z, AxisZ.z││lPos.z│
+└      ┘ └                         ┘└      ┘
+
+
+
+ワールド座標系からローカル座標系の式
+
+lPos.x = dot(AxisX, wPos)
+lPos.y = dot(AxisY, wPos)
+lPos.x = dot(AxisZ, wPos)
+	↓
+lPos.x = dot((AxisX.x, AxisX.y, AxisX.z), wPos)
+lPos.y = dot((AxisY.x, AxisY.y, AxisY.z), wPos)
+lPos.x = dot((AxisZ.x, AxisZ.y, AxisZ.z), wPos)
+	↓
+┌      ┐ ┌                         ┐┌      ┐
+│lPos.x│ │AxisX.x, AxisX.y, AxisX.z││wPos.x│
+│lPos.y│=│AxisY.x, AxisY.y, AxisY.z││wPos.y│
+│lPos.z│ │AxisZ.x, AxisZ.y, AxisZ.z││wPos.z│
+└      ┘ └                         ┘└      ┘
 
 
 

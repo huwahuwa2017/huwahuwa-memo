@@ -1,4 +1,47 @@
 ﻿
+
+
+Assets/WebGLTemplates/{任意の名前}/index.html  内に、
+<script src="Test.js"></script>
+や
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+を書き込んで、使用するjsファイルを設定する
+
+
+
+Unity WebGL で動作確認をするときは、
+Compression Format : Disabled
+Decompression Fallback : false
+に設定するとビルドが早くなる
+
+
+
+LIFFブラウザの場合、liff.init()実行時に自動でログイン処理が実行されるため、liff.login()は利用できません。
+
+
+
+Build Settings の Platform を WebGL に変更
+	↓
+WebGL テンプレートを作成
+Editor/Data/PlaybackEngines/WebGLSupport/BuildTools/WebGLTemplates/Minimal をコピーするのがおすすめ
+	↓
+WebGL テンプレート内に必要な js ファイルをぶちこむ
+	↓
+WebGL テンプレート内の index.html を編集して、使用する js ファイルを設定する
+<script src="Test.js"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+など
+	↓
+jslib で js と C# をつなげる
+
+
+
+liff.shareTargetPicker() で画像やテキストやボタンなどを組み合わせて表示したい場合、
+Flex Message Simulator を使って json を生成して、liff.shareTargetPicker() にぶち込むのが良い
+https://developers.line.biz/ja/docs/messaging-api/using-flex-messages/
+
+
+
 1アンペア = 毎秒 約6.2 * 10^18個の電子
 
 
@@ -36,6 +79,9 @@ AssetBundleは二種類存在する
 普通のAssetBundleとStreamedSceneAssetBundle
 
 
+
+       認証   鍵交換         データ
+TLS → RSA  & 楕円曲線暗号 & aes
 
 
 
