@@ -1,4 +1,4 @@
-// v2
+// v3 2025-11-04 10:45
 
 #if UNITY_EDITOR
 
@@ -29,9 +29,14 @@ namespace HuwaOutputPNG
 
             if (temp == null)
             {
+                /*
                 string[] size = UnityStats.screenRes.Split('x');
                 int width = int.Parse(size[0]);
                 int height = int.Parse(size[1]);
+                */
+
+                int width = camera.pixelWidth;
+                int height = camera.pixelHeight;
 
                 RenderTextureDescriptor rtd = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_SRGB, 32);
                 RenderTexture rt = new RenderTexture(rtd);
