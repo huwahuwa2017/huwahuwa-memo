@@ -1,3 +1,45 @@
+
+
+ベクトルの球面線形補間
+
+A と B は同じ長さのベクトル
+t は 0～1 の範囲の実数
+
+θ = arccos(dot(normalize(A), normalize(B)))
+r = length(A) = length(B)
+
+A と B が直交している場合
+
+slerp(A, B, t) = A * cos(tθ) + B * sin(tθ)
+
+A と B が直交していない場合
+
+C = A と直交していて Aと同じ長さで B に近いベクトル
+slerp(A, B, t) = A * cos(tθ) + C * sin(tθ)
+
+C の具体的な計算式を求める
+B から -A * cos(θ) に移動すると A ベクトルと直交するので
+
+C = normalize(B - A * cos(θ)) * r
+
+B - A * cos(θ) ベクトルの長さは r * sin(θ) なので
+
+C = normalize(B - A * cos(θ)) * r
+  = (B - A * cos(θ)) / (r * sin(θ)) * r
+  = (B - A * cos(θ)) / sin(θ)
+
+slerp(A, B, t) = A * cos(tθ) + C * sin(tθ)
+               = A * cos(tθ) + ((B - A * cos(θ)) / sin(θ)) * sin(tθ)
+               = A * cos(tθ) + B * sin(tθ) / sin(θ) - A * cos(θ) * sin(tθ) / sin(θ)
+               = A * cos(tθ) - A * cos(θ) * sin(tθ) / sin(θ) + B * sin(tθ) / sin(θ)
+               = A * (cos(tθ) - cos(θ) * sin(tθ) / sin(θ)) + B * sin(tθ) / sin(θ)
+               = A * (cos(tθ) * sin(θ) / sin(θ) - cos(θ) * sin(tθ) / sin(θ)) + B * sin(tθ) / sin(θ)
+               = A * (sin(θ) * cos(tθ) -  cos(θ) * sin(tθ)) / sin(θ) + B * sin(tθ) / sin(θ)
+               = A * (sin(θ - tθ)) / sin(θ) + B * sin(tθ) / sin(θ)
+               = A * (sin((1 - t)θ)) / sin(θ) + B * sin(tθ) / sin(θ)
+
+
+
 // https://x.com/_ki_yx/status/1969382044355739997
 area = a * (a + a * cos(30))
 area = a * (a * (1 + cos(30)))
@@ -367,28 +409,12 @@ A   B^T = (B   A^T)^T
 
 
 // 三角関数の加法定理を行列で表してみた
-                ┌               ┐┌      ┐
-                │cos(a)  -sin(a)││cos(b)│
-float2 resultA =│sin(a)   cos(a)││sin(b)│
-                └               ┘└      ┘
-resultA.x = cos(a)*cos(b) - sin(a)*sin(b) = cos(a + b)
-resultA.y = sin(a)*cos(b) + cos(a)*sin(b) = sin(a + b)
-
-                ┌               ┐┌       ┐
-                │cos(a)  -sin(a)││ cos(b)│
-float2 resultB =│sin(a)   cos(a)││-sin(b)│
-                └               ┘└       ┘
-resultB.x = cos(a)*cos(b) + sin(a)*sin(b) = cos(a - b)
-resultB.y = sin(a)*cos(b) - cos(a)*sin(b) = sin(a - b)
-
-┌               ┐┌               ┐ ┌                      ┐
-│cos(a)  -sin(a)││cos(b)  -sin(b)│ │cos(a + b) -sin(a + b)│
-│sin(a)   cos(a)││sin(b)   cos(b)│=│sin(a + b)  cos(a + b)│
-└               ┘└               ┘ └                      ┘
-┌                                                           ┐
-│cos(a)*cos(b) - sin(a)*sin(b)  -cos(a)sin(b) - sin(a)cos(b)│
-│sin(a)*cos(b) + cos(a)*sin(b)  -sin(a)sin(b) + cos(a)cos(b)│
-└                                                           ┘
+               ┌               ┐┌      ┐
+               │cos(a)  -sin(a)││cos(b)│
+float2 result =│sin(a)   cos(a)││sin(b)│
+               └               ┘└      ┘
+result.x = cos(a)*cos(b) - sin(a)*sin(b) = cos(a + b)
+result.y = sin(a)*cos(b) + cos(a)*sin(b) = sin(a + b)
 
 
 

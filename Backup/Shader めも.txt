@@ -177,10 +177,8 @@ shader_feature で一つだけキーワードを宣言した場合
 
 ShaderAPI が DirectX の場合
 GL.GetGPUProjectionMatrix は投影行列の形式を OpenGL 形式から Direct3D11 形式に変換する
-OpenGL 形式の射影行列をそのまま Camera.projectionMatrix に代入しても問題ないので、自動的に OpenGL 形式から Direct3D11 形式に変換していると考えられる
-OpenGL 形式の射影行列を Camera.projectionMatrix に代入する場合は GL.GetGPUProjectionMatrix を使う必要はない
+OpenGL 形式の射影行列を Camera.projectionMatrix に代入しても問題ないので、内部で GL.GetGPUProjectionMatrix を実行していると予想している
 OpenGL 形式の射影行列を Material.SetMatrix でシェーダーに渡す場合に GL.GetGPUProjectionMatrix を使う
-Camera.projectionMatrix から得られる射影行列は OpenGL 形式のはず（たぶん）
 
 
 

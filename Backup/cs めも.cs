@@ -187,14 +187,17 @@ using System.Text;
 [DllImport("kernel32.dll")]
 private static extern bool AllocConsole();
 
-AllocConsole();
-Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+private void Test()
+{
+    AllocConsole();
+    Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+}
+
+
 
 Console.OutputEncoding = Encoding.UTF8
 Console.OutputEncoding = Encoding.GetEncoding("utf-8");
 Console.OutputEncoding = Encoding.GetEncoding("shift-jis"); // Unityでは簡単には使えないらしい
-
-
 
 [DllImport("kernel32.dll")]
 private static extern bool AllocConsole();
@@ -209,6 +212,32 @@ if (!_test0)
 }
 
 
+
+static private Vector4 GetZBufferParams()
+{
+    Camera camera = Camera.main;
+    float nc = camera.nearClipPlane;
+    float fc = camera.farClipPlane;
+
+    // https://qiita.com/kajitaj63b3/items/3bf0e041f6be4fad164b
+
+    // not D3D style
+    //Vector4 zBufferParams = new Vector4(1f - fc / nc, fc / nc, 0f, 0f);
+
+    // D3D style (D3D11, PSSL, METAL, VULKAN, SWITCH)
+    Vector4 zBufferParams = new Vector4(fc / nc - 1f, 1f, 0f, 0f);
+
+    zBufferParams.z = zBufferParams.x / fc;
+    zBufferParams.w = zBufferParams.y / fc;
+
+    return zBufferParams;
+}
+
+static private float LinearEyeDepth(float z)
+{
+    Vector4 zBufferParams = GetZBufferParams();
+    return 1f / (zBufferParams.z * z + zBufferParams.w);
+}
 
 
 
