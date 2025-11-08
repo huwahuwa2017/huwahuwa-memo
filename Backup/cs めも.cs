@@ -213,34 +213,6 @@ if (!_test0)
 
 
 
-static private Vector4 GetZBufferParams()
-{
-    Camera camera = Camera.main;
-    float nc = camera.nearClipPlane;
-    float fc = camera.farClipPlane;
-
-    // https://qiita.com/kajitaj63b3/items/3bf0e041f6be4fad164b
-
-    // not D3D style
-    //Vector4 zBufferParams = new Vector4(1f - fc / nc, fc / nc, 0f, 0f);
-
-    // D3D style (D3D11, PSSL, METAL, VULKAN, SWITCH)
-    Vector4 zBufferParams = new Vector4(fc / nc - 1f, 1f, 0f, 0f);
-
-    zBufferParams.z = zBufferParams.x / fc;
-    zBufferParams.w = zBufferParams.y / fc;
-
-    return zBufferParams;
-}
-
-static private float LinearEyeDepth(float z)
-{
-    Vector4 zBufferParams = GetZBufferParams();
-    return 1f / (zBufferParams.z * z + zBufferParams.w);
-}
-
-
-
 public static uint AsUInt(float value)
 {
     byte[] bytes = BitConverter.GetBytes(value);
@@ -322,70 +294,30 @@ private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderInto
 
 
 
-// Editor拡張のGUIで色々やってた時に作った謎のコード
-//UnityEditor.InspectorWindow.DrawSplitLine(float y)
-private void DrawSplitLine()
+static private Vector4 GetZBufferParams()
 {
-    Assembly assembly = typeof(EditorWindow).Assembly;
+    Camera camera = Camera.main;
+    float nc = camera.nearClipPlane;
+    float fc = camera.farClipPlane;
 
-    Type type = assembly.GetType("UnityEditor.InspectorWindow+Styles");
-    FieldInfo field0 = type.GetField("lineSeparatorColor", BindingFlags.Static | BindingFlags.Public);
-    System.Object obj0 = field0.GetValue(null);
+    // https://qiita.com/kajitaj63b3/items/3bf0e041f6be4fad164b
 
-    Type type0 = obj0.GetType();
-    PropertyInfo propertyInfo0 = type0.GetProperty("value", BindingFlags.Instance | BindingFlags.Public);
-    Color color = (Color)propertyInfo0.GetValue(obj0);
+    // not D3D style
+    //Vector4 zBufferParams = new Vector4(1f - fc / nc, fc / nc, 0f, 0f);
 
-    FieldInfo field1 = type.GetField("lineSeparatorOffset", BindingFlags.Static | BindingFlags.Public);
-    System.Object obj1 = field1.GetValue(null);
+    // D3D style (D3D11, PSSL, METAL, VULKAN, SWITCH)
+    Vector4 zBufferParams = new Vector4(fc / nc - 1f, 1f, 0f, 0f);
 
-    Type type1 = obj1.GetType();
-    PropertyInfo propertyInfo1 = type1.GetProperty("value", BindingFlags.Instance | BindingFlags.Public);
-    float offset = (float)propertyInfo1.GetValue(obj1);
+    zBufferParams.z = zBufferParams.x / fc;
+    zBufferParams.w = zBufferParams.y / fc;
 
-    Type type2 = typeof(EditorWindow);
-    FieldInfo field2 = type2.GetField("m_Pos", BindingFlags.Instance | BindingFlags.NonPublic);
-    Rect mPos = (Rect)field2.GetValue(this);
-
-    float y = EditorGUILayout.GetControlRect(false, 0f).y;
-    Rect position = new Rect(0f, y - offset, mPos.width + 1f, 1f);
-
-    Color preColor = GUI.color;
-    GUI.color = color * GUI.color;
-    GUI.DrawTexture(position, EditorGUIUtility.whiteTexture);
-    GUI.color = preColor;
+    return zBufferParams;
 }
 
-private void DrawSplitLine(float thickness = 1f)
+static private float LinearEyeDepth(float z)
 {
-    Assembly assembly = typeof(EditorWindow).Assembly;
-
-    object obj0 = assembly
-        .GetType("UnityEditor.InspectorWindow+Styles")
-        .GetField("lineSeparatorColor", BindingFlags.Static | BindingFlags.Public)
-        .GetValue(null);
-
-    object obj1 = obj0
-        .GetType()
-        .GetProperty("value", BindingFlags.Instance | BindingFlags.Public)
-        .GetValue(obj0);
-
-    Rect pos = EditorGUILayout.GetControlRect(false, thickness);
-    pos.x = 0f;
-    pos.width += 20f;
-
-    Color guiColor = GUI.color;
-    GUI.color = (Color)obj1 * guiColor;
-    GUI.DrawTexture(pos, EditorGUIUtility.whiteTexture);
-    GUI.color = guiColor;
-}
-
-private void Line()
-{
-    EditorGUILayout.Space(10);
-    Rect pos = EditorGUILayout.GetControlRect(false, 1f);
-    EditorGUI.DrawRect(pos, GUI.skin.label.normal.textColor);
-    EditorGUILayout.Space(10);
+    Vector4 zBufferParams = GetZBufferParams();
+    return 1f / (zBufferParams.z * z + zBufferParams.w);
 }
 
 
@@ -513,4 +445,72 @@ public static byte[] BinaryData(string assetName, bool sRGB, byte[] fileBytes)
     int fileBytesLength = data.Length - startIndex;
     byte[] fileBytes = new byte[fileBytesLength];
     Array.Copy(data, startIndex, fileBytes, 0, fileBytesLength);
+}
+
+
+
+// Editor拡張のGUIで色々やってた時に作った謎のコード
+//UnityEditor.InspectorWindow.DrawSplitLine(float y)
+private void DrawSplitLine()
+{
+    Assembly assembly = typeof(EditorWindow).Assembly;
+
+    Type type = assembly.GetType("UnityEditor.InspectorWindow+Styles");
+    FieldInfo field0 = type.GetField("lineSeparatorColor", BindingFlags.Static | BindingFlags.Public);
+    System.Object obj0 = field0.GetValue(null);
+
+    Type type0 = obj0.GetType();
+    PropertyInfo propertyInfo0 = type0.GetProperty("value", BindingFlags.Instance | BindingFlags.Public);
+    Color color = (Color)propertyInfo0.GetValue(obj0);
+
+    FieldInfo field1 = type.GetField("lineSeparatorOffset", BindingFlags.Static | BindingFlags.Public);
+    System.Object obj1 = field1.GetValue(null);
+
+    Type type1 = obj1.GetType();
+    PropertyInfo propertyInfo1 = type1.GetProperty("value", BindingFlags.Instance | BindingFlags.Public);
+    float offset = (float)propertyInfo1.GetValue(obj1);
+
+    Type type2 = typeof(EditorWindow);
+    FieldInfo field2 = type2.GetField("m_Pos", BindingFlags.Instance | BindingFlags.NonPublic);
+    Rect mPos = (Rect)field2.GetValue(this);
+
+    float y = EditorGUILayout.GetControlRect(false, 0f).y;
+    Rect position = new Rect(0f, y - offset, mPos.width + 1f, 1f);
+
+    Color preColor = GUI.color;
+    GUI.color = color * GUI.color;
+    GUI.DrawTexture(position, EditorGUIUtility.whiteTexture);
+    GUI.color = preColor;
+}
+
+private void DrawSplitLine(float thickness = 1f)
+{
+    Assembly assembly = typeof(EditorWindow).Assembly;
+
+    object obj0 = assembly
+        .GetType("UnityEditor.InspectorWindow+Styles")
+        .GetField("lineSeparatorColor", BindingFlags.Static | BindingFlags.Public)
+        .GetValue(null);
+
+    object obj1 = obj0
+        .GetType()
+        .GetProperty("value", BindingFlags.Instance | BindingFlags.Public)
+        .GetValue(obj0);
+
+    Rect pos = EditorGUILayout.GetControlRect(false, thickness);
+    pos.x = 0f;
+    pos.width += 20f;
+
+    Color guiColor = GUI.color;
+    GUI.color = (Color)obj1 * guiColor;
+    GUI.DrawTexture(pos, EditorGUIUtility.whiteTexture);
+    GUI.color = guiColor;
+}
+
+private void Line()
+{
+    EditorGUILayout.Space(10);
+    Rect pos = EditorGUILayout.GetControlRect(false, 1f);
+    EditorGUI.DrawRect(pos, GUI.skin.label.normal.textColor);
+    EditorGUILayout.Space(10);
 }

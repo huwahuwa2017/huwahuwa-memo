@@ -582,27 +582,6 @@ float4 SVPosToCPos(float4 svPos)
     
     svPos.y *= _ProjectionParams.x;
     
-    return svPos;
-}
-
-float4 SVPosToCPos(float4 svPos)
-{
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    svPos.x -= unity_StereoEyeIndex ? _ScreenParams.x : 0.0;
-#endif
-    
-    svPos.xy /= _ScreenParams.xy;
-
-#if defined(UNITY_REVERSED_Z)
-    svPos.xy = svPos.xy * 2.0 - 1.0;
-#else
-    svPos.xyz = svPos.xyz * 2.0 - 1.0;
-#endif
-
-    svPos.xyz *= svPos.w;
-    
-    svPos.y *= _ProjectionParams.x;
-    
 //#if UNITY_UV_STARTS_AT_TOP
 //    svPos.y = -svPos.y;
 //#endif
