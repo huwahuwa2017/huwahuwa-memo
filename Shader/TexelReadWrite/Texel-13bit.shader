@@ -1,4 +1,4 @@
-﻿Shader "TexelReadWrite/GrabPassReadWrite13bit"
+﻿Shader "TexelReadWrite/Texel-13bit"
 {
 	SubShader
 	{

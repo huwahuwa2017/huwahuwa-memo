@@ -1,4 +1,4 @@
-﻿Shader "TexelReadWrite/GrabPassReadWrite15bit"
+﻿Shader "TexelReadWrite/Point-15bit"
 {
 	SubShader
 	{
@@ -57,7 +57,7 @@
 			}
 
 			[maxvertexcount(24)]
-			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream)
+			void GeometryShaderStage(triangle V2G input[3], inout PointStream<G2F> stream)
 			{
 				UNITY_SETUP_INSTANCE_ID(input[0]);
 
@@ -86,9 +86,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HTRW_TEXEL_WRITE(input[0].vertexID * 2, output.cPos, stream);
+				HTRW_POINT_WRITE(input[0].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HTRW_TEXEL_WRITE(input[0].vertexID * 2 + 1, output.cPos, stream);
+				HTRW_POINT_WRITE(input[0].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[1].data.xyz);
 				
@@ -99,9 +99,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HTRW_TEXEL_WRITE(input[1].vertexID * 2, output.cPos, stream);
+				HTRW_POINT_WRITE(input[1].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HTRW_TEXEL_WRITE(input[1].vertexID * 2 + 1, output.cPos, stream);
+				HTRW_POINT_WRITE(input[1].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[2].data.xyz);
 				
@@ -112,9 +112,9 @@
 				data1.w = 0.0;
 
 				output.data = data0;
-				HTRW_TEXEL_WRITE(input[2].vertexID * 2, output.cPos, stream);
+				HTRW_POINT_WRITE(input[2].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HTRW_TEXEL_WRITE(input[2].vertexID * 2 + 1, output.cPos, stream);
+				HTRW_POINT_WRITE(input[2].vertexID * 2 + 1, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target
