@@ -1,6 +1,4 @@
-// v5 2025-09-04 16:54
-
-// https://huwahuwa2017.hatenablog.com/entry/2024/06/02/015207
+// v4 2025-08-29 14:11
 
 #if UNITY_EDITOR
 
