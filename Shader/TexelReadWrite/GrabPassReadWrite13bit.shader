@@ -1,4 +1,4 @@
-﻿Shader "TexelReadWrite/GrabPassReadWrite10bit"
+﻿Shader "TexelReadWrite/GrabPassReadWrite13bit"
 {
 	SubShader
 	{
@@ -56,7 +56,7 @@
 				return output;
 			}
 
-			[maxvertexcount(36)]
+			[maxvertexcount(24)]
 			void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream)
 			{
 				UNITY_SETUP_INSTANCE_ID(input[0]);
@@ -75,51 +75,46 @@
 
 				float4 data0;
 				float4 data1;
-				float4 data2;
 				uint3 temp0;
-				uint vid;
 
 				temp0 = asuint(input[0].data.xyz);
-				vid = input[0].vertexID * 3;
 
-				data0 = R10bitToFP16(uint4(temp0.x, temp0.x >> 10, temp0.x >> 20, temp0.x >> 30));
-				data1 = R10bitToFP16(uint4(temp0.y, temp0.y >> 10, temp0.y >> 20, temp0.y >> 30));
-				data2 = R10bitToFP16(uint4(temp0.z, temp0.z >> 10, temp0.z >> 20, temp0.z >> 30));
+				data0.xyz = HTRW_R13BIT_TO_FP16(temp0);
+				data1.xyz = HTRW_R13BIT_TO_FP16(temp0 >> 13);
+				temp0 &= 0xFC000000;
+				data0.w = HTRW_R13BIT_TO_FP16((temp0.x >> 26) | (temp0.y >> 20));
+				data1.w = HTRW_R13BIT_TO_FP16((temp0.z >> 26));
 
 				output.data = data0;
-				HTRW_TEXEL_WRITE(vid, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[0].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HTRW_TEXEL_WRITE(vid + 1, output.cPos, stream);
-				output.data = data2;
-				HTRW_TEXEL_WRITE(vid + 2, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[0].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[1].data.xyz);
-				vid = input[1].vertexID * 3;
 				
-				data0 = R10bitToFP16(uint4(temp0.x, temp0.x >> 10, temp0.x >> 20, temp0.x >> 30));
-				data1 = R10bitToFP16(uint4(temp0.y, temp0.y >> 10, temp0.y >> 20, temp0.y >> 30));
-				data2 = R10bitToFP16(uint4(temp0.z, temp0.z >> 10, temp0.z >> 20, temp0.z >> 30));
+				data0.xyz = HTRW_R13BIT_TO_FP16(temp0);
+				data1.xyz = HTRW_R13BIT_TO_FP16(temp0 >> 13);
+				temp0 &= 0xFC000000;
+				data0.w = HTRW_R13BIT_TO_FP16((temp0.x >> 26) | (temp0.y >> 20));
+				data1.w = HTRW_R13BIT_TO_FP16((temp0.z >> 26));
 
 				output.data = data0;
-				HTRW_TEXEL_WRITE(vid, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[1].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HTRW_TEXEL_WRITE(vid + 1, output.cPos, stream);
-				output.data = data2;
-				HTRW_TEXEL_WRITE(vid + 2, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[1].vertexID * 2 + 1, output.cPos, stream);
 
 				temp0 = asuint(input[2].data.xyz);
-				vid = input[2].vertexID * 3;
 				
-				data0 = R10bitToFP16(uint4(temp0.x, temp0.x >> 10, temp0.x >> 20, temp0.x >> 30));
-				data1 = R10bitToFP16(uint4(temp0.y, temp0.y >> 10, temp0.y >> 20, temp0.y >> 30));
-				data2 = R10bitToFP16(uint4(temp0.z, temp0.z >> 10, temp0.z >> 20, temp0.z >> 30));
+				data0.xyz = HTRW_R13BIT_TO_FP16(temp0);
+				data1.xyz = HTRW_R13BIT_TO_FP16(temp0 >> 13);
+				temp0 &= 0xFC000000;
+				data0.w = HTRW_R13BIT_TO_FP16((temp0.x >> 26) | (temp0.y >> 20));
+				data1.w = HTRW_R13BIT_TO_FP16((temp0.z >> 26));
 
 				output.data = data0;
-				HTRW_TEXEL_WRITE(vid, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[2].vertexID * 2, output.cPos, stream);
 				output.data = data1;
-				HTRW_TEXEL_WRITE(vid + 1, output.cPos, stream);
-				output.data = data2;
-				HTRW_TEXEL_WRITE(vid + 2, output.cPos, stream);
+				HTRW_TEXEL_WRITE(input[2].vertexID * 2 + 1, output.cPos, stream);
 			}
 
 			float4 FragmentShaderStage(G2F input) : SV_Target
@@ -171,23 +166,21 @@
 
 				// _HuwaGrabPass_27349865 の情報を読み取り、頂点のワールド座標を取得
 
-				uint vid = input.vertexID * 3;
+				uint vid = input.vertexID * 2;
 
-				float4 data0, data1, data2;
+				float4 data0, data1;
 				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
 				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
-				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid + 2, data2);
 
-				uint4 data3 = FP16ToR10bit(data0);
-				uint4 data4 = FP16ToR10bit(data1);
-				uint4 data5 = FP16ToR10bit(data2);
+				uint4 data2 = HTRW_FP16_TO_R13BIT(data0);
+				uint4 data3 = HTRW_FP16_TO_R13BIT(data1);
 
-				uint3 data6 = 0;
-				data6.x = data3.x | (data3.y << 10) | (data3.z << 20) | (data3.w << 30);
-				data6.y = data4.x | (data4.y << 10) | (data4.z << 20) | (data4.w << 30);
-				data6.z = data5.x | (data5.y << 10) | (data5.z << 20) | (data5.w << 30);
+				uint3 data4 = (data2.xyz | (data3.xyz << 13));
+				data4.x |= (data2.w & 0x0000003F) << 26;
+				data4.y |= (data2.w & 0x00000FC0) << 20;
+				data4.z |= (data3.w & 0x0000003F) << 26;
 
-				float3 wPos = asfloat(data6);
+				float3 wPos = asfloat(data4);
 
 				V2F output = (V2F)0;
 				UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);

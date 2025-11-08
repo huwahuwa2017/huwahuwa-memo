@@ -79,10 +79,10 @@
 
 				temp0 = asuint(input[0].data.xyz);
 
-				data0.xyz = R14bitToFP16(temp0);
-				data1.xyz = R14bitToFP16(temp0 >> 14);
+				data0.xyz = HTRW_R14BIT_TO_FP16(temp0);
+				data1.xyz = HTRW_R14BIT_TO_FP16(temp0 >> 14);
 				temp0 &= 0xF0000000;
-				data0.w = R14bitToFP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
+				data0.w = HTRW_R14BIT_TO_FP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
 				data1.w = 0.0;
 
 				output.data = data0;
@@ -92,10 +92,10 @@
 
 				temp0 = asuint(input[1].data.xyz);
 				
-				data0.xyz = R14bitToFP16(temp0);
-				data1.xyz = R14bitToFP16(temp0 >> 14);
+				data0.xyz = HTRW_R14BIT_TO_FP16(temp0);
+				data1.xyz = HTRW_R14BIT_TO_FP16(temp0 >> 14);
 				temp0 &= 0xF0000000;
-				data0.w = R14bitToFP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
+				data0.w = HTRW_R14BIT_TO_FP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
 				data1.w = 0.0;
 
 				output.data = data0;
@@ -105,10 +105,10 @@
 
 				temp0 = asuint(input[2].data.xyz);
 				
-				data0.xyz = R14bitToFP16(temp0);
-				data1.xyz = R14bitToFP16(temp0 >> 14);
+				data0.xyz = HTRW_R14BIT_TO_FP16(temp0);
+				data1.xyz = HTRW_R14BIT_TO_FP16(temp0 >> 14);
 				temp0 &= 0xF0000000;
-				data0.w = R14bitToFP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
+				data0.w = HTRW_R14BIT_TO_FP16((temp0.x >> 28) | (temp0.y >> 24) | (temp0.z >> 20));
 				data1.w = 0.0;
 
 				output.data = data0;
@@ -172,8 +172,8 @@
 				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid, data0);
 				HTRW_GRAB_PASS_TEXEL_READ(_HuwaGrabPass_27349865, vid + 1, data1);
 
-				uint4 data2 = FP16ToR14bit(data0);
-				uint4 data3 = FP16ToR14bit(data1);
+				uint4 data2 = HTRW_FP16_TO_R14BIT(data0);
+				uint4 data3 = HTRW_FP16_TO_R14BIT(data1);
 
 				uint3 data4 = (data2.xyz | (data3.xyz << 14));
 				data4.x |= (data2.w & 0x0000000F) << 28;

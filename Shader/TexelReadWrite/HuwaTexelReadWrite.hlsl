@@ -1,4 +1,4 @@
-// Ver19 2024-06-18 18:36
+// v22 2024-11-29 16:33
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
@@ -48,187 +48,26 @@ result = tex[uint2((id) % _HTRW_ReadTextureSize.x, ((id) / _HTRW_ReadTextureSize
 
 
 
-#define HTRW_R15BIT_TO_FP16 \
-temp0 = (input & 0x000003FF) << 13;\
-temp1 = (input & 0x00003C00) >> 10;\
-temp1 = (113 + temp1) << 23;\
-temp2 = (input & 0x00004000) << 17;\
-return asfloat(temp0 | temp1 | temp2);
+// Convert right side 15bit to FP16
+#define HTRW_R15BIT_TO_FP16(input) asfloat(((((input) & 0x00003FFF) << 13) + 0x38800000) | (((input) & 0x00004000) << 17))
 
-float R15bitToFP16(uint input)
-{
-    uint temp0, temp1, temp2;
-    HTRW_R15BIT_TO_FP16
-}
+// Convert right side 14bit to FP16
+#define HTRW_R14BIT_TO_FP16(input) asfloat((((input) & 0x00003FFF) << 13) + 0x38800000)
 
-float2 R15bitToFP16(uint2 input)
-{
-    uint2 temp0, temp1, temp2;
-    HTRW_R15BIT_TO_FP16
-}
-
-float3 R15bitToFP16(uint3 input)
-{
-    uint3 temp0, temp1, temp2;
-    HTRW_R15BIT_TO_FP16
-}
-
-float4 R15bitToFP16(uint4 input)
-{
-    uint4 temp0, temp1, temp2;
-    HTRW_R15BIT_TO_FP16
-}
-
-#define HTRW_R14BIT_TO_FP16 \
-temp0 = (input & 0x000003FF) << 13;\
-temp1 = (input & 0x00003C00) >> 10;\
-temp1 = (113 + temp1) << 23;\
-return asfloat(temp0 | temp1);
-
-float R14bitToFP16(uint input)
-{
-    uint temp0, temp1;
-    HTRW_R14BIT_TO_FP16
-}
-
-float2 R14bitToFP16(uint2 input)
-{
-    uint2 temp0, temp1;
-    HTRW_R14BIT_TO_FP16
-}
-
-float3 R14bitToFP16(uint3 input)
-{
-    uint3 temp0, temp1;
-    HTRW_R14BIT_TO_FP16
-}
-
-float4 R14bitToFP16(uint4 input)
-{
-    uint4 temp0, temp1;
-    HTRW_R14BIT_TO_FP16
-}
-
-#define HTRW_R10BIT_TO_FP16 \
-temp0 = (input & 0x000003FF) << 13;\
-return asfloat(temp0 | 0x38800000);
-
-float R10bitToFP16(uint input)
-{
-    uint temp0;
-    HTRW_R10BIT_TO_FP16
-}
-
-float2 R10bitToFP16(uint2 input)
-{
-    uint2 temp0;
-    HTRW_R10BIT_TO_FP16
-}
-
-float3 R10bitToFP16(uint3 input)
-{
-    uint3 temp0;
-    HTRW_R10BIT_TO_FP16
-}
-
-float4 R10bitToFP16(uint4 input)
-{
-    uint4 temp0;
-    HTRW_R10BIT_TO_FP16
-}
+// Convert right side 13bit to FP16
+#define HTRW_R13BIT_TO_FP16(input) asfloat((((input) & 0x00003FFF) << 13) | 0x3C000000)
 
 
 
-#define HTRW_FP16_TO_R15BIT \
-data = asuint(input);\
-temp0 = (data & 0x007FE000) >> 13;\
-temp1 = (data & 0x7F800000) >> 23;\
-temp1 = (temp1 - 113) << 10;\
-temp2 = (data & 0x80000000) >> 17;\
-return temp0 | temp1 | temp2;
+// Convert FP16 to right side 15bit
+#define HTRW_FP16_TO_R15BIT(input) ((((asuint(input) & 0x7FFFE000) - 0x38800000) >> 13) | ((asuint(input) & 0x80000000) >> 17))
 
-uint FP16ToR15bit(float input)
-{
-    uint data, temp0, temp1, temp2;
-    HTRW_FP16_TO_R15BIT
-}
+// Convert FP16 to right side 14bit
+#define HTRW_FP16_TO_R14BIT(input) (((asuint(input) & 0x7FFFE000) - 0x38800000) >> 13)
 
-uint2 FP16ToR15bit(float2 input)
-{
-    uint2 data, temp0, temp1, temp2;
-    HTRW_FP16_TO_R15BIT
-}
+// Convert FP16 to right side 13bit
+#define HTRW_FP16_TO_R13BIT(input) ((asuint(input) & 0x03FFE000) >> 13)
 
-uint3 FP16ToR15bit(float3 input)
-{
-    uint3 data, temp0, temp1, temp2;
-    HTRW_FP16_TO_R15BIT
-}
 
-uint4 FP16ToR15bit(float4 input)
-{
-    uint4 data, temp0, temp1, temp2;
-    HTRW_FP16_TO_R15BIT
-}
-
-#define HTRW_FP16_TO_R14BIT \
-data = asuint(input);\
-temp0 = (data & 0x007FE000) >> 13;\
-temp1 = (data & 0x7F800000) >> 23;\
-temp1 = (temp1 - 113) << 10;\
-return temp0 | temp1;
-
-uint FP16ToR14bit(float input)
-{
-    uint data, temp0, temp1;
-    HTRW_FP16_TO_R14BIT
-}
-
-uint2 FP16ToR14bit(float2 input)
-{
-    uint2 data, temp0, temp1;
-    HTRW_FP16_TO_R14BIT
-}
-
-uint3 FP16ToR14bit(float3 input)
-{
-    uint3 data, temp0, temp1;
-    HTRW_FP16_TO_R14BIT
-}
-
-uint4 FP16ToR14bit(float4 input)
-{
-    uint4 data, temp0, temp1;
-    HTRW_FP16_TO_R14BIT
-}
-
-#define HTRW_FP16_TO_R10BIT \
-data = asuint(input);\
-temp0 = (data & 0x007FE000) >> 13;\
-return temp0;
-
-uint FP16ToR10bit(float input)
-{
-    uint data, temp0;
-    HTRW_FP16_TO_R10BIT
-}
-
-uint2 FP16ToR10bit(float2 input)
-{
-    uint2 data, temp0;
-    HTRW_FP16_TO_R10BIT
-}
-
-uint3 FP16ToR10bit(float3 input)
-{
-    uint3 data, temp0;
-    HTRW_FP16_TO_R10BIT
-}
-
-uint4 FP16ToR10bit(float4 input)
-{
-    uint4 data, temp0;
-    HTRW_FP16_TO_R10BIT
-}
 
 #endif // !defined(HUWA_TEXEL_READ_WRITE)
