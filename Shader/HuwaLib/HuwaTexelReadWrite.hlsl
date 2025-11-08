@@ -1,4 +1,4 @@
-// v22 2024-11-29 16:33
+// v23 2025-11-08 17:36
 
 #if !defined(HUWA_TEXEL_READ_WRITE)
 #define HUWA_TEXEL_READ_WRITE
@@ -28,6 +28,13 @@ stream.Append(output);\
 clipPosition.xy = _HTRW_TexelPosition + _HTRW_TexelSize.xy;\
 stream.Append(output);\
 stream.RestartStrip();
+
+#define HTRW_POINT_WRITE(id, clipPosition, stream)\
+_HTRW_TexelPosition = float2((id) % _HTRW_WriteTextureSize.x, (id) / _HTRW_WriteTextureSize.x) * _HTRW_TexelSize.xy - float2(1.0, _ProjectionParams.x);\
+clipPosition.z = 0.5;\
+clipPosition.w = 1.0;\
+clipPosition.xy = _HTRW_TexelPosition + _HTRW_TexelSize.xy * 0.5;\
+stream.Append(output);
 
 static uint2 _HTRW_ReadTextureSize = 0;
 
