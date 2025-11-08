@@ -1,4 +1,4 @@
-﻿Shader "Custom/FullScreen_(Geometry)"
+﻿Shader "HuwaExample/FullScreen_(Geometry)"
 {
 	SubShader
 	{

@@ -1,4 +1,4 @@
-﻿Shader "Custom/LineStream"
+﻿Shader "HuwaExample/LineStream"
 {
 	SubShader
 	{

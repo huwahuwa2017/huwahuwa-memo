@@ -1,4 +1,4 @@
-﻿Shader "Custom/FullScreen_(QuadMesh)"
+﻿Shader "HuwaExample/FullScreen_(QuadMesh)"
 {
 	SubShader
 	{

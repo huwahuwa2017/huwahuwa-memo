@@ -1,4 +1,4 @@
-﻿Shader "Custom/PointStream"
+﻿Shader "HuwaExample/PointStream"
 {
 	Properties
     {

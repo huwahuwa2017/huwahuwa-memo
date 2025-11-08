@@ -1,4 +1,4 @@
-﻿Shader "Custom/TriangleStream"
+﻿Shader "HuwaExample/TriangleStream"
 {
 	SubShader
 	{

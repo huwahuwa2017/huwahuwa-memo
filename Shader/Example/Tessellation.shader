@@ -1,4 +1,4 @@
-﻿Shader "Custom/Tessellation"
+﻿Shader "HuwaExample/Tessellation"
 {
     Properties
     {
