@@ -13,7 +13,7 @@ struct V2F
 {
     float4 cPos : SV_POSITION;
     float3 lRay : TEXCOORD0;
-    float3 lCameraPos : TEXCOORD1;
+    float3 lStartPos : TEXCOORD1;
 };
 
 struct F2O
@@ -39,12 +39,12 @@ V2F VertexShaderStage(I2V input)
     float4 wPos = mul(UNITY_MATRIX_I_V, vPos);
     float4 lPos = mul(UNITY_MATRIX_I_M, wPos);
     
-    float3 lCameraPos = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
-    float3 lRay = lPos.xyz - lCameraPos;
+    float3 lStartPos = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
+    float3 lRay = lPos.xyz - lStartPos;
     
     V2F output = (V2F) 0;
     output.cPos = cPos;
-    output.lCameraPos = lCameraPos;
+    output.lStartPos = lStartPos;
     output.lRay = lRay;
     return output;
 }
@@ -57,13 +57,13 @@ F2O FragmentShaderStage(V2F input)
     // 半径
     float r = 0.4;
     
-    float3 cp = input.lCameraPos;
+    float3 sp = input.lStartPos;
     float3 ray = input.lRay;
     
     // 2次方程式の解の公式のa,b,cを用意
     float a = dot(ray, ray);
-    float b = dot(ray, cp) * 2.0;
-    float c = dot(cp, cp) - r * r;
+    float b = dot(ray, sp) * 2.0;
+    float c = dot(sp, sp) - r * r;
     
     // 2次方程式の解の公式の平方根の中
     float d = b * b - 4.0 * a * c;
@@ -79,7 +79,7 @@ F2O FragmentShaderStage(V2F input)
     clip(d);
     
     // Rayと球体が衝突する座標(ローカル座標系)
-    float3 lPos = cp + ray * (d / (a + a));
+    float3 lPos = sp + ray * (d / (a + a));
     
     
     
