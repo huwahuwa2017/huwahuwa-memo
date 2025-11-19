@@ -70,18 +70,26 @@ F2O FragmentShaderStage(V2F input)
     
     // Rayと球体が衝突する座標(ローカル座標系)
     float3 lPos = cp + ray * (d / (a + a));
-    // 法線(ワールド座標系)
-    float3 wNormal = UnityObjectToWorldNormal(lPos);
-    // lPosをワールド座標系に変換
-    float3 wPos = mul(UNITY_MATRIX_M, float4(lPos, 1.0)).xyz;
     
-    // 単純なライティングの計算
-    half3 ambient = ShadeSH9(half4(wNormal, 1.0));
-    half diffuse = max(0.0, dot(wNormal, _WorldSpaceLightPos0.xyz));
-    float3 color = _LightColor0.rgb * diffuse + ambient;
     
-    // Z深度の計算
-    float depth = LinearEyeDepth(dot(wPos - _WorldSpaceCameraPos, -UNITY_MATRIX_I_V._m02_m12_m22));
+    
+    float depth;
+    {
+        float4 wPos = mul(UNITY_MATRIX_M, float4(lPos, 1.0));
+        depth = dot(UNITY_MATRIX_VP._m20_m21_m22_m23, wPos) / dot(UNITY_MATRIX_VP._m30_m31_m32_m33, wPos);
+    
+#if !defined(UNITY_REVERSED_Z) // OpenGL
+        depth = depth * 0.5 + 0.5;
+#endif
+    }
+    
+    float3 color;
+    {
+        float3 wNormal = UnityObjectToWorldNormal(lPos);
+        half3 ambient = ShadeSH9(half4(wNormal, 1.0));
+        half diffuse = max(0.0, dot(wNormal, _WorldSpaceLightPos0.xyz));
+        color = _LightColor0.rgb * diffuse + ambient;
+    }
     
     F2O output = (F2O) 0;
     output.color = color;
