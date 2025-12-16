@@ -1,6 +1,16 @@
 ﻿
 
 
+
+均一なスケーリング
+uniform scaling
+
+
+
+小さい (2x2?) Cube Render Texture で Auto generate mipmap を オンにして VRChat にアップロードして読み込むとクラッシュすることがある
+
+
+
 Assets/WebGLTemplates/{任意の名前}/index.html  内に、
 <script src="Test.js"></script>
 や

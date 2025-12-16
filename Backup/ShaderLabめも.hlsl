@@ -9,6 +9,8 @@ Shader"Custom/Example"
         [NoScaleOffset]
         _MainTex("Skin Color Texture", 2D) = "white" {}
         
+        _ExampleName ("Cubemap", Cube) = "" {}
+
         _Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
         
         [HDR]
@@ -126,6 +128,20 @@ Shader"Custom/Example"
 
 
 
+// UnityShaderVariables.cginc
+#define UNITY_MATRIX_P glstate_matrix_projection
+#define UNITY_MATRIX_V unity_MatrixV
+#define UNITY_MATRIX_I_V unity_MatrixInvV
+#define UNITY_MATRIX_VP unity_MatrixVP
+#define UNITY_MATRIX_M unity_ObjectToWorld
+
+#define UNITY_MATRIX_MVP    unity_MatrixMVP
+#define UNITY_MATRIX_MV     unity_MatrixMV
+#define UNITY_MATRIX_T_MV   unity_MatrixTMV
+#define UNITY_MATRIX_IT_MV  unity_MatrixITMV
+
+
+
 #if !defined(UNITY_MATRIX_I_M)
 #define UNITY_MATRIX_I_M unity_WorldToObject
 #endif
@@ -172,6 +188,14 @@ struct TessellationFactor
 
 
 
+// ShadowCaster では使えない
+float4x4 unity_CameraProjection;
+float4x4 unity_CameraInvProjection;
+float4x4 unity_WorldToCamera;
+float4x4 unity_CameraToWorld;
+
+
+
 // https://docs.unity3d.com/ja/2022.3/Manual/SL-SamplerStates.html
 SamplerState _InlineSampler_Linear_Repeat;
 SamplerState _InlineSampler_Point_Clamp;
@@ -187,7 +211,7 @@ float4 _MainTex_TexelSize;
 
 // ミラー
 static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
-↓
+
 float _VRChatMirrorMode;
 static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
@@ -204,11 +228,14 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
-UNITY_SINGLE_PASS_STEREO
+#if defined(UNITY_SINGLE_PASS_STEREO)
+#endif
 
-UNITY_STEREO_INSTANCING_ENABLED
+#if defined(UNITY_STEREO_INSTANCING_ENABLED)
+#endif
 
-UNITY_STEREO_MULTIVIEW_ENABLED
+#if defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#endif
 
 
 
@@ -241,11 +268,19 @@ UNITY_STEREO_MULTIVIEW_ENABLED
 
 
 // nan
-asfloat(0xFFFFFFFF)
+float nan = asfloat(0xFFFFFFFF);
+
+// infinity
+float infinity = asfloat(0x7F800000);
 
 
 
-tex2D(_MainTex, TRANSFORM_TEX(uv, _MainTex));
+float4 colorA = tex2D(_MainTex, TRANSFORM_TEX(uv, _MainTex));
+float4 colorB = _MainTex.Sample(sampler_MainTex, input.uv);
+
+
+
+float3 wPos = mul(UNITY_MATRIX_M, input.lPos).xyz;
 
 
 
@@ -261,20 +296,33 @@ float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
 
 
 
-// ポイントライトの光の減衰
-// UnityのShade4PointLights
-pointLightAtten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
+void PointLight()
+{
+    float4 atten = 0.0;
+    
+    // ポイントライトの光の減衰
+    
+    // UnityのShade4PointLights
+    atten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
 
-// huwahuwa製
-pointLightAtten = (1.0 - lengthSq * unity_4LightAtten0 * 0.04) / (1.0 + lengthSq * unity_4LightAtten0);
-pointLightAtten = max(0.0, pointLightAtten);
+    // huwahuwa製
+    atten = (1.0 - lengthSq * unity_4LightAtten0 * 0.04) / (1.0 + lengthSq * unity_4LightAtten0);
+    atten = max(0.0, atten);
+    
+    // lilToon製
+    //https://github.com/lilxyzw/OpenLit/blob/main/Assets/OpenLit/core.hlsl
+    atten = saturate(saturate((25.0 - lengthSq * unity_4LightAtten0) * 0.111375) / (0.987725 + lengthSq * unity_4LightAtten0));
 
-//https://github.com/lilxyzw/OpenLit/blob/main/Assets/OpenLit/core.hlsl
-float4 atten = saturate(saturate((25.0 - lengthSq * unity_4LightAtten0) * 0.111375) / (0.987725 + lengthSq * unity_4LightAtten0));
+    
+    
+    // unity_4LightAtten0 から PointLight の範囲を計算する式
+    
+    // unity_4LightAtten0 = 25.0 / (range * range)
+    // unity_4LightAtten0 * (range * range) = 25.0
+    // (range * range) = 25.0 / unity_4LightAtten0
 
-
-
-float3 wPos = mul(UNITY_MATRIX_M, input.lPos).xyz;
+    float range = sqrt(25.0 / unity_4LightAtten0);
+}
 
 
 
@@ -327,7 +375,6 @@ uint TriangleCount2TessFactor(float count)
 
 
 // 1メートルあたりのピクセル数
-
 // cPos_W = UnityWorldToClipPos(wPos).w
 // cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPos, 1.0))
 float PixelPerMeter(float cPos_W)
@@ -564,6 +611,7 @@ float3x3 LookRotation(float3 fv, float3 uv)
 
 
 
+// Rasterrizer Stage などで変化する SV_POSITION を元に戻す式
 float4 SVPosToCPos(float4 svPos)
 {
     svPos.xy /= _ScreenParams.xy;
@@ -593,13 +641,13 @@ float4 SVPosToCPos(float4 svPos)
 
 
 
-// Rayの開始位置をWorld座標系で返す
+// near clip面を考慮したRayの開始位置をWorld座標系で返す
 // 特殊な投影行列では使えないことがある
 float3 WorldRayStartPos(float4 cPos)
 {
     float4x4 mp = UNITY_MATRIX_P;
     
-    // 平行投影か判定
+    // 平行投影ではないときに発動
     // unity_OrthoParams.wはShadowCasterでは使えないので不採用
     if (any(mp[3] != float4(0.0, 0.0, 0.0, 1.0)))
     {
@@ -615,6 +663,40 @@ float3 WorldRayStartPos(float4 cPos)
     float3 temp0 = mul(Inverse((float3x3) mp), cPos.xyz - mp._m03_m13_m23);
     return mul(UNITY_MATRIX_I_V, float4(temp0, 1.0));
 }
+
+// 頂点シェーダーで実行したい場合は、すべての頂点シェーダーで cPos.w の値を同じにする必要がある
+float3 WorldRayStartPos(float4 cPos)
+{
+    cPos.xy /= cPos.w;
+    cPos.w = 1.0;
+    
+#if defined(UNITY_REVERSED_Z)
+    cPos.z = 1.0;
+#else
+    cPos.z = -1.0;
+#endif
+    
+    float4 temp = mul(Inverse(UNITY_MATRIX_P), cPos);
+    return mul(UNITY_MATRIX_I_V, temp / temp.w);
+}
+
+// 頂点シェーダーで実行したい場合は、すべての頂点シェーダーで cPos.w の値を同じにする必要がある
+float3 WorldRayEndPos(float4 cPos)
+{
+    cPos.xy /= cPos.w;
+    cPos.w = 1.0;
+    
+#if defined(UNITY_REVERSED_Z)
+    cPos.z = 0.0;
+#else
+    cPos.z = 1.0;
+#endif
+    
+    float4 temp = mul(Inverse(UNITY_MATRIX_P), cPos);
+    return mul(UNITY_MATRIX_I_V, temp / temp.w);
+}
+
+
 
 // https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
 // near clip面を考慮したRayの開始位置をView座標系で返す

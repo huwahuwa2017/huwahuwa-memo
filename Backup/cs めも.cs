@@ -85,6 +85,21 @@ private static Quaternion LookRotation(Vector3 forward, Vector3 upwards)
 
 
 
+private void ViewAllPropertyName()
+{
+    int getPropertyCount = _shader.GetPropertyCount();
+
+    for (int index = 0; index < getPropertyCount; index++)
+    {
+        string name = _shader.GetPropertyName(index);
+        int id = _shader.GetPropertyNameId(index);
+
+        Debug.Log($"{name} : {id.ToString()}");
+    }
+}
+
+
+
 public void GeneratePointMesh(Mesh mesh)
 {
     Mesh newMesh = Instantiate(mesh);

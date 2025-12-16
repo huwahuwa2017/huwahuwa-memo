@@ -131,13 +131,6 @@ Don'tClear : 何も初期化せずにMeshを描画
 
 
 
-unity_4LightAtten0 = 25.0 / (Range * Range)
-unity_4LightAtten0 * (Range * Range) = 25.0
-(Range * Range) = 25.0 / unity_4LightAtten0
-Range = sqrt(25.0 / unity_4LightAtten0)
-
-
-
 destColor はすでに描画している色
  srcColor は生成した色
 
@@ -184,9 +177,10 @@ OpenGL 形式の射影行列を Material.SetMatrix でシェーダーに渡す�
 
 Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
 
+V行列はShaderAPIに関わらず同じ？（未検証）
+DirectX でも OpenGL でも m22 成分は -1
 
-
-V行列はShaderAPIに関わらず不変？（未検証）
+P行列の m11 成分の符号は DirectX では- OpenGL では+になる
 
 
 
@@ -227,13 +221,13 @@ Texture2D<float4> Tex0 : register(t0);
 sampler Tex0Sampler : register(s0);
 float4 color = Tex0.Sample(Tex0Sampler, xy)
 
-ShaderLabではDX11をDX9っぽく書けるようにするために色々な関数が追加されている
+ShaderLabではDX11をDX9っぽく書けるようにするために色々な関数やマクロが追加されている
 
 
 
 頂点シェーダーからフラグメントシェーダーに方向を表すベクトルを送る時、
 頂点シェーダー側で正規化してさらにフラグメントシェーダー側でも正規化していたのだが、
-頂点シェーダー側の正規化は基本的には必要ないかもしれない
+頂点シェーダー側の正規化は必要ないかもしれない
 それどころか条件によっては、頂点シェーダー側の正規化をしない方が精度が高まるかもしれない
 
 
@@ -251,12 +245,6 @@ Texture2D.mips[mipLevel][uint2(input.cPos.xy)];
 Texture2D.mips[0][uint2(input.cPos.xy)];
 ↓
 Texture2D[uint2(input.cPos.xy)];
-
-
-
-頂点シェーダーからフラグメントシェーダーに方向を表すベクトルを送る時、
-頂点シェーダー側で正規化してさらにフラグメントシェーダー側でも正規化していたのだが、
-頂点シェーダー側の正規化は基本的には必要ないかもしれない
 
 
 
@@ -288,11 +276,11 @@ RGBA形式で使える
 pixelあたりの情報量は8bit
 
 DTXnm
-ノーマルマップ用 DTX5と似ているらしい
+ノーマルマップ用 DTX5 と似ているらしい
 pixelあたりの情報量は8bit
 
 BC7
-RGB,RGBA形式で使える HighQualityCompressionで出現
+RGB,RGBA形式で使える High Quality Compression で出現
 pixelあたりの情報量は8bit
 
 
@@ -339,6 +327,8 @@ source → 逆ガンマ補正 → シェーダー →            → dest
 
 source の sRGB がオン   dest の sRGB がオン
 source → 逆ガンマ補正 → シェーダー → ガンマ補正 → dest
+
+
 
 
 
