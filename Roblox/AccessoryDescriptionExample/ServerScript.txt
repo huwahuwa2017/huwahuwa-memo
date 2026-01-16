@@ -1,0 +1,33 @@
+
+-- アクセサリーの情報
+local accessoryDescription = Instance.new("AccessoryDescription")
+accessoryDescription.AssetId = 4819740796
+accessoryDescription.AccessoryType = Enum.AccessoryType.Hat
+
+
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+ReplicatedStorage.TestEvent.OnServerEvent:Connect(function(player)
+	print("TestEvent OnServerEvent")
+	
+	local humanoid = player.Character:WaitForChild("Humanoid")
+	local humanoidDescription = humanoid:GetAppliedDescription()
+	
+	local searchAccessoryDescription = nil
+	
+	for _, child in ipairs(humanoidDescription:GetChildren()) do
+		if child:IsA("AccessoryDescription") and child.AssetId == accessoryDescription.AssetId then
+			searchAccessoryDescription = child
+			break
+		end
+	end
+	
+	if searchAccessoryDescription then
+		searchAccessoryDescription:Destroy() -- アクセサリーを削除
+	else
+		accessoryDescription.Parent = humanoidDescription  -- アクセサリーを追加
+	end
+	
+	humanoid:ApplyDescription(humanoidDescription) --変更を適用  サーバー側でしか実行できない
+end)
