@@ -3,7 +3,7 @@
 local accessoryDescription = Instance.new("AccessoryDescription")
 accessoryDescription.AssetId = 4819740796
 accessoryDescription.AccessoryType = Enum.AccessoryType.Hat
-
+accessoryDescription.Position = Vector3.new(0, 2.0, 0)
 
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
