@@ -4,8 +4,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local localPlayer = Players.LocalPlayer::Player
 
-local TestGui = localPlayer:WaitForChild("PlayerGui"):WaitForChild("TestGui")::ScreenGui
-local ButtonA:TextButton = TestGui:WaitForChild("ButtonA")
+local TestGui:ScreenGui = localPlayer:WaitForChild("PlayerGui"):WaitForChild("TestGui")::ScreenGui
+local ButtonA:TextButton = TestGui:WaitForChild("ButtonA")::TextButton
 
 
 
