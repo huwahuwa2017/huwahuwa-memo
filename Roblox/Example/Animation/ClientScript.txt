@@ -1,0 +1,38 @@
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local localPlayer = Players.LocalPlayer::Player
+
+local TestGui = localPlayer:WaitForChild("PlayerGui"):WaitForChild("TestGui")::ScreenGui
+local ButtonA:TextButton = TestGui:WaitForChild("ButtonA")
+
+
+
+local animationTrack
+
+-- プレイヤーのキャラクターがスポーン・リスポーンした時に実行
+local function onCharacterAdded(character: Model)
+	local humanoid = character:WaitForChild("Humanoid")::Humanoid
+	local animator = humanoid:WaitForChild("Animator")::Animator
+	local animation = ReplicatedStorage.Platformer.Animations.DoubleJump
+	animationTrack = animator:LoadAnimation(animation)
+end
+
+localPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+if localPlayer.Character then
+	onCharacterAdded(localPlayer.Character)
+end
+
+
+
+ButtonA.Activated:Connect(function()
+	print("ButtonA Start")
+
+	if animationTrack then
+		animationTrack:Play()
+	end
+
+	print("ButtonA End")
+end)
