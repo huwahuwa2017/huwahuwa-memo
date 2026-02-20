@@ -1,4 +1,4 @@
-﻿Shader "HuwaExample/Monochrome_Recommended"
+﻿Shader "HuwaExample/Monochrome_Beginner"
 {
     SubShader
     {
