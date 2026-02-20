@@ -6,6 +6,7 @@
         {
             "Queue" = "Overlay+1"
             "DisableBatching" = "True"
+            "IgnoreProjector" = "True"
         }
 
         GrabPass
@@ -15,8 +16,8 @@
 
         Pass
         {
-            ZWrite Off
             ZTest Always
+            ZWrite Off
 
             CGPROGRAM
 

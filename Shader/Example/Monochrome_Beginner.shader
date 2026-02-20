@@ -9,6 +9,9 @@
 
             // 動的バッチングを無効化
             "DisableBatching" = "True"
+
+            // プロジェクターの影響を無効化
+            "IgnoreProjector" = "True"
         }
 
         GrabPass
@@ -19,11 +22,11 @@
 
         Pass
         {
-            // Depthの書き込みをしないようにする
-            ZWrite Off
-
             // 別のオブジェクトの裏に隠れたとしても強制的に表示する
             ZTest Always
+
+            // Depthの書き込みをしないようにする
+            ZWrite Off
 
             CGPROGRAM
 
