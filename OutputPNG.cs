@@ -1,4 +1,4 @@
-// v3 2025-11-04 10:45
+// v4 2026-02-25 19:49
 
 #if UNITY_EDITOR
 
@@ -15,14 +15,17 @@ namespace HuwaOutputPNG
         [MenuItem("CONTEXT/Camera/Output png")]
         private static void Output(MenuCommand menuCommand)
         {
-            /*
-            string targetPath = EditorUtility.SaveFilePanel(string.Empty, "Assets", "texture", "png");
+            if (false)
+            {
+                string targetPath = EditorUtility.SaveFilePanel(string.Empty, "Assets", "texture", "png");
 
-            if (string.IsNullOrEmpty(targetPath))
+                if (string.IsNullOrEmpty(targetPath))
+                    return;
+
+                ScreenCapture.CaptureScreenshot(targetPath);
+
                 return;
-
-            ScreenCapture.CaptureScreenshot(targetPath);
-            */
+            }
 
             Camera camera = menuCommand.context as Camera;
             RenderTexture temp = camera.targetTexture;
