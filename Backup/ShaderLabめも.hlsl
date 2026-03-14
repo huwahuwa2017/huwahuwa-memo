@@ -408,37 +408,6 @@ float ApproximateGaussianFunction2(float input)
 
 
 
-// ìôçÇê¸
-half4 Contour(float2 uv)
-{
-    float sdf = SDF(uv);
-    float sdfX = SDF(float2(uv.x + _Epsilon, uv.y));
-    float sdfY = SDF(float2(uv.x, uv.y + _Epsilon));
-
-    float2 gradientVector = float2(sdfX - sdf, sdfY - sdf);
-    gradientVector = normalize(gradientVector);
-    float sdfXY = SDF(uv + gradientVector * _Epsilon);
-    float gradient = (sdfXY - sdf) / _Epsilon;
-    float result = abs(sdf / gradient);
-
-    return result;
-}
-
-half4 Contour(float2 uv)
-{
-    float sdf = SDF(uv);
-    float sdfX = SDF(float2(uv.x + _Epsilon, uv.y));
-    float sdfY = SDF(float2(uv.x, uv.y + _Epsilon));
-
-    float2 gradientVector = float2(sdfX - sdf, sdfY - sdf);
-    float gradient = length(gradientVector / _Epsilon);
-    float result = abs(sdf / gradient);
-
-    return result;
-}
-
-
-
 // ShadeSH9 ÇÃí≤ç∏
 void SH(float3 n)
 {
