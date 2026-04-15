@@ -17,13 +17,13 @@
             CGPROGRAM
 
             #pragma require tessellation
-			#pragma require geometry
-			
-			#pragma vertex VertexShaderStage
-			#pragma hull HullShaderStage
-			#pragma domain DomainShaderStage
-			#pragma geometry GeometryShaderStage
-			#pragma fragment FragmentShaderStage
+            #pragma require geometry
+            
+            #pragma vertex VertexShaderStage
+            #pragma hull HullShaderStage
+            #pragma domain DomainShaderStage
+            #pragma geometry GeometryShaderStage
+            #pragma fragment FragmentShaderStage
 
             #include "Tessellation.hlsl"
 

@@ -1,18 +1,18 @@
 ﻿Shader "HuwaExample/TriangleStream"
 {
-	SubShader
-	{
-		Pass
-		{
-			CGPROGRAM
+    SubShader
+    {
+        Pass
+        {
+            CGPROGRAM
 
-			#pragma vertex VertexShaderStage
-			#pragma geometry GeometryShaderStage
-			#pragma fragment FragmentShaderStage
+            #pragma vertex VertexShaderStage
+            #pragma geometry GeometryShaderStage
+            #pragma fragment FragmentShaderStage
 
-			#include "TriangleStream.hlsl"
+            #include "TriangleStream.hlsl"
 
-			ENDCG
-		}
-	}
+            ENDCG
+        }
+    }
 }

@@ -1,18 +1,18 @@
 ﻿Shader "HuwaExample/LineStream"
 {
-	SubShader
-	{
-		Pass
-		{
-			CGPROGRAM
+    SubShader
+    {
+        Pass
+        {
+            CGPROGRAM
 
-			#pragma vertex VertexShaderStage
-			#pragma geometry GeometryShaderStage
-			#pragma fragment FragmentShaderStage
+            #pragma vertex VertexShaderStage
+            #pragma geometry GeometryShaderStage
+            #pragma fragment FragmentShaderStage
 
-			#include "LineStream.hlsl"
+            #include "LineStream.hlsl"
 
-			ENDCG
-		}
-	}
+            ENDCG
+        }
+    }
 }

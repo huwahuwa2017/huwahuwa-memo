@@ -1,24 +1,24 @@
 ﻿Shader "HuwaExample/PointStream"
 {
-	Properties
+    Properties
     {
-		[IntRange]
+        [IntRange]
         _Subdivision("Subdivision", Range (0, 10)) = 6
     }
 
-	SubShader
-	{
-		Pass
-		{
-			CGPROGRAM
+    SubShader
+    {
+        Pass
+        {
+            CGPROGRAM
 
-			#pragma vertex VertexShaderStage
-			#pragma geometry GeometryShaderStage
-			#pragma fragment FragmentShaderStage
+            #pragma vertex VertexShaderStage
+            #pragma geometry GeometryShaderStage
+            #pragma fragment FragmentShaderStage
 
-			#include "PointStream.hlsl"
+            #include "PointStream.hlsl"
 
-			ENDCG
-		}
-	}
+            ENDCG
+        }
+    }
 }
