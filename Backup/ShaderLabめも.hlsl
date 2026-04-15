@@ -47,9 +47,11 @@ Shader"Custom/Example"
             // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderReplacement.html
             // Shaderを置き換えるときの判定に使う
             // DepthTextureMode.DepthNormals でも使うらしい
-            "RenderType" = "Opaque" "TransparentCutout" "Transparent"
+            // RenderType の違いで負荷が変わるという噂があるが未検証
+            // VRCのアバター用Shaderであれば設定しなくても良いと思う
+            "RenderType" = "Opaque" "Transparent" "TransparentCutout" "Background" "Overlay"
             
-            // VRChat専用
+            // VRChat用
             // https://creators.vrchat.com/avatars/shader-fallback-system/
             "VRCFallback" = "Hidden"
         }
@@ -80,7 +82,7 @@ Shader"Custom/Example"
             // https://docs.unity3d.com/ja/2022.3/Manual/shader-predefined-pass-tags-built-in.html
             Tags
             {
-                // LightMode に Unity が想定していない文字列を入れると、そのパスは実行されなくなる（要検証）
+                // LightMode に Unity が想定していない文字列を入れると、そのパスは実行されなくなる
                 // これを利用しているのが lilToon の "LightMode" = "Never"
                 "LightMode" = "Always" "ForwardBase" "ForwardAdd" "ShadowCaster"
             }
