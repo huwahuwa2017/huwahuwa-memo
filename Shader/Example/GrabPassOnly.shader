@@ -1,4 +1,4 @@
-Shader "Custom/GrabPassOnly"
+Shader "HuwaExample/GrabPassOnly"
 {
     SubShader
     {
