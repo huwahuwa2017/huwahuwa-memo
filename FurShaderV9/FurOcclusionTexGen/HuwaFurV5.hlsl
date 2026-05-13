@@ -17,7 +17,8 @@ struct V2F
     float3 wPos : TEXCOORD0;
     float3 wTangent : TEXCOORD1;
     float3 wBinormal : TEXCOORD2;
-    float2 uv : TEXCOORD3;
+    float3 wNormal : TEXCOORD3;
+    float2 uv : TEXCOORD4;
 };
 
 struct F2O
@@ -58,6 +59,7 @@ V2F VertexShaderStage_Skin(I2V input)
     output.wPos = wPos;
     output.wTangent = wTangent;
     output.wBinormal = wBinormal;
+    output.wNormal = wNormal;
     output.uv = input.uv;
     return output;
 }
@@ -67,33 +69,33 @@ F2O FragmentShaderStage_Skin(V2F input)
     float3 wPos = input.wPos;
     float3 wTangent = input.wTangent;
     float3 wBinormal = input.wBinormal;
+    float3 wNormal = input.wNormal;
     
     float3 furDir = UnpackNormal(tex2Dlod(_FurDirectionTex, float4(input.uv, 0.0, 0.0)));
     //furDir = normalize(wTangent * furDir.x + wBinormal * furDir.y);
     
     float d0;
     float d1;
-    float2 c;
-    float2 rp;
+    float3 c;
+    float3 rp;
     
-    float2 rayDir = -normalize(furDir.xy);
-    float2 rayPos = input.uv * _FurDensity;
+    //float3 rayDir = normalize(wTangent * furDir.x + wBinormal * furDir.y + wNormal * furDir.z);
+    float3 rayDir = normalize(wTangent * furDir.x + wBinormal * furDir.y);
+    float3 rayPos = wPos * _FurDensity;
     
     float rcpDiv = 1.0 / 64.0;
     
     float temp9 = 0.001 * _FurLength * _FurDensity;
-    float temp1 = 0.0;
+    float temp1 = 999.9;
     
-    for (float moving = 0.0; moving < 1.0; moving += rcpDiv)
+    for (float moving = -1.0; moving < 1.0; moving += rcpDiv)
     {
         CellularNoise(3, rayPos + rayDir * (moving * temp9), 0, d0, d1, c, rp);
-        
-        float val = saturate(1.0 - d0);
-        val = pow(val, _ColorPow);
-        val = val * sin(moving * UNITY_PI);
-        
-        temp1 = max(val, temp1);
+        temp1 = min(d0, temp1);
     }
+    
+    temp1 = saturate(1.0 - sqrt(temp1));
+    temp1 = pow(temp1, _ColorPow);
     
     F2O output = (F2O) 0;
     output.target0 = float4(temp1.xxx, 1.0);

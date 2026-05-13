@@ -18,7 +18,7 @@
 		[NoScaleOffset]
 		_FurOcclusionTex("Fur Occlusion Texture", 2D) = "black" {}
 		
-		[Space(24)]
+		[Space(48)]
 
 		[NoScaleOffset]
 		_FurColorTex("Fur Color Texture", 2D) = "white" {}
@@ -31,17 +31,17 @@
 		[NoScaleOffset]
 		_FurBundleColorTex("Fur Bundle Color", 2D) = "white" {}
 		
-		[Space(24)]
+		[Space(48)]
 
-		_FurLength("Fur Length", Float) = 0.05
-		_FurX("Fur X", Range(0, 1)) = 0.1
-		_FurY("Fur Y", Range(0, 1)) = 0.1
-		//_FurDirectionZ("Fur Direction Z", Range(0, 1)) = 1.0
-		_FurSink("Fur Sink", Range(0, 1)) = 0.0
+		_FurLength("Fur Length", Float) = 0.04
+		_FurX("Fur X", Range(0, 1)) = 0.25
+		_FurY("Fur Y", Range(0, 1)) = 0.25
+		_FurSink("Fur Sink", Range(0, 1)) = 0.5
 		_FurRandomLength("Fur Random Length", Range(0, 1)) = 0.25
 		_FurRandomDirectionXY("Fur Random Direction XY", Range(0, 1)) = 0.25
-		_FurRandomDirectionZ("Fur Random Direction Z", Range(0, 1)) = 0.25
-		_FurDensity("Fur Density", Float) = 200.0
+		_FurRandomDirectionZ("Fur Random Direction Z", Range(0, 1)) = 0.0
+		_FurDirectionRandomScale("Fur Direction Random Scale", Range(0, 1)) = 0.5
+		_FurDensity("Fur Density", Float) = 30.0
 		_FurAlphaCutoff("Fur Alpha Cutoff", Range(0, 1)) = 0.5
 	}
 
@@ -80,7 +80,8 @@
 			{
 				"LightMode" = "ForwardBase"
 			}
-
+			
+            ColorMask 0
 			Cull Off
 
 			CGPROGRAM
@@ -90,11 +91,11 @@
 			
 			#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
 
-			#pragma vertex VertexShaderStage_Fur
-			#pragma hull HullShaderStage_Fur
-			#pragma domain DomainShaderStage_Fur
-			#pragma geometry GeometryShaderStage_Fur
-			#pragma fragment FragmentShaderStage_Fur
+			#pragma vertex VertexShaderStage_FurDepth
+			#pragma hull HullShaderStage_FurDepth
+			#pragma domain DomainShaderStage_FurDepth
+			#pragma geometry GeometryShaderStage_FurDepth
+			#pragma fragment FragmentShaderStage_FurDepth
 			
 			#include "HuwaFurV9.hlsl"
 
@@ -109,7 +110,6 @@
 			}
 
 			Cull Off
-			ZTest Less
 			ZWrite Off
 			Blend SrcAlpha OneMinusSrcAlpha
 

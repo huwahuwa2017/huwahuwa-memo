@@ -23,6 +23,9 @@ public class AbsorptionTexGen : MonoBehaviour
     private Material _paintMaterial = null;
 
     [SerializeField]
+    private Renderer _targetRenderer = null;
+
+    [SerializeField]
     private int _targetSubMesh = 0;
 
     [SerializeField]
@@ -65,7 +68,7 @@ public class AbsorptionTexGen : MonoBehaviour
     [ContextMenu("Generate")]
     private void Generate()
     {
-        Renderer renderer = GetComponent<Renderer>();
+        Renderer renderer = _targetRenderer;
 
         if(renderer == null)
         {
@@ -115,6 +118,8 @@ public class AbsorptionTexGen : MonoBehaviour
         bleedCommandBuffer.SetRenderTarget(_tempRT_SPIDs[0]);
         bleedCommandBuffer.DrawRenderer(renderer, _paintMaterial, _targetSubMesh);
 
+        _paintMaterial.SetInt("_BakeMode", 1);
+
         int temp1 = 0;
 
         for (int index = 0; index < _bleedRange; ++index)
@@ -131,6 +136,8 @@ public class AbsorptionTexGen : MonoBehaviour
         Graphics.ExecuteCommandBuffer(bleedCommandBuffer);
 
         FPT_TextureOperation.OutputPNG_OpenDialog(_outputRenderTexture);
+
+        _paintMaterial.SetInt("_BakeMode", 0);
     }
 }
 

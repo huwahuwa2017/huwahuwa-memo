@@ -1,123 +1,134 @@
 ﻿Shader "HuwaShader/HuwaFurV9-2"
 {
-	Properties
-	{
-		[NoScaleOffset]
-		_MainTex("Skin Color Texture", 2D) = "white" {}
-		[NoScaleOffset][Normal]
-		_BumpMap("Normal Texture", 2D) = "bump" {}
-		[NoScaleOffset]
-		_MetallicGlossMap("Metallic Gloss Map", 2D) = "black" {}
+    Properties
+    {
+        [NoScaleOffset]
+        _MainTex("Skin Color Texture", 2D) = "white" {}
+        [NoScaleOffset][Normal]
+        _BumpMap("Normal Texture", 2D) = "bump" {}
+        [NoScaleOffset]
+        _MetallicGlossMap("Metallic Gloss Map", 2D) = "black" {}
         _OcclusionStrength("Occlusion Strength", Range(0.0, 1.0)) = 0.0
-		[NoScaleOffset]
-		_OcclusionMap("Occlusion Map", 2D) = "black" {}
+        [NoScaleOffset]
+        _OcclusionMap("Occlusion Map", 2D) = "black" {}
         _EmissionColor("Emission Strength", Vector) = (0.0, 0.0, 0.0)
-		[NoScaleOffset]
-		_EmissionMap("Emission Map", 2D) = "white" {}
-		_FurOcclusionStrength("Fur Occlusion Strength", Range(0.0, 1.0)) = 0.5
-		[NoScaleOffset]
-		_FurOcclusionTex("Fur Occlusion Texture", 2D) = "black" {}
-		
-		[Space(24)]
+        [NoScaleOffset]
+        _EmissionMap("Emission Map", 2D) = "white" {}
+        _FurOcclusionStrength("Fur Occlusion Strength", Range(0.0, 1.0)) = 0.5
+        [NoScaleOffset]
+        _FurOcclusionTex("Fur Occlusion Texture", 2D) = "black" {}
+        
+        [Space(48)]
 
-		[NoScaleOffset]
-		_FurColorTex("Fur Color Texture", 2D) = "white" {}
-		[NoScaleOffset][Normal]
-		_FurDirectionTex("Fur Direction Texture", 2D) = "bump" {}
-		[NoScaleOffset]
-		_FurLengthTex("Fur Length Texture", 2D) = "white" {}
-		[NoScaleOffset]
-		_FurCountTex("Fur Count Texture", 2D) = "white" {}
-		[NoScaleOffset]
-		_FurBundleColorTex("Fur Bundle Color", 2D) = "white" {}
-		
-		[Space(24)]
+        [NoScaleOffset]
+        _FurColorTex("Fur Color Texture", 2D) = "white" {}
+        [NoScaleOffset][Normal]
+        _FurDirectionTex("Fur Direction Texture", 2D) = "bump" {}
+        [NoScaleOffset]
+        _FurLengthTex("Fur Length Texture", 2D) = "white" {}
+        [NoScaleOffset]
+        _FurCountTex("Fur Count Texture", 2D) = "white" {}
+        [NoScaleOffset]
+        _FurBundleColorTex("Fur Bundle Color Texture", 2D) = "white" {}
+        [NoScaleOffset]
+        _BayerMatrixTex("Bayer Matrix Texture", 2D) = "white" {}
+        
+        [Space(48)]
 
-		_FurLength("Fur Length", Float) = 0.05
-		_FurX("Fur X", Range(0, 1)) = 0.1
-		_FurY("Fur Y", Range(0, 1)) = 0.1
-		//_FurDirectionZ("Fur Direction Z", Range(0, 1)) = 1.0
-		_FurSink("Fur Sink", Range(0, 1)) = 0.0
-		_FurRandomLength("Fur Random Length", Range(0, 1)) = 0.25
-		_FurRandomDirectionXY("Fur Random Direction XY", Range(0, 1)) = 0.25
-		_FurRandomDirectionZ("Fur Random Direction Z", Range(0, 1)) = 0.25
-		_FurDensity("Fur Density", Float) = 200.0
-		_FurAlphaCutoff("Fur Alpha Cutoff", Range(0, 1)) = 0.5
-	}
+        _FurLength("Fur Length", Float) = 0.04
+        _FurX("Fur X", Range(0, 1)) = 0.25
+        _FurY("Fur Y", Range(-1, 1)) = -0.25
+        _FurSink("Fur Sink", Range(0, 1)) = 0.5
+        _FurRandomLength("Fur Random Length", Range(0, 1)) = 0.25
+        _FurRandomDirectionXY("Fur Random Direction XY", Range(0, 1)) = 0.25
+        _FurRandomDirectionZ("Fur Random Direction Z", Range(0, 1)) = 0.0
+        _FurDirectionRandomScale("Fur Direction Random Scale", Range(0, 1)) = 0.5
+        _FurDensity("Fur Density", Float) = 30.0
+        
+        [Space(24)]
 
-	SubShader
-	{
-		Tags
-		{
-			"Queue" = "AlphaTest"
-			"RenderType" = "TransparentCutout"
-		}
+        [Toggle(_FUR_DITHERING)]
+        _TempA("Dithering", Int) = 0
 
-		Pass
-		{
-			Tags
-			{
-				"LightMode" = "ForwardBase"
-			}
+        _FurAlphaMul("Fur Alpha Mul", Float) = 1.0
+        _FurAlphaAdd("Fur Alpha Add", Float) = 0.0
+        _FurAlphaCutoff("Fur Alpha Cutoff", Range(0, 1)) = 0.5
+    }
 
-			Cull Off
+    SubShader
+    {
+        Tags
+        {
+            "Queue" = "AlphaTest"
+            "RenderType" = "TransparentCutout"
+        }
 
-			CGPROGRAM
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "ForwardBase"
+            }
 
-			#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            Cull Off
 
-			#pragma vertex VertexShaderStage_Skin
-			#pragma fragment FragmentShaderStage_Skin
-			
-			#include "HuwaFurV9.hlsl"
+            CGPROGRAM
 
-			ENDCG
-		}
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
 
-		Pass
-		{
-			Tags
-			{
-				"LightMode" = "ForwardBase"
-			}
+            #pragma vertex VertexShaderStage_Skin
+            #pragma fragment FragmentShaderStage_Skin
+            
+            #include "HuwaFurV9.hlsl"
 
-			Cull Off
+            ENDCG
+        }
 
-			CGPROGRAM
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "ForwardBase"
+            }
 
-			#pragma require tessellation
-			#pragma require geometry
-			
-			#pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            Cull Off
 
-			#pragma vertex VertexShaderStage_Fur
-			#pragma hull HullShaderStage_Fur
-			#pragma domain DomainShaderStage_Fur
-			#pragma geometry GeometryShaderStage_Fur
-			#pragma fragment FragmentShaderStage_Fur
-			
-			#include "HuwaFurV9.hlsl"
+            CGPROGRAM
 
-			ENDCG
-		}
+            #pragma require tessellation
+            #pragma require geometry
+            
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            #pragma multi_compile_local _ _FUR_DITHERING
 
-		Pass
-		{
-			Tags
-			{
-				"LightMode" = "ShadowCaster"
-			}
-			
-			CGPROGRAM
-			
-			#pragma vertex VertexShaderStage_ShadowCaster
-			#pragma fragment FragmentShaderStage_ShadowCaster
-			
-			#include "HuwaFurV9.hlsl"
+            #pragma vertex VertexShaderStage_Fur
+            #pragma hull HullShaderStage_Fur
+            #pragma domain DomainShaderStage_Fur
+            #pragma geometry GeometryShaderStage_Fur
+            #pragma fragment FragmentShaderStage_Fur
+            
+            #include "HuwaFurV9.hlsl"
 
-			ENDCG
-		}
-	}
+            ENDCG
+        }
 
-	FallBack Off
+        Pass
+        {
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+            
+            CGPROGRAM
+            
+            #pragma vertex VertexShaderStage_ShadowCaster
+            #pragma fragment FragmentShaderStage_ShadowCaster
+            
+            #include "HuwaFurV9.hlsl"
+
+            ENDCG
+        }
+    }
+
+    FallBack Off
 }

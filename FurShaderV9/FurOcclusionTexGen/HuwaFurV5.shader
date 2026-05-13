@@ -6,8 +6,6 @@ Shader "HuwaShader/HuwaFurV5"
 	{
 		[NoScaleOffset][Normal]
 		_FurDirectionTex("Fur Direction Texture", 2D) = "bump" {}
-		[NoScaleOffset]
-		_FurLengthTex("Fur Length Texture", 2D) = "white" {}
 
 		_FurLength("Fur Length", Float) = 0.05
 		_FurDensity("Fur Density", Float) = 1024.0

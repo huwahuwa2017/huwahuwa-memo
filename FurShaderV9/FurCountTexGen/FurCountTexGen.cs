@@ -21,7 +21,7 @@ public class FurCountTexGen : MonoBehaviour
     private Renderer _targetRenderer = null;
 
     [SerializeField]
-    private int _targetSubMeshIndex = 0;
+    private int _targetSubMesh = 0;
 
     [SerializeField]
     private bool _npot = true;
@@ -72,7 +72,7 @@ public class FurCountTexGen : MonoBehaviour
         if (startMesh == null)
             return;
 
-        int dataCount = startMesh.GetTriangles(_targetSubMeshIndex).Length / 3;
+        int dataCount = startMesh.GetTriangles(_targetSubMesh).Length / 3;
         int textureSize = (int)Math.Ceiling(Math.Sqrt(dataCount));
 
         if (!_npot)
@@ -96,7 +96,7 @@ public class FurCountTexGen : MonoBehaviour
 
         CommandBuffer commandBuffer0 = new CommandBuffer();
         commandBuffer0.SetRenderTarget(_tempRT0);
-        commandBuffer0.DrawRenderer(_targetRenderer, _furCountMaterial, _targetSubMeshIndex);
+        commandBuffer0.DrawRenderer(_targetRenderer, _furCountMaterial, _targetSubMesh);
         Graphics.ExecuteCommandBuffer(commandBuffer0);
 
         Texture2D texture = FPT_TextureOperation.GenerateTexture2D(_tempRT0);

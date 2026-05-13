@@ -25,8 +25,9 @@ float2 _DataTextureTexelSize;
 int _SubdivisionSample;
 float _ShortFurDensity;
 
-// CutOutを使っている時点でジャギるので、サンプラーを犠牲にして処理速度を優先する
-#define TEXTURE_READ(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
+// サンプラーを無視して処理速度を優先する
+#define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(saturate(uv) * tex##_TexelSize.zw)]
+#define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
 float SafeDivision(float a, float b)
 {
@@ -71,14 +72,14 @@ void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream
                 
                 tPos = offset + dtc;
                 tPos.x = 1.0 - tPos.x;
-                data = TEXTURE_READ(_FurLengthTex, origin + (s0 * tPos.x) + (s1 * tPos.y)).r;
+                data = TEXTURE_READ_REPEAT(_FurLengthTex, origin + (s0 * tPos.x) + (s1 * tPos.y)).r;
                 temp0 = data > 0.01;
                 furLength += temp0 ? data : 0.0;
                 sc += temp0;
                 
                 tPos = offset + utc;
                 tPos.x = 1.0 - tPos.x;
-                data = TEXTURE_READ(_FurLengthTex, origin + (s0 * tPos.x) + (s1 * tPos.y)).r;
+                data = TEXTURE_READ_REPEAT(_FurLengthTex, origin + (s0 * tPos.x) + (s1 * tPos.y)).r;
                 temp0 = data > 0.01;
                 furLength += temp0 ? data : 0.0;
                 sc += temp0;
@@ -88,7 +89,7 @@ void GeometryShaderStage(triangle V2G input[3], inout TriangleStream<G2F> stream
             
             tPos = offset + dtc;
             tPos.x = 1.0 - tPos.x;
-            data = TEXTURE_READ(_FurLengthTex, origin + (s0 * tPos.x) + (s1 * tPos.y)).r;
+            data = TEXTURE_READ_REPEAT(_FurLengthTex, origin + (s0 * tPos.x) + (s1 * tPos.y)).r;
             temp0 = data > 0.01;
             furLength += temp0 ? data : 0.0;
             sc += temp0;
