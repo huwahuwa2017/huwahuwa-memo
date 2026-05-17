@@ -1,0 +1,184 @@
+U#を書きたい場合は UdonSharpBehaviour を継承したクラスを用意する
+UdonSharpBehaviour は MonoBehaviour を継承しているので MonoBehaviour の機能も大体使える
+
+
+
+Udon を使用している GameObject ごとに同期を担当するプレイヤーが割り当てられる
+割り当てられる条件は色々ある
+・インスタンスに最初に接続した
+・Udon を使用している GameObject を持っている (Pick up)
+・プレイヤーと GameObject の衝突
+など
+
+同期を担当するプレイヤーのことを OwnerShip と呼ぶ
+OwnerShip となるプレイヤーをU#から変更することもできる
+
+例 自分が OwnerShip ではないとき、自分を OwnerShip にするコード
+
+if (!Networking.IsOwner(localPlayer, gameObject))
+{
+	Networking.SetOwner(localPlayer, gameObject);
+}
+
+
+
+UdonBehaviourSyncMode 属性
+UdonSharpBehaviour を継承したクラスに [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)] のような属性を付与することで同期方式を変更できます
+
+BehaviourSyncMode.Continuous はVRC側が勝手に同期タイミングを決定します（たぶん負荷とかで判定している？）
+よくわからないタイミングで同期するので基本的に嫌われています
+
+BehaviourSyncMode.Manual は手動で同期するタイミングを決定できるモードです
+RequestSerialization() を実行することにより、UdonSynced 属性が付与されているフィールドの値を同期します
+
+
+
+UdonSynced 属性が付与されたフィールドの値を他プレイヤーへ送信したい場合、そのUdonを実行している GameObject の OwnerShip となる必要があります
+
+UdonSynced 属性
+UdonSharpBehaviour を継承したクラスのフィールドに [UdonSynced(UdonSyncMode.None)] のような属性を付与することで同期処理を実装できます
+UdonSyncMode.None は直接値を反映します
+UdonSyncMode.Linear 線形補間
+UdonSyncMode.Smooth スムースな補間
+https://twitter.com/kohu_vr/status/1245231209694646277
+
+
+
+RequestSerialization
+RequestSerialization を実行したクラス内にある UdonSynced 属性が付与されたフィールドの同期データを送信する
+
+例
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class SyncTest : UdonSharpBehaviour
+{
+	[UdonSynced(UdonSyncMode.None)]
+	private int _test0 = 1;
+	
+	[UdonSynced(UdonSyncMode.None)]
+	private int _test1 = 2;
+	
+	[UdonSynced(UdonSyncMode.None)]
+	private int _test2 = 3;
+	
+	public override void Interact()
+	{
+		// RequestSerialization を実行するプレイヤーは OwnerShip である必要があるので確認と割り当て処理を書いている
+		VRCPlayerApi localPlayer = Networking.LocalPlayer;
+		
+		if (!Networking.IsOwner(localPlayer, gameObject))
+		{
+			Networking.SetOwner(localPlayer, gameObject);
+		}
+		
+		RequestSerialization();
+	}
+}
+
+上記の例では RequestSerialization を実行すると _test0, _test1, _test2 のデータをまとめて送信する
+上記の例のようなクラスで _test2 だけ同期データを送信するような動作はできない
+
+
+
+OnDeserialization
+同期データを受信すると実行される
+変化が無い場合も実行される
+
+例
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class SyncTest : UdonSharpBehaviour
+{
+	[UdonSynced(UdonSyncMode.None)]
+	private int _test0 = 1;
+
+	public override void Interact()
+	{
+		// _test0 に1を追加してから同期データ送信
+
+		++_test0;
+
+		VRCPlayerApi localPlayer = Networking.LocalPlayer;
+
+		if (!Networking.IsOwner(localPlayer, gameObject))
+		{
+			Networking.SetOwner(localPlayer, gameObject);
+		}
+
+		RequestSerialization();
+	}
+
+	public override void OnDeserialization()
+	{
+		Debug.Log("同期データを受信した！");
+	}
+}
+
+
+
+FieldChangeCallback
+同期データを受信したときに値の変化があった場合に、任意のプロパティのセッターを実行する
+
+例
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class SyncTest : UdonSharpBehaviour
+{
+	[UdonSynced(UdonSyncMode.None), FieldChangeCallback(nameof(Test0))]
+	private int _test0 = 1;
+
+	// private でも public でもok
+	private int Test0
+	{
+		set
+		{
+			_test0 = value;
+			Debug.Log("_test0 の値を変更しました");
+		}
+	}
+
+	public override void Interact()
+	{
+		// _test0 に1を追加してから同期データ送信
+
+		++_test0;
+
+		VRCPlayerApi localPlayer = Networking.LocalPlayer;
+
+		if (!Networking.IsOwner(localPlayer, gameObject))
+		{
+			Networking.SetOwner(localPlayer, gameObject);
+		}
+
+		RequestSerialization();
+	}
+}
+
+
+
+SendCustomNetworkEvent
+
+SendCustomNetworkEvent(NetworkEventTarget.All, "TestEvent")
+全プレイヤーへ指定したメソッドを実行させる
+
+SendCustomNetworkEvent(NetworkEventTarget.Owner, "TestEvent")
+OwnerShip を持っているプレイヤーへ指定したメソッドを実行させる
+
+例
+
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+public class SyncTest : UdonSharpBehaviour
+{
+	public override void Interact()
+	{
+		// SendCustomNetworkEvent を実行するプレイヤーは OwnerShip でなくてもよい
+		SendCustomNetworkEvent(NetworkEventTarget.All, "TestEvent");
+	}
+
+	// アクセシビリティーは public にする必要がある
+	public void TestEvent()
+	{
+		++_test;
+		Debug.Log("_test : " + _test);
+	}
+}
