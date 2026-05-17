@@ -4,6 +4,7 @@ Shader"Custom/Example"
     // https://docs.unity3d.com/ja/2022.3/Manual/SL-Properties.html
     // https://docs.unity3d.com/ja/2022.3/Manual/SL-PropertiesInPrograms.html
     // https://artawa.hatenablog.com/entry/2020/08/30/200211
+    // https://tsubakit1.hateblo.jp/entry/2014/07/23/095513
     Properties
     {
         [NoScaleOffset]
@@ -16,12 +17,18 @@ Shader"Custom/Example"
         [HDR]
         _EmissionColor("Emission Color", Color) = (0,0,0)
         
-		_TestVector0("Vector0", Vector) = (1.0, 1.0, 1.0, 1.0)
+        [Gamma]
+        _TestVector0("Vector0", Vector) = (1.0, 1.0, 1.0, 1.0)
         
         _Metallic("Metallic", Range(0.0, 1.0)) = 1.0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
         
         _MaxSize("Max Size", Float) = 0.1
+        
+        
+        
+        [Header("ヘッダー名")]
+        [Space(48)]
         
         // Unity 2020 以前
         _Integer("Integer", Int) = 0
@@ -102,13 +109,21 @@ Shader"Custom/Example"
             
             // https://docs.unity3d.com/ja/2022.3/Manual/SL-MultipleProgramVariants.html
             #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
+            
             #pragma multi_compile_local _MODE_ALPHA_OFF _MODE_ALPHATEST_ON _MODE_ALPHABLEND_ON _MODE_ALPHAPREMULTIPLY_ON
             
-            #define 
+            // 警告を非表示にする  できるだけ使わない方が良い
+            // https://learn.microsoft.com/ja-jp/windows/win32/direct3dhlsl/hlsl-errors-and-warnings
+            #pragma warning(suppress : 警告番号)
+            // ここに警告が出るコードを入れる
+            #pragma warning(suppress : 警告番号)
             
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
             #include "Lighting.cginc"
+            
+            // 定義されたマクロを削除することができる
+            #undef
             
             ENDCG
         }
@@ -149,6 +164,8 @@ Shader"Custom/Example"
 #endif
 
 #define COMPUTE_VIEW_NORMAL normalize(mul((float3x3)UNITY_MATRIX_IT_MV, v.normal))
+
+#define TRANSFORM_TEX(tex,name) (tex.xy * name##_ST.xy + name##_ST.zw)
 
 
 
@@ -199,8 +216,10 @@ float4x4 unity_CameraToWorld;
 
 
 // https://docs.unity3d.com/ja/2022.3/Manual/SL-SamplerStates.html
-SamplerState _InlineSampler_Linear_Repeat;
 SamplerState _InlineSampler_Point_Clamp;
+SamplerState _InlineSampler_Linear_Clamp;
+SamplerState _InlineSampler_Point_Repeat;
+SamplerState _InlineSampler_Linear_Repeat;
 
 sampler2D _MainTex;
 
@@ -264,7 +283,7 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 // サンプラーを無視して処理速度を優先する
-#define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(saturate(uv) * tex##_TexelSize.zw)]
+#define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
 #define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
 
@@ -295,6 +314,22 @@ float3 wCameraDir = -UNITY_MATRIX_V[2].xyz;
 
 //カメラが向いている方向(Local)
 float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
+
+
+
+float2 Rotarion2D(float2 uv, float angle)
+{
+    float S, C;
+    sincos(angle, S, C);
+
+    // 反時計回り
+    return mul(float2x2(C, -S, S, C), uv);
+    return mul(float2x2(C, S, -S, C), uv.yx).yx;
+    // 時計回り
+    return mul(float2x2(C, S, -S, C), uv);
+    return mul(float2x2(C, -S, S, C), uv.yx).yx;
+
+}
 
 
 
@@ -383,6 +418,14 @@ float PixelPerMeter(float cPos_W)
 {
     float2 temp0 = _ScreenParams.xy * (abs(UNITY_MATRIX_P._m00_m11) / cPos_W);
     return max(temp0.x, temp0.y) * 0.5;
+}
+
+
+
+// 補間
+float Smooth(float input)
+{
+    return input * input * (3.0 - (2.0 * input));
 }
 
 
@@ -581,6 +624,33 @@ float3x3 LookRotation(float3 fv, float3 uv)
 
 
 
+
+// Rasterrizer Stage などで変化する SV_POSITION を再現する式
+float4 CPosToSVPos(float4 cPos)
+{
+    
+//#if UNITY_UV_STARTS_AT_TOP
+//    cPos.y = -cPos.y;
+//#endif
+    
+    cPos.y *= _ProjectionParams.x;
+    
+    cPos.xyz /= cPos.w;
+    
+#if defined(UNITY_REVERSED_Z)
+    cPos.xy = cPos.xy * 0.5 + 0.5;
+#else
+    cPos.xyz = cPos.xyz * 0.5 + 0.5;
+#endif
+    
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    cPos.x += unity_StereoEyeIndex;
+#endif
+    
+    cPos.xy *= _ScreenParams.xy;
+    
+    return cPos;
+}
 
 // Rasterrizer Stage などで変化する SV_POSITION を元に戻す式
 float4 SVPosToCPos(float4 svPos)

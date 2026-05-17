@@ -38,8 +38,6 @@ private static Quaternion LookRotation(Vector3 forward, Vector3 upwards)
     float m12 = zAxis.y;
     float m22 = zAxis.z;
 
-    float t;
-    Vector4 q;
 
     float add0 = m21 + m12;
     float add1 = m02 + m20;
@@ -48,6 +46,9 @@ private static Quaternion LookRotation(Vector3 forward, Vector3 upwards)
     float sub0 = m21 - m12;
     float sub1 = m02 - m20;
     float sub2 = m10 - m01;
+
+    float t;
+    Vector4 q;
 
     if (m22 < 0f)
     {

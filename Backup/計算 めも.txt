@@ -338,8 +338,14 @@ step(x,y) = x >= y
 
 
 
+lerp(a, b, c) = a + (b - a) * c
+              = a * (1 - c) + b * c
+
 lerp(a, b, c) = lerp(b, a, 1.0 - c)
-lerp(a, 1.0, b) = lerp(b, 1.0, a)
+
+      lerp(a, 1.0, c) = lerp(c, 1.0, a)
+                 ||       ||
+lerp(1.0, a, 1.0 - c) = lerp(1.0, c, 1.0 - a)
 
 
 
