@@ -22,7 +22,7 @@
             #pragma fragment FragmentShaderStage
 
             #pragma multi_compile_local _ _KEYWORD_TOGGLE_A
-            #pragma multi_compile_local _ _KEYWORD_ENUM_A _KEYWORD_ENUM_B _KEYWORD_ENUM_C
+            #pragma multi_compile_local _KEYWORD_ENUM_A _KEYWORD_ENUM_B _KEYWORD_ENUM_C
 
             #include "UnityCG.cginc"
 
