@@ -63,6 +63,9 @@ Shader"Custom/Example"
             "VRCFallback" = "Hidden"
         }
         
+        https://docs.unity3d.com/ja/2019.4/Manual/SL-ShaderLOD.html
+        LOD 100
+        
         GrabPass
         {
             "_GrabPass"
@@ -96,10 +99,12 @@ Shader"Custom/Example"
             
             CGPROGRAM
             
+            // https://docs.unity3d.com/ja/2022.3/Manual/SL-PragmaDirectives.html
             // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderCompileTargets.html
             #pragma target 3.0
             #pragma require tessellation
             #pragma require geometry
+            #pragma exclude_renderers gles
             
             #pragma vertex VertexShaderStage
             #pragma hull HullShaderStage
@@ -152,10 +157,17 @@ Shader"Custom/Example"
 #define UNITY_MATRIX_VP unity_MatrixVP
 #define UNITY_MATRIX_M unity_ObjectToWorld
 
-#define UNITY_MATRIX_MVP    unity_MatrixMVP
-#define UNITY_MATRIX_MV     unity_MatrixMV
-#define UNITY_MATRIX_T_MV   unity_MatrixTMV
-#define UNITY_MATRIX_IT_MV  unity_MatrixITMV
+// 下記の変数はCPUから値が送られるのではなく、シェーダー内で計算される
+static float4x4 unity_MatrixMVP = mul(unity_MatrixVP, unity_ObjectToWorld);
+static float4x4 unity_MatrixMV = mul(unity_MatrixV, unity_ObjectToWorld);
+static float4x4 unity_MatrixTMV = transpose(unity_MatrixMV);
+static float4x4 unity_MatrixITMV = transpose(mul(unity_WorldToObject, unity_MatrixInvV));
+
+// 下記のマクロは上記の変数を使用する
+#define UNITY_MATRIX_MVP
+#define UNITY_MATRIX_MV
+#define UNITY_MATRIX_T_MV
+#define UNITY_MATRIX_IT_MV
 
 
 
@@ -230,9 +242,10 @@ float4 _MainTex_TexelSize;
 
 
 
-// ミラー
+// 時代遅れのミラー検出
 static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
 
+// ミラー検出
 float _VRChatMirrorMode;
 static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
@@ -249,13 +262,27 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
+// https://tips.hecomi.com/entry/2018/11/04/232219
+
+// Single Pass
+// VRChatがこれを使っている
+// 今では時代遅れの機能となり、特殊な方法でないと有効にできない
 #if defined(UNITY_SINGLE_PASS_STEREO)
 #endif
 
+// Single Pass Instancing 
+// 現在では一般的な描画方式
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
 #endif
 
+// MultiView
+// OpenGL系のシェーダーAPIで動作する Single Pass Instancing に似ている描画方式
+// MultiPass と名前が似ているが別物なので注意
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#endif
+
+#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#define USING_STEREO_MATRICES
 #endif
 
 
@@ -272,8 +299,6 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 // UNITY_UV_STARTS_AT_TOP と UNITY_REVERSED_Z は同じ
 
-
-
 #if defined(UNITY_REVERSED_Z)
     // DirectX
 #else
@@ -288,16 +313,29 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
-// nan
-float nan = asfloat(0xFFFFFFFF);
+static float nan = asfloat(0xFFFFFFFF);
 
-// infinity
-float infinity = asfloat(0x7F800000);
+static float infinity = asfloat(0x7F800000);
+
+// 255.0 / 256.0
+asfloat(0x3F7F0000);
+
+
+
+// unity_ObjectToWorld で ローカル座標系をワールド座標系にしてから、
+// UNITY_MATRIX_VP で ワールド座標系をクリップ座標系に変換する
+// w 成分は 1 に上書きされる
+float4 UnityObjectToClipPos(float3 lPos);
+float4 UnityObjectToClipPos(float4 lPos);
+
+// UNITY_MATRIX_VP で ワールド座標系をクリップ座標系に変換する
+// w 成分は 1 として扱う
+float4 UnityWorldToClipPos(float3 wPos);
 
 
 
 float4 colorA = tex2D(_MainTex, TRANSFORM_TEX(uv, _MainTex));
-float4 colorB = _MainTex.Sample(sampler_MainTex, input.uv);
+float4 colorB = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uv, _MainTex));
 
 
 
@@ -316,20 +354,6 @@ float3 wCameraDir = -UNITY_MATRIX_V[2].xyz;
 float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
 
 
-
-float2 Rotarion2D(float2 uv, float angle)
-{
-    float S, C;
-    sincos(angle, S, C);
-
-    // 反時計回り
-    return mul(float2x2(C, -S, S, C), uv);
-    return mul(float2x2(C, S, -S, C), uv.yx).yx;
-    // 時計回り
-    return mul(float2x2(C, S, -S, C), uv);
-    return mul(float2x2(C, -S, S, C), uv.yx).yx;
-
-}
 
 
 
@@ -365,37 +389,6 @@ void PointLight()
 
 
 
-void MatrixMemoryLayout()
-{
-    float4x4 a;
-
-    float4x3
-    (
-        a[0][0], a[0][1], a[0][2],
-        a[1][0], a[1][1], a[1][2],
-        a[2][0], a[2][1], a[2][2],
-        a[3][0], a[3][1], a[3][2]
-    );
-
-    float4x3
-    (
-        a._m00, a._m01, a._m02,
-        a._m10, a._m11, a._m12,
-        a._m20, a._m21, a._m22,
-        a._m30, a._m31, a._m32
-    );
-
-    float4x3
-    (
-        a._11, a._12, a._13,
-        a._21, a._22, a._23,
-        a._31, a._32, a._33,
-        a._41, a._42, a._43
-    );
-}
-
-
-
 // Tessellation係数から三角形の数を計算する (partitioning("integer"))
 uint TessFactor2TriangleCount(float factor)
 {
@@ -414,10 +407,17 @@ uint TriangleCount2TessFactor(float count)
 // 1メートルあたりのピクセル数
 // cPos_W = UnityWorldToClipPos(wPos).w
 // cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPos, 1.0))
-float PixelPerMeter(float cPos_W)
+float2 PixelPerMeter(float cPos_W)
 {
-    float2 temp0 = _ScreenParams.xy * (abs(UNITY_MATRIX_P._m00_m11) / cPos_W);
-    return max(temp0.x, temp0.y) * 0.5;
+    return (_ScreenParams.xy * abs(UNITY_MATRIX_P._m00_m11)) / (cPos_W * 2.0);
+}
+
+// 1ピクセルあたりのメートル数
+// cPos_W = UnityWorldToClipPos(wPos).w
+// cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPos, 1.0))
+float2 MeterPerPixel(float cPos_W)
+{
+    return (cPos_W * 2.0) / (_ScreenParams.xy * abs(UNITY_MATRIX_P._m00_m11));
 }
 
 
@@ -602,9 +602,64 @@ void TangentSpace(I2V input)
 
 
 
+void MatrixMemoryLayout()
+{
+    float4x4 a;
+
+    float4x3
+    (
+        a[0][0], a[0][1], a[0][2],
+        a[1][0], a[1][1], a[1][2],
+        a[2][0], a[2][1], a[2][2],
+        a[3][0], a[3][1], a[3][2]
+    );
+
+    float4x3
+    (
+        a._m00, a._m01, a._m02,
+        a._m10, a._m11, a._m12,
+        a._m20, a._m21, a._m22,
+        a._m30, a._m31, a._m32
+    );
+
+    float4x3
+    (
+        a._11, a._12, a._13,
+        a._21, a._22, a._23,
+        a._31, a._32, a._33,
+        a._41, a._42, a._43
+    );
+}
+
+// わざわざ関数にしないと警告が出る
 float3x3 ScalarMul(float3x3 mat, float scalar)
 {
     return mat * scalar;
+}
+
+// Transform の Scale を取得する
+// しかし、親階層の Transform が回転したりスケールが変更されていると使えない
+float3 GetScale()
+{
+    float3 scale;
+    scale.x = length(UNITY_MATRIX_M._m00_m10_m20);
+    scale.y = length(UNITY_MATRIX_M._m01_m11_m21);
+    scale.z = length(UNITY_MATRIX_M._m02_m12_m22);
+    return scale;
+}
+
+float2 Rotarion2D(float2 uv, float angle)
+{
+    float S, C;
+    sincos(angle, S, C);
+
+    // 反時計回り
+    return mul(float2x2(C, -S, S, C), uv);
+    return mul(float2x2(C, S, -S, C), uv.yx).yx;
+    // 時計回り
+    return mul(float2x2(C, S, -S, C), uv);
+    return mul(float2x2(C, -S, S, C), uv.yx).yx;
+
 }
 
 float3x3 LookRotation(float3 fv, float3 uv)
