@@ -13,6 +13,14 @@ Shader "Custom/AlexanderHornedSphere"
 
 	SubShader
 	{
+		Tags
+		{
+			"Queue" = "AlphaTest"
+			"DisableBatching" = "True"
+            "IgnoreProjector" = "True"
+            "VRCFallback" = "Hidden"
+		}
+
 		Pass
 		{
 			Tags
@@ -23,7 +31,7 @@ Shader "Custom/AlexanderHornedSphere"
 			Cull Front
 
 			CGPROGRAM
-
+			
 			#pragma vertex VertexShaderStage
 			#pragma fragment FragmentShaderStage
 

@@ -31,7 +31,7 @@ struct F2O
 };
 
 static float _Epsilon = 0.0001;
-static float _DrawingDistance = 100.0;
+static float _DrawingDistance = 500.0;
 
 fixed4 _LightColor0;
 
@@ -130,7 +130,7 @@ float dist_func(float3 rayPos)
     
     rayPos.y += ra;
     float result = sdCappedTorus(rayPos, originalSC, ra, ra * _Thickness);
-    AHS_6(rayPos, originalSC, ra, result);
+    AHS_4(rayPos, originalSC, ra, result);
     
     return result;
 }
