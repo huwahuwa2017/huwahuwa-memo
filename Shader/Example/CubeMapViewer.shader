@@ -1,4 +1,4 @@
-﻿Shader "HuwaExample/CubeMapView"
+﻿Shader "HuwaExample/CubeMapViewer"
 {
     Properties
     {
