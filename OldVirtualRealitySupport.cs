@@ -1,4 +1,4 @@
-// v5 2025-09-04 16:54
+// v6 2026-06-07 23:51
 
 // https://huwahuwa2017.hatenablog.com/entry/2024/06/02/015207
 
@@ -10,13 +10,13 @@ using UnityEditor;
 
 public class OldVirtualRealitySupport
 {
-    [MenuItem("Tools/Old VR Support Off", false, 0)]
+    [MenuItem("HuwaTools/Old VR Support Off", false, 0)]
     static private void VRS_Off()
     {
         PlayerSettings.virtualRealitySupported = false;
     }
 
-    [MenuItem("Tools/Old VR Support On", false, 0)]
+    [MenuItem("HuwaTools/Old VR Support On", false, 0)]
     static private void VRS_On()
     {
         PlayerSettings.virtualRealitySupported = true;

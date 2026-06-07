@@ -1,4 +1,4 @@
-﻿// v2 2025-11-17 00:37
+﻿// v3 2026-06-07 23:47
 
 #if UNITY_EDITOR
 
@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 
 public static class RemoveAllMissingScript
 {
-    [MenuItem("Tools/RemoveAllMissingScript")]
+    [MenuItem("HuwaTools/RemoveAllMissingScript")]
     private static void Test()
     {
         GameObject[] rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
