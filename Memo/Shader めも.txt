@@ -97,6 +97,22 @@ Unity かつ DX11 では PSIZE セマンティクスは使えない
 
 
 
+DX11 の Depth
+depth = ((z*n)/(f-n) + (f*n)/(f-n))/-z
+depth = -(n/(f-n) + (f*n)/(f-n)/z)
+depth = -n/(f-n) - (f*n)/(f-n)/z
+depth + n/(f-n) = -(f*n)/(f-n)/z
+z*(depth + n/(f-n)) = -(f*n)/(f-n)
+z = -(f*n)/(f-n)/(depth + n/(f-n))
+z = -1/(depth*(f-n)/(f*n) + n/(f*n))
+z = -1/(depth*(1/n - 1/f) + 1/f)
+
+zBufferParams.z = 1/n - 1/f
+zBufferParams.w = 1/f
+z = 1 / (zBufferParams.z * depth + zBufferParams.w)
+
+
+
 透視投影の場合、以下の三つの値はほぼ同じ (多少の誤差は発生する DirectX11のみ確認)
 LinearEyeDepth(_CameraDepthTexture[uint2(input.cPos.xy)].r)
 Linear01Depth(_CameraDepthTexture[uint2(input.cPos.xy)].r) * _ProjectionParams.z
@@ -168,19 +184,19 @@ shader_feature で一つだけキーワードを宣言した場合
 
 
 
-ShaderAPI が DirectX の場合
-GL.GetGPUProjectionMatrix は投影行列の形式を OpenGL 形式から Direct3D11 形式に変換する
-OpenGL 形式の射影行列を Camera.projectionMatrix に代入しても問題ないので、内部で GL.GetGPUProjectionMatrix を実行していると予想している
-OpenGL 形式の射影行列を Material.SetMatrix でシェーダーに渡す場合に GL.GetGPUProjectionMatrix を使う
+V行列はShaderAPIに関わらず同じ形式で、Z軸が反転している
 
 
 
-Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
-
-V行列はShaderAPIに関わらず同じ？（未検証）
-DirectX でも OpenGL でも m22 成分は -1
+GL.GetGPUProjectionMatrix は投影行列の形式を OpenGL 形式から選択中の ShaderAPI の形式に変換する
+Camera.projectionMatrix は内部で GL.GetGPUProjectionMatrix を実行していると予想している
+OpenGL 形式の投影行列を Material.SetMatrix でシェーダーに渡す場合に GL.GetGPUProjectionMatrix を使う
 
 P行列の m11 成分の符号は DirectX では- OpenGL では+になる
+P行列の m22 成分の符号は DirectX では+ OpenGL では-になる
+P行列の m23 成分の符号は DirectX では+ OpenGL では-になる
+
+Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
 
 
 
@@ -193,7 +209,14 @@ R16_UNorm
 
 channel0 (TEXCOORD0) 普通のUV座標
 channel1 (TEXCOORD1) ライトマップ用UV座標
-channel2 (TEXCOORD2) リアルタイムライトマップ用UV座標？
+channel2 (TEXCOORD2) Enlighten 用UV座標？
+
+TEXCOOD0：メインUV
+TEXCOOD1：ライトマップ
+TEXCOOD2：Questビルドの頂点キャッシュ
+TEXCOOD3：VRC環境下のAudioLink
+TEXCOOD4：MA
+TEXCOOD5：MA
 
 
 
@@ -265,7 +288,7 @@ UV座標　　　　float
 
 
 
-Unityでよく使う圧縮形式
+Unityのテクスチャでよく使う圧縮形式
 
 DXT1(BC1)
 RGB形式で使える
@@ -276,7 +299,8 @@ RGBA形式で使える
 pixelあたりの情報量は8bit
 
 DTXnm
-ノーマルマップ用 DTX5 と似ているらしい
+ノーマルマップ用
+DTX5 と似ているらしい
 pixelあたりの情報量は8bit
 
 BC7
@@ -290,8 +314,13 @@ pixelあたりの情報量は8bit
 色をリニア空間に変換（逆ガンマ補正）をしてから足したり掛けたりした後にガンマ空間に変換（ガンマ補正）するのがリニアワークフロー
 ガンマワークフローよりリニアワークフローの方が自然に見えるらしい
 
-逆ガンマ補正(Gamma To Linear)で黒っぽくなる
-  ガンマ補正(Linear To Gamma)で白っぽくなる
+逆ガンマ補正(Gamma To Linear, sRGB To Linear)で暗くなる
+UnityCG.cginc の GammaToLinearSpaceExact や GammaToLinearSpace が使える
+Exact が付いている方は引数も戻り値もベクトルではないので注意
+
+ガンマ補正(Linear To Gamma, Linear To sRGB)で明るくなる
+UnityCG.cginc の LinearToGammaSpaceExact(float value) や LinearToGammaSpace が使える
+Exact が付いている方は引数も戻り値もベクトルではないので注意
 
 Unityはリニアワークフローを推奨しているがUnity2019のデフォルト設定はガンマワークフローになっている（罠）
 VRChatはリニアワークフローである

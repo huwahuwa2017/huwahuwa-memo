@@ -157,6 +157,8 @@ Shader"Custom/Example"
 #define UNITY_MATRIX_VP unity_MatrixVP
 #define UNITY_MATRIX_M unity_ObjectToWorld
 
+
+
 // 下記の変数はCPUから値が送られるのではなく、シェーダー内で計算される
 static float4x4 unity_MatrixMVP = mul(unity_MatrixVP, unity_ObjectToWorld);
 static float4x4 unity_MatrixMV = mul(unity_MatrixV, unity_ObjectToWorld);
@@ -168,6 +170,14 @@ static float4x4 unity_MatrixITMV = transpose(mul(unity_WorldToObject, unity_Matr
 #define UNITY_MATRIX_MV
 #define UNITY_MATRIX_T_MV
 #define UNITY_MATRIX_IT_MV
+
+
+
+// ShadowCaster では使えない
+float4x4 unity_CameraProjection;
+float4x4 unity_CameraInvProjection;
+float4x4 unity_WorldToCamera;
+float4x4 unity_CameraToWorld;
 
 
 
@@ -197,6 +207,10 @@ struct V2F
     float3 wTangent : TEXCOORD1;
     float3 wBinormal : TEXCOORD2;
     float3 wNormal : TEXCOORD3;
+    
+    // nointerpolation は頂点間の線形補間を無効化する
+    // おそらく三角形を構成している最初の頂点の値となる
+    nointerpolation float value : TEXCOORD4;
 };
 
 struct V2G
@@ -216,14 +230,6 @@ struct TessellationFactor
     float tessFactor[3] : SV_TessFactor;
     float insideTessFactor : SV_InsideTessFactor;
 };
-
-
-
-// ShadowCaster では使えない
-float4x4 unity_CameraProjection;
-float4x4 unity_CameraInvProjection;
-float4x4 unity_WorldToCamera;
-float4x4 unity_CameraToWorld;
 
 
 
@@ -310,6 +316,21 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 // サンプラーを無視して処理速度を優先する
 #define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
 #define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
+
+#define TEXTURE_READ_CLAMP_INDEX(tex, index) tex[uint2(clamp(index, 0, uint2(tex##_TexelSize.zw) - 1))]
+#define TEXTURE_READ_REPEAT_INDEX(tex, index) tex[uint2((index) % uint2(tex##_TexelSize.zw))]
+
+
+
+// 逆ガンマ補正 暗くなる
+#define SRGB_TO_XYZ(value)\
+value = saturate(value);\
+value = (value <= 0.04045) ? (value / 12.92) : pow((value + 0.055) / 1.055, 2.4);
+
+// ガンマ補正 明るくなる
+#define XYZ_TO_SRGB(value)\
+value = saturate(value);\
+value = (value <= 0.0031308) ? (value * 12.92) : (pow(value, 1.0 / 2.4) * 1.055 - 0.055);
 
 
 
