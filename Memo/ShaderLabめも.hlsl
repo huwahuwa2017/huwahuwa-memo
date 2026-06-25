@@ -47,8 +47,21 @@ Shader"Custom/Example"
         // https://docs.unity3d.com/ja/2022.3/Manual/SL-SubShaderTags.html
         Tags
         {
+            // Queue が 2500 以下は不透明 (Render.OpaqueGeometry)
+            // Queue が 2500 以下かつ同じ値のオブジェクトが複数ある場合、
+            // ランダムな順番(ソートしない)で描画する
+            
+            // Queue が 2501 以上は半透明   (Render.TransparentGeometry)
+            // Queue が 2501 以上かつ同じ値のオブジェクトが複数ある場合、
+            // 遠いオブジェクトから先に描画する
+            
+            // Background = 1000, Geometry = 2000, AlphaTest = 2450, Transparent = 3000, Overlay = 4000
             "Queue" = "Background" "Geometry" "AlphaTest" "Transparent" "Overlay" "Overlay+815199"
+            
+            // 動的バッチングを無効化する
             "DisableBatching" = "True"
+            
+            // プロジェクターコンポーネントの対象外にする
             "IgnoreProjector" = "True"
             
             // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderReplacement.html
@@ -244,6 +257,7 @@ sampler2D _MainTex;
 Texture2D _MainTex;
 SamplerState sampler_MainTex;
 
+// float4(1.0/width, 1.0/height, width, height)
 float4 _MainTex_TexelSize;
 
 
@@ -313,11 +327,13 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
-// サンプラーを無視して処理速度を優先する
 #define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
+
 #define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
-#define TEXTURE_READ_CLAMP_INDEX(tex, index) tex[uint2(clamp(index, 0, uint2(tex##_TexelSize.zw) - 1))]
+// 2026-06-24 update
+#define TEXTURE_READ_CLAMP_INDEX(tex, index) tex[uint2(clamp(index, 0, int2(tex##_TexelSize.zw) - 1))]
+
 #define TEXTURE_READ_REPEAT_INDEX(tex, index) tex[uint2((index) % uint2(tex##_TexelSize.zw))]
 
 

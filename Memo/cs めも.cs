@@ -310,7 +310,54 @@ private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderInto
 
 
 
-static private Vector4 GetZBufferParams()
+// Camera.worldToCameraMatrix の再現
+private static Matrix4x4 CameraWorldToCameraMatrix(Vector3 position, Quaternion rotation)
+{
+    Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+    matrix = matrix.inverse;
+    matrix.SetRow(2, -matrix.GetRow(2));
+    return matrix;
+}
+
+// Camera.projectionMatrix の再現
+private static Matrix4x4 CameraProjectionMatrix(float fov, float aspect, float near, float far)
+{
+    float temp0 = 1f / Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad);
+    float temp1 = 1f / (near - far);
+
+    Matrix4x4 m = default;
+    m.m00 = temp0 / aspect;
+    m.m11 = temp0;
+    m.m22 = (far + near) * temp1;
+    m.m23 = 2f * far * near * temp1;
+    m.m32 = -1f;
+    return m;
+}
+
+// ChatGPT による Eric Lengyel の手法 (動作未確認)
+// Camera.CalculateObliqueMatrix の再現
+public static Matrix4x4 CalculateObliqueMatrix(Matrix4x4 projection, Vector4 clipPlane)
+{
+    Vector4 q;
+
+    q.x = (Mathf.Sign(clipPlane.x) + projection[0, 2]) / projection[0, 0];
+    q.y = (Mathf.Sign(clipPlane.y) + projection[1, 2]) / projection[1, 1];
+    q.z = -1.0f;
+    q.w = (1.0f + projection[2, 2]) / projection[2, 3];
+
+    Vector4 c = clipPlane * (2.0f / Vector4.Dot(clipPlane, q));
+
+    projection[2, 0] = c.x;
+    projection[2, 1] = c.y;
+    projection[2, 2] = c.z + 1.0f;
+    projection[2, 3] = c.w;
+
+    return projection;
+}
+
+
+
+private static Vector4 GetZBufferParams()
 {
     Camera camera = Camera.main;
     float nc = camera.nearClipPlane;
@@ -330,7 +377,7 @@ static private Vector4 GetZBufferParams()
     return zBufferParams;
 }
 
-static private float LinearEyeDepth(float z)
+private static float LinearEyeDepth(float z)
 {
     Vector4 zBufferParams = GetZBufferParams();
     return 1f / (zBufferParams.z * z + zBufferParams.w);

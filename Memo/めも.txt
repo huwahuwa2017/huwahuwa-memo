@@ -1,4 +1,30 @@
 ﻿
+PCに異常が発生したときに役に立つコマンド
+
+Dism.exe /Online /Cleanup-Image /RestoreHealth
+sfc /scannow
+chkdsk/f
+
+
+
+FXC
+HLSLをDXBC形式でコンパイルする
+
+DXC
+HLSLをDXIL形式やSPIR-V形式でコンパイルする
+
+
+
+_meshRenderer.material = _material;
+と
+_meshRenderer.sharedMaterial = _material;
+は同じ
+
+_material = _meshRenderer.material;
+と
+_material = _meshRenderer.sharedMaterial;
+は別物
+
 
 
 Harmony
