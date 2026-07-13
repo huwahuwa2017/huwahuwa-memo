@@ -1,4 +1,4 @@
-//Ver12 2024/09/03 20:34
+// v13 2026-07-13 16:21
 
 #if !defined(HUWA_PERLIN_NOISE_INCLUDED)
 #define HUWA_PERLIN_NOISE_INCLUDED
@@ -24,26 +24,6 @@ static int4 _HPN_PositionShift[] =
     int4(0, 1, 1, 1),
     int4(1, 1, 1, 1)
 };
-
-int HPN_IntLerp(int x, int y, int s)
-{
-    return x + (y - x) * s;
-}
-
-int2 HPN_IntLerp(int2 x, int2 y, int2 s)
-{
-    return x + (y - x) * s;
-}
-
-int3 HPN_IntLerp(int3 x, int3 y, int3 s)
-{
-    return x + (y - x) * s;
-}
-
-int4 HPN_IntLerp(int4 x, int4 y, int4 s)
-{
-    return x + (y - x) * s;
-}
 
 void HPN_Lerp1D(float input[2], float s, out float result)
 {
@@ -78,8 +58,8 @@ void HPN_Lerp4D(float input[16], float s, out float result[8])
 
 float HPN_Smooth(float t)
 {
-    return t * t * (t * -2.0 + 3.0);
-    //return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+    //return t * t * (t * -2.0 + 3.0);
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
 float PerlinNoise(float input, uint repetition)
@@ -97,7 +77,7 @@ float PerlinNoise(float input, uint repetition)
         int shift = _HPN_PositionShift[index].x;
         
         int target = inputInt + shift;
-        target = HPN_IntLerp(target % repetition, target, flag);
+        target = flag ? target : (target % repetition);
         
         uint random = ValueToRandom(target);
         float randomFloat = RandomToFloat(random);
@@ -127,7 +107,7 @@ float PerlinNoise(float2 input, uint2 repetition)
         int2 shift = _HPN_PositionShift[index].yx;
         
         int2 target = inputInt + shift;
-        target = HPN_IntLerp(target % repetition, target, flag);
+        target = flag ? target : (target % repetition);
         
         uint random = ValueToRandom(target);
         float2 randomFloat = float2(RandomToFloat(random), UpdateRandomToFloat(random));
@@ -159,7 +139,7 @@ float PerlinNoise(float3 input, uint3 repetition)
         int3 shift = _HPN_PositionShift[index].zyx;
         
         int3 target = inputInt + shift;
-        target = HPN_IntLerp(target % repetition, target, flag);
+        target = flag ? target : (target % repetition);
         
         uint random = ValueToRandom(target);
         float3 randomFloat = float3(RandomToFloat(random), UpdateRandomToFloat(random), UpdateRandomToFloat(random));
@@ -193,7 +173,7 @@ float PerlinNoise(float4 input, uint4 repetition)
         int4 shift = _HPN_PositionShift[index].wzyx;
         
         int4 target = inputInt + shift;
-        target = HPN_IntLerp(target % repetition, target, flag);
+        target = flag ? target : (target % repetition);
         
         uint random = ValueToRandom(target);
         float4 randomFloat = float4(RandomToFloat(random), UpdateRandomToFloat(random), UpdateRandomToFloat(random), UpdateRandomToFloat(random));
