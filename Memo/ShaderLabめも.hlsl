@@ -87,8 +87,11 @@ Shader"Custom/Example"
         Pass
         {
             // https://docs.unity3d.com/ja/2022.3/Manual/shader-shaderlab-commands.html
+            AlphaToMask On
             Blend SrcAlpha OneMinusSrcAlpha
+            BlendOp
             ColorMask 0
+            Conservative True
             Cull Back Front Off
             Offset
             ZClip False
@@ -238,6 +241,12 @@ struct G2F
     float2 uv : TEXCOORD0;
 };
 
+struct F2O
+{
+    half4 color : SV_Target;
+    float depth : SV_Depth;
+};
+
 struct TessellationFactor
 {
     float tessFactor[3] : SV_TessFactor;
@@ -327,14 +336,22 @@ static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
 
 
-#define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
+#define TEX2D_LOAD_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
 
-#define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
+#define TEX2D_LOAD_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
 // 2026-06-24 update
-#define TEXTURE_READ_CLAMP_INDEX(tex, index) tex[uint2(clamp(index, 0, int2(tex##_TexelSize.zw) - 1))]
+#define TEX2D_LOAD_CLAMP_INDEX(tex, index) tex[uint2(clamp(index, 0, int2(tex##_TexelSize.zw) - 1))]
 
-#define TEXTURE_READ_REPEAT_INDEX(tex, index) tex[uint2((index) % uint2(tex##_TexelSize.zw))]
+// 2026-07-02 update
+uint2 RepeatIndex(int2 index, uint2 size)
+{
+    uint2 temp = uint2(abs(index)) % size;
+    return ((index < 0) && (temp != 0)) ? size - temp : temp;
+}
+
+#define TEX2D_LOAD_REPEAT_INDEX(tex, index) tex[RepeatIndex(index, tex##_TexelSize.zw)]
+
 
 
 
@@ -389,6 +406,16 @@ float3 wCameraDir = -UNITY_MATRIX_V[2].xyz;
 
 //ƒJƒƒ‰‚ªŒü‚¢‚Ä‚¢‚é•ûŒü(Local)
 float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
+
+
+
+
+
+float3 HSVToRGB(float h, float s, float v)
+{
+    float3 rgb = saturate(abs(frac(h + float3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0);
+    return v * lerp(float3(1.0, 1.0, 1.0), rgb, s);
+}
 
 
 
