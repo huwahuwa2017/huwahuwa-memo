@@ -1,4 +1,4 @@
-// Ver4 2024-09-30 22:04
+// Ver5 2026-07-18 22:56
 
 /*
 RewriteStandardShader(MediumQuality)Çå≥Ç…çÏê¨
@@ -29,11 +29,11 @@ half HSL_InternalFunction_SurfaceReduction(half perceptualRoughness, half roughn
 #endif
 }
 
-half3 HSL_InternalFunction_Lighting(float3 unpackNormal, float3 wViewDir, float3 wLightDir, half3 diffColor, half3 specColor, half3 lightColor, half roughness)
+half3 HSL_InternalFunction_Lighting(float3 wNormal, float3 wViewDir, float3 wLightDir, half3 diffColor, half3 specColor, half3 lightColor, half roughness)
 {
-    half nl = saturate(dot(unpackNormal, wLightDir));
+    half nl = saturate(dot(wNormal, wLightDir));
     float3 halfDir = normalize(wLightDir + wViewDir);
-    float nh = saturate(dot(unpackNormal, halfDir));
+    float nh = saturate(dot(wNormal, halfDir));
     float lh = saturate(dot(wLightDir, halfDir));
     
     half3 specular;
@@ -54,7 +54,7 @@ half3 HSL_InternalFunction_Lighting(float3 unpackNormal, float3 wViewDir, float3
     return (diffColor + specular) * lightColor * nl;
 }
 
-half4 BRDF(float3 wPos, float3 unpackNormal, float3 wRayStartPos, half4 mainColor, half3 emissionColor, half3 ambient,
+half4 BRDF(float3 wPos, float3 wNormal, float3 wRayStartPos, half4 mainColor, half3 emissionColor, half3 ambient,
     half metallic, half smoothness, half occlusion, half directionalLightShadow)
 {
     half alpha = mainColor.a;
@@ -64,7 +64,7 @@ half4 BRDF(float3 wPos, float3 unpackNormal, float3 wRayStartPos, half4 mainColo
 #endif
     
     float3 wViewDir = normalize(wRayStartPos - wPos);
-    float3 wReflectDir = reflect(-wViewDir, unpackNormal);
+    float3 wReflectDir = reflect(-wViewDir, wNormal);
     
     half oneMinusReflectivity = unity_ColorSpaceDielectricSpec.a - metallic * unity_ColorSpaceDielectricSpec.a;
     half reflectivity = 1.0 - oneMinusReflectivity;
@@ -86,7 +86,7 @@ half4 BRDF(float3 wPos, float3 unpackNormal, float3 wRayStartPos, half4 mainColo
     {
         color = emissionColor;
         
-        half nv = abs(dot(unpackNormal, wViewDir));
+        half nv = abs(dot(wNormal, wViewDir));
         
         half3 giDiffuse = ambient;
         half3 giSpecular = UnityGI_IndirectSpecular(wPos, wReflectDir, perceptualRoughness, occlusion);
@@ -123,23 +123,23 @@ half4 BRDF(float3 wPos, float3 unpackNormal, float3 wRayStartPos, half4 mainColo
     
     half3 lightColor = _LightColor0.rgb * directionalLightShadow;
     float3 wLightDir = normalize(_WorldSpaceLightPos0.xyz - wPos * _WorldSpaceLightPos0.w);
-    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[0].rgb * pointLightAtten.x;
     wLightDir = pointLightDir0;
-    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[1].rgb * pointLightAtten.y;
     wLightDir = pointLightDir1;
-    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[2].rgb * pointLightAtten.z;
     wLightDir = pointLightDir2;
-    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[3].rgb * pointLightAtten.w;
     wLightDir = pointLightDir3;
-    color += HSL_InternalFunction_Lighting(unpackNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
 #if !(defined(_MODE_ALPHABLEND_ON) || defined(_MODE_ALPHAPREMULTIPLY_ON))
     alpha = 1.0;
