@@ -1,4 +1,4 @@
-// Ver5 2024-09-16 16:10
+// v6 2026-07-19 18:55
 
 // #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap
 
@@ -28,6 +28,17 @@ half HuwaCascadeShadow(uint2 pixelPos)
 #endif
 }
 
+half HuwaCascadeShadow_uv(float2 uv)
+{
+    uint2 pixelPos = uint2(clamp(uv, 0.0, 0.999999) * _ScreenParams.xy);
+    
+#if defined(UNITY_SINGLE_PASS_STEREO)
+    pixelPos.x += (unity_StereoEyeIndex) ? uint(_ScreenParams.x) : 0;
+#endif
+    
+    return HuwaCascadeShadow(pixelPos);
+}
+
 half HuwaCascadeShadow_cPos(float3 cPos_XYW)
 {
 #if !defined(HUWA_CASCADE_SHADOW_IS_AVAILABLE)
@@ -38,15 +49,7 @@ half HuwaCascadeShadow_cPos(float3 cPos_XYW)
     uv.y *= _ProjectionParams.x;
     uv = uv * 0.5 + 0.5;
     
-    uint2 screenSize = uint2(_ScreenParams.xy + 0.5);
-    uint2 pixelPos = uint2(uv * _ScreenParams.xy);
-    pixelPos = clamp(pixelPos, 0, screenSize - 1);
-    
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    pixelPos.x += (unity_StereoEyeIndex) ? screenSize.x : 0;
-#endif
-    
-    return HuwaCascadeShadow(pixelPos);
+    return HuwaCascadeShadow_uv(uv);
 }
 
 // cnssPos_XYW = ComputeNonStereoScreenPos(float4).xyw
@@ -58,15 +61,7 @@ half HuwaCascadeShadow_cnssPos(float3 cnssPos_XYW)
     
     float2 uv = cnssPos_XYW.xy / cnssPos_XYW.z;
     
-    uint2 screenSize = uint2(_ScreenParams.xy + 0.5);
-    uint2 pixelPos = uint2(uv * _ScreenParams.xy);
-    pixelPos = clamp(pixelPos, 0, screenSize - 1);
-    
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    pixelPos.x += (unity_StereoEyeIndex) ? screenSize.x : 0;
-#endif
-    
-    return HuwaCascadeShadow(pixelPos);
+    return HuwaCascadeShadow_uv(uv);
 }
 
 // csPos_XYW = ComputeScreenPos(float4).xyw
@@ -82,15 +77,7 @@ half HuwaCascadeShadow_csPos(float3 csPos_XYW)
     uv.x = uv.x * 2.0 - unity_StereoEyeIndex;
 #endif
     
-    uint2 screenSize = uint2(_ScreenParams.xy + 0.5);
-    uint2 pixelPos = uint2(uv * _ScreenParams.xy);
-    pixelPos = clamp(pixelPos, 0, screenSize - 1);
-    
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    pixelPos.x += (unity_StereoEyeIndex) ? screenSize.x : 0;
-#endif
-    
-    return HuwaCascadeShadow(pixelPos);
+    return HuwaCascadeShadow_uv(uv);
 }
 
 #endif // #if !defined(HUWA_CASCADE_SHADOW)
