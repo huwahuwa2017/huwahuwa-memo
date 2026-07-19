@@ -1,16 +1,24 @@
-// v2 2026-05-21 05:30
+// Ver5 2026-07-18 22:56
 
-// äÓñ{ìIÇ… UNITY_PBS_USE_BRDF2 (Medium Quality) Ç∆ÇŸÇ⁄ìØÇ∂åvéZéÆÇæÇ™ÅA
-// àÍïîÇÕ UNITY_PBS_USE_BRDF1 (High Quality) ÇÃåvéZéÆÇ…Ç»Ç¡ÇƒÇ¢ÇÈ
+/*
+RewriteStandardShader(MediumQuality)Çå≥Ç…çÏê¨
 
-#if !defined(HUWA_SIMPLE_LIT)
-#define HUWA_SIMPLE_LIT
+half nv = saturate(dot(wNormal, wViewDir));
+Pow4(1.0 - nv)
+Å´
+roughness = max(roughness, 0.002);
+half nv = abs(dot(wNormal, wViewDir));
+Pow5(1.0 - nv)
+*/
+
+#if !defined(HUWA_STANDARD_LIT)
+#define HUWA_STANDARD_LIT
 
 #include "RewriteUnityGlobalIllumination.hlsl"
 
 half4 _LightColor0;
 
-half SurfaceReduction(half perceptualRoughness, half roughness)
+half HSL_InternalFunction_SurfaceReduction(half perceptualRoughness, half roughness)
 {
 #if defined(UNITY_COLORSPACE_GAMMA)
     // 1-0.28*x^3 as approximation for (1/(x^4+1))^(1/2.2) on the domain [0;1]
@@ -21,7 +29,7 @@ half SurfaceReduction(half perceptualRoughness, half roughness)
 #endif
 }
 
-half3 BRDF_Lighting(float3 wNormal, float3 wViewDir, float3 wLightDir, half3 diffColor, half3 specColor, half3 lightColor, half roughness)
+half3 HSL_InternalFunction_Lighting(float3 wNormal, float3 wViewDir, float3 wLightDir, half3 diffColor, half3 specColor, half3 lightColor, half roughness)
 {
     half nl = saturate(dot(wNormal, wLightDir));
     float3 halfDir = normalize(wLightDir + wViewDir);
@@ -46,8 +54,8 @@ half3 BRDF_Lighting(float3 wNormal, float3 wViewDir, float3 wLightDir, half3 dif
     return (diffColor + specular) * lightColor * nl;
 }
 
-half4 BRDF(float3 wPos, float3 wNormal, float2 uv, half4 mainColor, half3 emissionColor,
-           half3 ambient, half metallic, half smoothness, half occlusion, half cascadeShadow)
+half4 BRDF(float3 wPos, float3 wNormal, float3 wRayStartPos, half4 mainColor, half3 emissionColor, half3 ambient,
+    half metallic, half smoothness, half occlusion, half directionalLightShadow)
 {
     half alpha = mainColor.a;
     
@@ -55,13 +63,14 @@ half4 BRDF(float3 wPos, float3 wNormal, float2 uv, half4 mainColor, half3 emissi
     clip(alpha - _Cutoff);
 #endif
     
-    float3 wViewDir = normalize(_WorldSpaceCameraPos - wPos);
+    float3 wViewDir = normalize(wRayStartPos - wPos);
+    float3 wReflectDir = reflect(-wViewDir, wNormal);
     
     half oneMinusReflectivity = unity_ColorSpaceDielectricSpec.a - metallic * unity_ColorSpaceDielectricSpec.a;
     half reflectivity = 1.0 - oneMinusReflectivity;
     
     half perceptualRoughness = 1.0 - smoothness;
-    half roughness = max(perceptualRoughness * perceptualRoughness, 0.002); // UNITY_PBS_USE_BRDF1 ÇÃåvéZéÆ
+    half roughness = max(perceptualRoughness * perceptualRoughness, 0.002);
     
     half3 albedo = mainColor.rgb;
     half3 diffColor = albedo * oneMinusReflectivity;
@@ -77,20 +86,19 @@ half4 BRDF(float3 wPos, float3 wNormal, float2 uv, half4 mainColor, half3 emissi
     {
         color = emissionColor;
         
-        float3 wReflectDir = reflect(-wViewDir, wNormal);
         half nv = abs(dot(wNormal, wViewDir));
         
         half3 giDiffuse = ambient;
         half3 giSpecular = UnityGI_IndirectSpecular(wPos, wReflectDir, perceptualRoughness, occlusion);
         
         half grazingTerm = saturate(smoothness + reflectivity);
-        half surfaceReduction = SurfaceReduction(perceptualRoughness, roughness);
+        half surfaceReduction = HSL_InternalFunction_SurfaceReduction(perceptualRoughness, roughness);
         
         float pow5 = 1.0 - nv;
         pow5 = pow5 * pow5 * pow5 * pow5 * pow5;
         
         color += giDiffuse * diffColor;
-        color += giSpecular * lerp(specColor, grazingTerm, pow5) * surfaceReduction; // UNITY_PBS_USE_BRDF1 ÇÃåvéZéÆ
+        color += giSpecular * lerp(specColor, grazingTerm, pow5) * surfaceReduction;
     }
     
     float4 pointLightAtten;
@@ -113,25 +121,25 @@ half4 BRDF(float3 wPos, float3 wNormal, float2 uv, half4 mainColor, half3 emissi
         pointLightDir3 = float3(toLightX.w, toLightY.w, toLightZ.w) * corr.w;
     }
     
-    half3 lightColor = _LightColor0.rgb * cascadeShadow;
+    half3 lightColor = _LightColor0.rgb * directionalLightShadow;
     float3 wLightDir = normalize(_WorldSpaceLightPos0.xyz - wPos * _WorldSpaceLightPos0.w);
-    color += BRDF_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[0].rgb * pointLightAtten.x;
     wLightDir = pointLightDir0;
-    color += BRDF_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[1].rgb * pointLightAtten.y;
     wLightDir = pointLightDir1;
-    color += BRDF_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[2].rgb * pointLightAtten.z;
     wLightDir = pointLightDir2;
-    color += BRDF_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
     lightColor = unity_LightColor[3].rgb * pointLightAtten.w;
     wLightDir = pointLightDir3;
-    color += BRDF_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
+    color += HSL_InternalFunction_Lighting(wNormal, wViewDir, wLightDir, diffColor, specColor, lightColor, roughness);
     
 #if !(defined(_MODE_ALPHABLEND_ON) || defined(_MODE_ALPHAPREMULTIPLY_ON))
     alpha = 1.0;
@@ -140,4 +148,4 @@ half4 BRDF(float3 wPos, float3 wNormal, float2 uv, half4 mainColor, half3 emissi
     return half4(color, alpha);
 }
 
-#endif // #if !defined(HUWA_SIMPLE_LIT)
+#endif // #if !defined(HUWA_STANDARD_LIT)

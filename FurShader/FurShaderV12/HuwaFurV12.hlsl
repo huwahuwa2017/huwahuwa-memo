@@ -1,8 +1,8 @@
-// v12.4 2026-05-20 21:21
+// v12.5 2026-07-19 19:45
 
-#include "HuwaRandomNumberGenerator.hlsl"
-#include "HuwaCascadeShadow.hlsl"
-#include "HuwaSimpleLit.hlsl"
+#include "HuwaLib/HuwaRandomFunction.hlsl"
+#include "HuwaLib/HuwaCascadeShadow.hlsl"
+#include "HuwaLib/HuwaStandardLit.hlsl"
 
 Texture2D _MainTex;
 SamplerState sampler_MainTex;
@@ -65,8 +65,7 @@ static float _FurCulling = 0.5;
 static float _LOD = 15.0;
 
 // サンプラーを無視して処理速度を優先する
-#define TEXTURE_READ_CLAMP(tex, uv) tex[uint2(saturate(uv) * tex##_TexelSize.zw)]
-#define TEXTURE_READ_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
+#define TEX2D_LOAD_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
 // HuwaTexelReadWrite の一部
 static uint2 _HTRW_ReadTextureSize = 0;
@@ -153,6 +152,8 @@ half4 FragmentShaderStage_Skin(V2F_Skin input) : SV_Target
     float3 unpackNormal = UnpackNormal(_BumpMap.Sample(sampler_BumpMap, uv));
     unpackNormal = wTangent * unpackNormal.x + wBinormal * unpackNormal.y + wNormal * unpackNormal.z;
     
+    float3 wRayStartPos = _WorldSpaceCameraPos;
+    
     half4 mainColor = _MainTex.Sample(sampler_MainTex, uv);
     half3 emissionColor = _EmissionMap.Sample(sampler_EmissionMap, uv).rgb * _EmissionStrength;
     half4 mg = _MetallicGlossMap.Sample(sampler_MetallicGlossMap, uv);
@@ -161,7 +162,7 @@ half4 FragmentShaderStage_Skin(V2F_Skin input) : SV_Target
     
     half cascadeShadow = HuwaCascadeShadow(input.cPos.xy);
     
-    half4 result = BRDF(input.wPos, unpackNormal, uv, mainColor, emissionColor, input.ambient, mg.r, mg.a, occlusion, cascadeShadow);
+    half4 result = BRDF(input.wPos, unpackNormal, wRayStartPos, mainColor, emissionColor, input.ambient, mg.r, mg.a, occlusion, cascadeShadow);
     
     //half3 temp0 = TEXTURE_READ_REPEAT(_FurOcclusionTex, uv).rgb;
     half3 temp0 = _FurOcclusionTex.Sample(sampler_FurOcclusionTex, uv);
@@ -283,7 +284,7 @@ V2G_Fur DomainShaderStage_Fur(TessellationFactor_Fur tf, const OutputPatch<V2G_F
     output.wTangent = float4(bary.x * input[0].wTangent.xyz + bary.y * input[1].wTangent.xyz + bary.z * input[2].wTangent.xyz, input[0].wTangent.w);
     output.uv = bary.x * input[0].uv + bary.y * input[1].uv + bary.z * input[2].uv;
     output.ambient = bary.x * input[0].ambient + bary.y * input[1].ambient + bary.z * input[2].ambient;
-    output.seed = GenerateSeed(uint4(input[0].seed, input[1].seed, input[2].seed, GenerateSeed(bary)));
+    output.seed = ValueToRandom(uint4(input[0].seed, input[1].seed, input[2].seed, ValueToRandom(bary)));
     output.furCount = tf.furCount;
     return output;
 }
@@ -291,9 +292,9 @@ V2G_Fur DomainShaderStage_Fur(TessellationFactor_Fur tf, const OutputPatch<V2G_F
 [maxvertexcount(4)]
 void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F_Fur> stream)
 {
-    uint seed = GenerateSeed(uint3(input[0].seed, input[1].seed, input[2].seed));
+    uint seed = ValueToRandom(uint3(input[0].seed, input[1].seed, input[2].seed));
     
-    if (input[0].furCount + GenerateAbsFloat(seed) < 1.0)
+    if (input[0].furCount + UpdateRandomToFloatAbs(seed) < 1.0)
         return;
     
     half3 ambient;
@@ -322,7 +323,7 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
         
         float tangentW = input[0].wTangent.w;
         
-        float2 moveFactor = float2(GenerateAbsFloat(seed), GenerateAbsFloat(seed));
+        float2 moveFactor = float2(UpdateRandomToFloatAbs(seed), UpdateRandomToFloatAbs(seed));
         moveFactor = float2(1.0 - max(moveFactor.x, moveFactor.y), min(moveFactor.x, moveFactor.y));
         
         ambient = ambient_Origin + ambient_0 * moveFactor.x + ambient_1 * moveFactor.y;
@@ -333,7 +334,7 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
         wBinormal = normalize(cross(wNormal, wTangent) * tangentW);
     }
     
-    float3 lengthAndSink = TEXTURE_READ_REPEAT(_FurLengthTex, uv).rgb;
+    float3 lengthAndSink = TEX2D_LOAD_REPEAT(_FurLengthTex, uv).rgb;
     
     bool2 flag;
     flag.x = dot(normalize(wPosition - _WorldSpaceCameraPos), wNormal) > _FurCulling;
@@ -342,18 +343,20 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
     if (flag.x || flag.y)
         return;
     
-    float furLength = lengthAndSink.r * _FurLength * (1.0 - GenerateAbsFloat(seed) * _FurRandomLength);
+    float furLength = lengthAndSink.r * _FurLength * (1.0 - UpdateRandomToFloatAbs(seed) * _FurRandomLength);
     float furSink = lengthAndSink.g * _FurSink;
     
     half3 color;
     {
-        float3 unpackNormal = UnpackNormal(TEXTURE_READ_REPEAT(_BumpMap, uv));
+        float3 unpackNormal = UnpackNormal(TEX2D_LOAD_REPEAT(_BumpMap, uv));
         unpackNormal = wTangent * unpackNormal.x + wBinormal * unpackNormal.y + wNormal * unpackNormal.z;
         
-        half4 mainColor = TEXTURE_READ_REPEAT(_FurColorTex, uv);
-        half3 emissionColor = TEXTURE_READ_REPEAT(_EmissionMap, uv).rgb * _EmissionStrength;
-        half4 mg = TEXTURE_READ_REPEAT(_MetallicGlossMap, uv);
-        half occlusion = lerp(1.0, TEXTURE_READ_REPEAT(_OcclusionMap, uv).g, _OcclusionStrength);
+        float3 wRayStartPos = _WorldSpaceCameraPos;
+        
+        half4 mainColor = TEX2D_LOAD_REPEAT(_FurColorTex, uv);
+        half3 emissionColor = TEX2D_LOAD_REPEAT(_EmissionMap, uv).rgb * _EmissionStrength;
+        half4 mg = TEX2D_LOAD_REPEAT(_MetallicGlossMap, uv);
+        half occlusion = lerp(1.0, TEX2D_LOAD_REPEAT(_OcclusionMap, uv).g, _OcclusionStrength);
         
         float cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPosition, 1.0));
         
@@ -366,15 +369,15 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
         cascadeShadow = HuwaCascadeShadow_cPos(cPosShadow.xyw);
 #endif
         
-        color = BRDF(wPosition, unpackNormal, uv, mainColor, emissionColor, ambient, mg.r, mg.a, occlusion, cascadeShadow).rgb;
+        color = BRDF(wPosition, unpackNormal, wRayStartPos, mainColor, emissionColor, ambient, mg.r, mg.a, occlusion, cascadeShadow).rgb;
         color *= CameraOcclusion(cPos_W);
     }
     
     float3 furX, furY, furZ;
     {
-        float3 randomDirection = float3(GenerateFloat(seed), GenerateFloat(seed), GenerateAbsFloat(seed));
+        float3 randomDirection = float3(UpdateRandomToFloat(seed), UpdateRandomToFloat(seed), UpdateRandomToFloatAbs(seed));
         
-        furZ = UnpackNormal(TEXTURE_READ_REPEAT(_FurDirectionTex, uv));
+        furZ = UnpackNormal(TEX2D_LOAD_REPEAT(_FurDirectionTex, uv));
         furZ.z = lerp(furZ.z, randomDirection.z, _FurRandomDirectionZ * lengthAndSink.g);
         furZ.xy = lerp(furZ.xy, randomDirection.xy, _FurRandomDirectionXY);
         furZ.xy = normalize(furZ.xy) * sqrt(1.0 - furZ.z * furZ.z);
@@ -400,7 +403,7 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
     // output.data.z  is Occlusion
     G2F_Fur output = (G2F_Fur) 0;
     output.color = color;
-    output.random = uint2(GenerateUint(seed), GenerateUint(seed));
+    output.random = uint2(UpdateRandom(seed), UpdateRandom(seed));
     
     output.cPos = UnityWorldToClipPos(wPosition + temp30 + furX);
     output.data = half3(1.0, 0.0, temp41);
@@ -423,7 +426,7 @@ void GeometryShaderStage_Fur(triangle V2G_Fur input[3], inout TriangleStream<G2F
 
 half4 FragmentShaderStage_Fur(G2F_Fur input) : SV_Target
 {
-    half4 color = TEXTURE_READ_REPEAT(_FurBundleColorTex, input.data.xy);
+    half4 color = TEX2D_LOAD_REPEAT(_FurBundleColorTex, input.data.xy);
     float alpha = mad(color.a, _FurAlphaMul, _FurAlphaAdd);
     
 #if defined(_FUR_DITHERING)
