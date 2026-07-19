@@ -66,7 +66,8 @@ float _FurAlphaAdd;
 float _FurAlphaCutoff;
 
 
-static int _MaxFurCount = 25;
+// static int _MaxFurCount = 25;
+static int _MaxFurCount = 1;
 static int _MaxVertexCount = _MaxFurCount * 4;
 
 //static float _ShadowNormalOffset = 0.002;
@@ -135,6 +136,9 @@ half4 FragmentShaderStage_Skin(V2F_Skin input) : SV_Target
     //float3 temp0 = TEXTURE_READ_REPEAT(_FurOcclusionTex, uv).rgb;
     float3 temp0 = _FurOcclusionTex.Sample(sampler_FurOcclusionTex, uv);
     float furOcclusion = max(max(temp0.r, temp0.g), temp0.b);
+    
+    // furOcclusion = lerp(1.0 - _FurOcclusionStrength, 1.0, furOcclusion);
+    // Å´
     furOcclusion = lerp(1.0, furOcclusion, _FurOcclusionStrength);
     
     return result * furOcclusion;

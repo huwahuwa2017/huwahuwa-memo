@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 51a9afd3876f4144dabf121566e09029
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _furCountMaterial: {fileID: 2100000, guid: e0b148dc157c18c40ac4b248ac348708, type: 2}
+  - _normalizeMaterial: {fileID: 2100000, guid: cba1f0c9c001c6a42b3386e5f85bf9b0,
+      type: 2}
+  - _targetRenderer: {instanceID: 0}
+  - _furLengthTexture: {instanceID: 0}
+  - _tempRT0: {instanceID: 0}
+  - _tempRT1: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
