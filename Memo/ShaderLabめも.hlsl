@@ -22,6 +22,12 @@
 // Unity2022.3 UnityCG.cginc
 #define TRANSFORM_TEX(tex,name) (tex.xy * name##_ST.xy + name##_ST.zw)
 
+// Unity2022.3 UnityCG.cginc
+inline fixed3 UnpackNormal(fixed4 packednormal)
+
+// Unity2022.3 UnityCG.cginc
+fixed3 UnpackNormalWithScale(fixed4 packednormal, float scale)
+
 
 
 // Unity2022.3 UnityShaderVariables.cginc
@@ -225,6 +231,9 @@ Shader"Custom/Example"
         [NoScaleOffset]
         _MainTex("Skin Color Texture", 2D) = "white" {}
         
+		[NoScaleOffset][Normal]
+		_BumpMap("Normal Texture", 2D) = "bump" {}
+
         _ExampleName ("Cubemap", Cube) = "" {}
 
         _Color("Color", Color) = (1.0, 1.0, 1.0, 1.0)
@@ -240,7 +249,7 @@ Shader"Custom/Example"
         
         _MaxSize("Max Size", Float) = 0.1
         
-        [Header("ヘッダー名")]
+        [Header(#()._ HeaderName)]
         [Space(48)]
         
         // Unity 2020 以前
@@ -462,8 +471,8 @@ struct TessellationFactor
 
 
 
+// サンプラーを無視して処理速度を優先する
 #define TEX2D_LOAD_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
-
 #define TEX2D_LOAD_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
 // 2026-06-24 update
@@ -526,6 +535,11 @@ asfloat(0x3F7F0000);
 
 
 
+float3 wPos = mul(UNITY_MATRIX_M, input.lPos).xyz;
+float3 cPos = UnityWorldToClipPos(wPos);
+
+
+
 // unity_ObjectToWorld で ローカル座標系をワールド座標系にしてから、
 // UNITY_MATRIX_VP で ワールド座標系をクリップ座標系に変換する
 // w 成分は 1 に上書きされる
@@ -543,10 +557,6 @@ float4 colorB = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uv, _MainTex));
 
 
 
-float3 wPos = mul(UNITY_MATRIX_M, input.lPos).xyz;
-
-
-
 //カメラが向いている方向(World)
 float3 wCameraDir = -UNITY_MATRIX_I_V._m02_m12_m22;
 float3 wCameraDir = -UNITY_MATRIX_V._m20_m21_m22;
@@ -554,6 +564,17 @@ float3 wCameraDir = -UNITY_MATRIX_V[2].xyz;
 
 //カメラが向いている方向(Local)
 float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
+
+
+
+float TriangleWave(float input)
+{
+    // 0.0 からスタート
+    return abs(frac(input - 0.5) * 2.0 - 1.0);
+    
+    // 1.0 からスタート
+    return abs(frac(input) * 2.0 - 1.0);
+}
 
 
 
@@ -828,6 +849,14 @@ void MatrixMemoryLayout()
         a._21, a._22, a._23,
         a._31, a._32, a._33,
         a._41, a._42, a._43
+    );
+    
+    float4x3
+    (
+        a._m00_m01_m02,
+        a._m10_m11_m12,
+        a._m20_m21_m22,
+        a._m30_m31_m32
     );
 }
 
