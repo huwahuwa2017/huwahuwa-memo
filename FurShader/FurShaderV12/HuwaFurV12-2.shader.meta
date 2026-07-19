@@ -2,7 +2,19 @@ fileFormatVersion: 2
 guid: c72fceedb6a77e74a9054c2b5da29854
 ShaderImporter:
   externalObjects: {}
-  defaultTextures: []
+  defaultTextures:
+  - _MainTex: {instanceID: 0}
+  - _BumpMap: {instanceID: 0}
+  - _MetallicGlossMap: {instanceID: 0}
+  - _OcclusionMap: {instanceID: 0}
+  - _EmissionMap: {instanceID: 0}
+  - _FurOcclusionTex: {instanceID: 0}
+  - _FurColorTex: {instanceID: 0}
+  - _FurDirectionTex: {instanceID: 0}
+  - _FurLengthTex: {instanceID: 0}
+  - _FurCountTex: {instanceID: 0}
+  - _FurBundleColorTex: {instanceID: 0}
+  - _BayerMatrixTex: {instanceID: 0}
   nonModifiableTextures: []
   userData: 
   assetBundleName: 

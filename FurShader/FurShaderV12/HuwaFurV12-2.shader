@@ -2,6 +2,9 @@
 {
     Properties
     {
+        [Header(#  Skin Settings)]
+        [Space(24)]
+
         [NoScaleOffset]
         _MainTex("Skin Color Texture", 2D) = "white" {}
         [NoScaleOffset][Normal]
@@ -18,7 +21,9 @@
         [NoScaleOffset]
         _FurOcclusionTex("Fur Occlusion Texture", 2D) = "black" {}
         
-        [Space(48)]
+        [Space(24)]
+        [Header(#  Fur Settings)]
+        [Space(24)]
 
         [NoScaleOffset]
         _FurColorTex("Fur Color Texture", 2D) = "white" {}
