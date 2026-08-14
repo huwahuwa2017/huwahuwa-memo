@@ -247,16 +247,29 @@ Shader"Custom/Example"
         _Metallic("Metallic", Range(0.0, 1.0)) = 1.0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
         
+        [HideInInspector]
         _MaxSize("Max Size", Float) = 0.1
         
         [Header(#()._ HeaderName)]
         [Space(48)]
         
         // Unity 2020 以前
-        _Integer("Integer", Int) = 0
+        _Value("Value", Int) = 0
         
         // Unity 2021 以後
-        _ExampleName ("Integer display name", Integer) = 1
+        _Value("Value", Integer) = 1
+        
+        
+        
+        // https://github.com/huwahuwa2017/huwahuwa-memo/blob/main/Shader/Example/PropertiesKeyword.shader
+        // 変数名は何でもよい
+        [Toggle(_KEYWORD_TOGGLE_A)]
+        _TempA("Toggle", Int) = 0
+
+        // 変数名 + _ + KeywordEnumの値
+        // のキーワードが有効になる
+        [KeywordEnum(A, B, C)]
+        _KEYWORD_ENUM("KeywordEnum", Int) = 0
     }
     
     SubShader
@@ -842,14 +855,6 @@ void MatrixMemoryLayout()
         a._m20, a._m21, a._m22,
         a._m30, a._m31, a._m32
     );
-
-    float4x3
-    (
-        a._11, a._12, a._13,
-        a._21, a._22, a._23,
-        a._31, a._32, a._33,
-        a._41, a._42, a._43
-    );
     
     float4x3
     (
@@ -857,6 +862,14 @@ void MatrixMemoryLayout()
         a._m10_m11_m12,
         a._m20_m21_m22,
         a._m30_m31_m32
+    );
+    
+    float4x3
+    (
+        a._11, a._12, a._13,
+        a._21, a._22, a._23,
+        a._31, a._32, a._33,
+        a._41, a._42, a._43
     );
 }
 

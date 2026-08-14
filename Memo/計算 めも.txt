@@ -355,6 +355,19 @@ lerp(1.0, a, 1.0 - c) = lerp(1.0, c, 1.0 - a)
 
 
 
+// lerp(a, b, t)
+o = a + (b - a) * t
+
+// invLerp(a, b, o)
+t = (o - a) / (b - a)
+
+//remap
+lerp(c, d, invLerp(a, b, x))
+
+
+
+
+
 Row    行
 Column 列
 

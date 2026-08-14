@@ -1,5 +1,13 @@
 
 
+
+RenderTexture.active = rt;
+と
+Graphics.SetRenderTarget(rt);
+は同じ
+
+
+
 MToon NOTE
 tangent Sign は本来、+1 か -1 の値が望まれる。そしてこれは通常、三角形内ですべておなじ値である。
 しかし Unity 純正の Mesh.RecalculateTangents() を呼び出すと、頂点ごとに異なる tangent Sign を持つ三角形が生まれることがある。
