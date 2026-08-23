@@ -662,10 +662,25 @@ float2 MeterPerPixel(float cPos_W)
 
 
 
-// 補間
-float Smooth(float input)
+// 補間 (t は 0～1 の範囲)
+float Smooth(float t)
 {
-    return input * input * (3.0 - (2.0 * input));
+    return t * t * (t * -2.0 + 3.0);
+    
+    // Ken Perlin の Smooth関数
+    // パーリンノイズから法線マップを生成するときなど、特定の用途ではこちらの方が良い見た目になる
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+}
+
+float InvLerp(float a, float b, float input)
+{
+    return (input - a) / (b - a);
+}
+
+// 組み込み関数として存在するので、わざわざ実装しなくても良い
+float Smoothstep(float a, float b, float input)
+{
+    return Smooth(saturate(InvLerp(a, b, input)));
 }
 
 

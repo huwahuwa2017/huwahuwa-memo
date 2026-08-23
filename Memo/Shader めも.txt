@@ -1,11 +1,6 @@
 
 
 
-RenderTexture.active = rt;
-と
-Graphics.SetRenderTarget(rt);
-は同じ
-
 
 
 MToon NOTE

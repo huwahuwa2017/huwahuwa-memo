@@ -1,19 +1,6 @@
 ﻿
 
 
-HDRP/Lit で Emission を使うときは、Exposure weight を下げないと光らない
-
-Shader Graph の HD Scene Color を使うときは、Exposure をオンにすると白くなる現象を回避できる
-
-
-
-
-
-  Unity は 左手座標系 反時計回り
-Blender は 右手座標系 時計回り
-
-
-
 PCに異常が発生したときに役に立つコマンド
 
 Dism.exe /Online /Cleanup-Image /RestoreHealth
@@ -22,11 +9,30 @@ chkdsk/f
 
 
 
+  Unity は 左手座標系 反時計回り
+Blender は 右手座標系 時計回り
+
+
+
+
+HDRP/Lit で Emission を使うときは、Exposure weight を下げないと光らない
+
+Shader Graph の HD Scene Color を使うときは、Exposure をオンにすると白くなる現象を回避できる
+
+
+
 FXC
 HLSLをDXBC形式でコンパイルする
 
 DXC
 HLSLをDXIL形式やSPIR-V形式でコンパイルする
+
+
+
+RenderTexture.active = rt;
+と
+Graphics.SetRenderTarget(rt);
+は同じ
 
 
 
