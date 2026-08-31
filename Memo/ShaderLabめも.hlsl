@@ -231,8 +231,8 @@ Shader"Custom/Example"
         [NoScaleOffset]
         _MainTex("Skin Color Texture", 2D) = "white" {}
         
-		[NoScaleOffset][Normal]
-		_BumpMap("Normal Texture", 2D) = "bump" {}
+        [NoScaleOffset][Normal]
+        _BumpMap("Normal Texture", 2D) = "bump" {}
 
         _ExampleName ("Cubemap", Cube) = "" {}
 
@@ -990,6 +990,7 @@ float4 SVPosToCPos(float4 svPos)
 
 
 
+// https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
 // near clip面を考慮したRayの開始位置をWorld座標系で返す
 // 特殊な投影行列では使えないことがある
 float3 WorldRayStartPos(float4 cPos)

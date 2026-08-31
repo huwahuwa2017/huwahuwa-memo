@@ -141,48 +141,6 @@ a[n] = f(n)(0) / n!
 
 
 
-FP16
-符号部  1bit
-指数部  5bit
-仮数部 10bit
-
-          (1.仮数部) <<   (指数部 - 15)
-(1 + 仮数部 / 2＾10)  * 2^(指数部 - 15)
-
-例
-57 → 111001 → 1.11001 << 5
-
-指数部 = 5 + 15 = 20 = 10100
-仮数部 = 1100100000
-
-
-
-FP32
-符号部  1bit
-指数部  8bit
-仮数部 23bit
-
-          (1.仮数部) <<   (指数部 - 127)
-(1 + 仮数部 / 2＾23)  * 2^(指数部 - 127)
-
-例
-57 → 111001 → 1.11001 << 5
-
-指数部 = 5 + 127 = 132 = 10000100
-仮数部 = 11001000000000000000000
-
-
-
-// log2(x)の近似
-log2(a) ≈ (asuint(a) >> 23) - 127
-log2(a) ≈ asuint(a) / 2^23 - 127
-
-// 2^xの近似
-2^x ≈ asfloat((uint(x) + 127) << 23)
-2^x ≈ asfloat(uint((x + 127) * 2^23))
-
-
-
 Blenderで十角形から五芒星を作るための呪文
 (3 - sqrt(5)) / 2
 
@@ -195,67 +153,6 @@ Blenderで十角形から五芒星を作るための呪文
 y^2 = 0.75
 y   = 0.75^0.5
 y   = 0.86602540378443864676372317075294
-
-
-
-// Line SDF
-float3 p0, p1, pos;
-float3 edge = p1 - p0;
-float3 rp = pos - p0;
-
-float l = length(edge);
-float n = edge / l;
-float h = clamp(dot(rp, n), 0.0, l);
-float temp0 = length(rp - (n * h));
-↓
-float l = length(edge);
-float h = clamp(dot(rp, (edge / l)), 0.0, l);
-float temp0 = length(rp - ((edge / l) * h));
-↓
-float l = length(edge);
-float h = clamp(dot(rp, edge) / l, 0.0, l) / l;
-float temp0 = length(rp - (edge * h));
-↓
-float l = length(edge);
-float h = saturate(dot(rp, edge) / (l * l));
-float temp0 = length(rp - (edge * h));
-↓
-float h = saturate(dot(rp, edge) / dot(edge, edge));
-float temp0 = length(rp - (edge * h));
-
-
-
-// ベジェ曲線
-
-// 4ヶ所の座標
-float3 v0, v1, v2, v3;
-
-float3 lerp(float3 a, float3 b ,float t)
-{
-    return a + (b - a) * t;
-}
-
-float3 v4 = lerp(v0, v1, time);
-float3 v5 = lerp(v1, v2, time);
-float3 v6 = lerp(v2, v3, time);
-float3 v7 = lerp(v4, v5, time);
-float3 v8 = lerp(v5, v6, time);
-float3 result = lerp(v7, v8, time);
-↓
-float3 result = v0 + (v1 - v0) * (time * 3.0) + (v2 + v0 - v1 * 2.0) * (time * time * 3.0) + (v3 - v0 + (v1 - v2) * 3.0) * (time * time * time);
-↓
-float3 bccvA = v3 + (-v2 + v1) * 3.0 - v0;
-float3 bccvB = (v2 - v1 * 2.0 + v0) * 3.0;
-float3 bccvC = (v1 - v0) * 3.0;
-float3 bccvD = v0;
-float3 result = time * (time * (time * bccvA + bccvB) + bccvC) + bccvD;
-
-
-
-(x^2 + y^2)^0.5 =  1
- x^2 + y^2      =  1
-       y^2      =  1 - x^2
-       y        = (1 - x^2)^0.5
 
 
 
@@ -317,57 +214,6 @@ i^n で表現すれば、なんとかなるかもしれない
 
 
 
-// Smooth
-x * x * (3.0 - (2.0 * x))
-
-
-
-// hlslの関数の動作確認
-
-(a.x != 0.0 && a.y != 0.0 && a.z != 0.0) = all(a) = !any(a == 0.0) // すべての成分が0以外の場合1を返す
-(a.x != 0.0 || a.y != 0.0 || a.z != 0.0) = any(a) = !all(a == 0.0) // どれかの成分が0以外の場合1を返す
-
-(a.x == b.x && a.y == b.y && a.z == b.z) = all(a == b) = !any(a != b)
-(a.x == b.x || a.y == b.y || a.z == b.z) = any(a == b) = !all(a != b)
-
-( 4.0) % ( 1.5) = fmod( 4.0,  1.5) =  1.0;
-(-4.0) % ( 1.5) = fmod(-4.0,  1.5) = -1.0;
-( 4.0) % (-1.5) = fmod( 4.0, -1.5) =  1.0;
-(-4.0) % (-1.5) = fmod(-4.0, -1.5) = -1.0;
-
-frac( 1.25) = 0.25
-frac(-1.25) = 0.75
-frac( 1.75) = 0.75
-frac(-1.75) = 0.25
-
-step(x,y) = x >= y
-
-
-
-lerp(a, b, c) = a + (b - a) * c
-              = a * (1 - c) + b * c
-
-lerp(a, b, c) = lerp(b, a, 1.0 - c)
-
-      lerp(a, 1.0, c) = lerp(c, 1.0, a)
-                 ||       ||
-lerp(1.0, a, 1.0 - c) = lerp(1.0, c, 1.0 - a)
-
-
-
-// lerp(a, b, t)
-o = a + (b - a) * t
-
-// invLerp(a, b, o)
-t = (o - a) / (b - a)
-
-//remap
-lerp(c, d, invLerp(a, b, x))
-
-
-
-
-
 Row    行
 Column 列
 
@@ -406,13 +252,16 @@ BをAの逆行列と呼ぶ
 (ax, ay, az)・(bx, by, bz) = ax * bx + ay * by + az * bz
 
 
+
 例 3x3行列 A と 3次元ベクトル B の積
 
  ┌       ┐┌ ┐   ┌                  ┐   ┌                    ┐
  │a  b  c││j│   │Aの1行目・Bの1列目│   │(a, b, c)・(j, m, p)│
- │d  e  f││m│ = │Aの2行目・Bの1列目│ = │(d, e, f)・(j, m, p)│ = (a, d, g) * j + (b, e, h) * m + (c, f, i) * p
+ │d  e  f││m│ = │Aの2行目・Bの1列目│ = │(d, e, f)・(j, m, p)│
  │g  h  i││p│   │Aの3行目・Bの1列目│   │(g, h, i)・(j, m, p)│
  └       ┘└ ┘   └                  ┘   └                    ┘
+                  = (a, d, g) * j + (b, e, h) * m + (c, f, i) * p
+
 
 
 例 3x3行列 A と 3x3行列 B の積
@@ -647,7 +496,6 @@ A^-1(Av+W) = A^-1v'
    v+A^-1W = A^-1v'
          v = A^-1v'-A^-1W
          v = A^-1(v'-W)
-です。
 
 
 
@@ -856,18 +704,6 @@ k(-(a.y * b.x) +(a.x * b.y) +(a.w * b.z) +(a.z * b.w))
  (-(a.x * b.x) -(a.y * b.y) -(a.z * b.z) +(a.w * b.w))
 
 
-
-// 投影行列 DirectX
-x   0   0         0
-0   y   0         0
-0   0   n/(f-n)   nf/(f-n)
-0   0   -1        0
-
-// 逆Depth
-x   0   0          0
-0   y   0          0
-0   0   n/(f-n)   -n*n/(f-n)
-0   0   -1         n+f
 
 
 

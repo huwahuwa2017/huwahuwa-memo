@@ -1,5 +1,164 @@
 
 
+FXC
+HLSLをDXBC形式でコンパイルする
+
+DXC
+HLSLをDXIL形式やSPIR-V形式でコンパイルする
+
+
+
+FP16
+符号部  1bit
+指数部  5bit
+仮数部 10bit
+
+          (1.仮数部) <<   (指数部 - 15)
+(1 + 仮数部 / 2＾10)  * 2^(指数部 - 15)
+
+例
+57 → 111001 → 1.11001 << 5
+
+指数部 = 5 + 15 = 20 = 10100
+仮数部 = 1100100000
+
+
+
+FP32
+符号部  1bit
+指数部  8bit
+仮数部 23bit
+
+          (1.仮数部) <<   (指数部 - 127)
+(1 + 仮数部 / 2＾23)  * 2^(指数部 - 127)
+
+例
+57 → 111001 → 1.11001 << 5
+
+指数部 = 5 + 127 = 132 = 10000100
+仮数部 = 11001000000000000000000
+
+
+
+// log2(x)の近似
+log2(a) ≈ (asuint(a) >> 23) - 127
+log2(a) ≈ asuint(a) / 2^23 - 127
+
+// 2^xの近似
+2^x ≈ asfloat((uint(x) + 127) << 23)
+2^x ≈ asfloat(uint((x + 127) * 2^23))
+
+
+
+// hlslの関数の動作確認
+
+(a.x != 0.0 && a.y != 0.0 && a.z != 0.0) = all(a) = !any(a == 0.0) // すべての成分が0以外の場合1を返す
+(a.x != 0.0 || a.y != 0.0 || a.z != 0.0) = any(a) = !all(a == 0.0) // どれかの成分が0以外の場合1を返す
+
+(a.x == b.x && a.y == b.y && a.z == b.z) = all(a == b) = !any(a != b)
+(a.x == b.x || a.y == b.y || a.z == b.z) = any(a == b) = !all(a != b)
+
+( 4.0) % ( 1.5) = fmod( 4.0,  1.5) =  1.0;
+(-4.0) % ( 1.5) = fmod(-4.0,  1.5) = -1.0;
+( 4.0) % (-1.5) = fmod( 4.0, -1.5) =  1.0;
+(-4.0) % (-1.5) = fmod(-4.0, -1.5) = -1.0;
+
+frac( 1.25) = 0.25
+frac(-1.25) = 0.75
+frac( 1.75) = 0.75
+frac(-1.75) = 0.25
+
+step(x,y) = x >= y
+
+
+
+lerp(a, b, c) = a + (b - a) * c
+              = a * (1 - c) + b * c
+
+lerp(a, b, c) = lerp(b, a, 1.0 - c)
+
+      lerp(a, 1.0, c) = lerp(c, 1.0, a)
+                 ||       ||
+lerp(1.0, a, 1.0 - c) = lerp(1.0, c, 1.0 - a)
+
+
+
+// lerp(a, b, t)
+o = a + (b - a) * t
+
+// invLerp(a, b, o)
+t = (o - a) / (b - a)
+
+// remap
+lerp(c, d, invLerp(a, b, x))
+
+
+
+// Line SDF
+float3 p0, p1, pos;
+float3 edge = p1 - p0;
+float3 rp = pos - p0;
+
+float l = length(edge);
+float n = edge / l;
+float h = clamp(dot(rp, n), 0.0, l);
+float temp0 = length(rp - (n * h));
+↓
+float l = length(edge);
+float h = clamp(dot(rp, (edge / l)), 0.0, l);
+float temp0 = length(rp - ((edge / l) * h));
+↓
+float l = length(edge);
+float h = clamp(dot(rp, edge) / l, 0.0, l) / l;
+float temp0 = length(rp - (edge * h));
+↓
+float l = length(edge);
+float h = saturate(dot(rp, edge) / (l * l));
+float temp0 = length(rp - (edge * h));
+↓
+float h = saturate(dot(rp, edge) / dot(edge, edge));
+float temp0 = length(rp - (edge * h));
+
+
+
+// ベジェ曲線
+
+// 4ヶ所の座標
+float3 v0, v1, v2, v3;
+
+float3 lerp(float3 a, float3 b ,float t)
+{
+    return a + (b - a) * t;
+}
+
+float3 v4 = lerp(v0, v1, time);
+float3 v5 = lerp(v1, v2, time);
+float3 v6 = lerp(v2, v3, time);
+float3 v7 = lerp(v4, v5, time);
+float3 v8 = lerp(v5, v6, time);
+float3 result = lerp(v7, v8, time);
+↓
+float3 result = v0 + (v1 - v0) * (time * 3.0) + (v2 + v0 - v1 * 2.0) * (time * time * 3.0) + (v3 - v0 + (v1 - v2) * 3.0) * (time * time * time);
+↓
+float3 bccvA = v3 + (-v2 + v1) * 3.0 - v0;
+float3 bccvB = (v2 - v1 * 2.0 + v0) * 3.0;
+float3 bccvC = (v1 - v0) * 3.0;
+float3 bccvD = v0;
+float3 result = time * (time * (time * bccvA + bccvB) + bccvC) + bccvD;
+
+
+
+// 投影行列 DirectX
+x   0   0         0
+0   y   0         0
+0   0   n/(f-n)   nf/(f-n)
+0   0   -1        0
+
+// 逆Depth
+x   0   0          0
+0   y   0          0
+0   0   n/(f-n)   -n*n/(f-n)
+0   0   -1         n+f
 
 
 
@@ -133,7 +292,7 @@ DecodeFloatRG(_CameraDepthNormalsTexture[uint2(input.cPos.xy)].ba) * _Projection
 
 Camera.depthTextureMode の初期状態は DepthTextureMode.None
 
-DepthTextureMode は Flags 属性付き
+DepthTextureMode は Flags 属性付き Enum
 
 DepthTextureMode.Depth
 Texture2D _CameraDepthTexture;
@@ -231,20 +390,7 @@ TEXCOOD5：MA
 
 
 
-影
-UNITY_LIGHTING_COORDS & UNITY_TRANSFER_LIGHTING & UNITY_LIGHT_ATTENUATION
-UNITY_TRANSFER_LIGHTINGがLightMode=ForwardAddの時使用不可なので没
-
-LIGHTING_COORDS & TRANSFER_SHADOW & UNITY_LIGHT_ATTENUATION
-悪くない
-
-SHADOW_COORDS & TRANSFER_SHADOW & UNITY_LIGHT_ATTENUATION
-とても良い
-
-SHADOW_COORDS & TRANSFER_SHADOW & SHADOW_ATTENUATION
-ForwardBase専用　データ量をかなり小さくできる
-
-
+ShaderLabではDX11をDX9っぽく書けるようにするために色々な関数やマクロが追加されている
 
 DX9
 sampler2D Tex0;
@@ -254,8 +400,6 @@ DX11
 Texture2D<float4> Tex0 : register(t0);
 sampler Tex0Sampler : register(s0);
 float4 color = Tex0.Sample(Tex0Sampler, xy)
-
-ShaderLabではDX11をDX9っぽく書けるようにするために色々な関数やマクロが追加されている
 
 
 

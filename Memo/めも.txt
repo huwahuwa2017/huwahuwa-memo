@@ -9,23 +9,55 @@ chkdsk/f
 
 
 
+1アンペア = 毎秒 約6.2 * 10^18個の電子
+
+
+
+       認証   鍵交換         データ
+TLS → RSA  & 楕円曲線暗号 & aes
+
+
+
+均一なスケーリング
+uniform scaling
+
+
+
+
+
+NDC (Normalized Device Coordinates)
+クリップ座標を w で割ると出てくる値のこと
+xとy が -1 ～ 1 の領域が画面の描画範囲内となる
+
+
+
+enable = true, TargetTexture = None, TargetEye = None (MainDisplay)
+ピクセル数はリアルタイムで更新される
+一部の設定値 (ProjectionMatrix, Aspect) はワールド起動時に計算されるが、それ以降は更新されない (たぶん)
+fov は常に 60 になる
+デスクトップのモニターに表示されているウィンドウの情報を取得している?
+GetStereoProjectionMatrix は初期値を返す
+
+enable = true, TargetTexture = None, TargetEye = Both
+ピクセル数はリアルタイムで更新される
+GetStereoProjectionMatrix が使える
+リアルタイムで更新されるかどうかは不明 (変動させる方法がわからないので検証できない)
+m02 と m12 成分に 0 以外の値が入っていることを確認した
+
+enable = true, TargetTexture = 適当なRT, TargetEye = Both
+GetStereoProjectionMatrix は初期値を返す
+描画がおかしくなる  画面半分だけになったりする
+
+
+
   Unity は 左手座標系 反時計回り
 Blender は 右手座標系 時計回り
-
 
 
 
 HDRP/Lit で Emission を使うときは、Exposure weight を下げないと光らない
 
 Shader Graph の HD Scene Color を使うときは、Exposure をオンにすると白くなる現象を回避できる
-
-
-
-FXC
-HLSLをDXBC形式でコンパイルする
-
-DXC
-HLSLをDXIL形式やSPIR-V形式でコンパイルする
 
 
 
@@ -50,11 +82,6 @@ _material = _meshRenderer.sharedMaterial;
 
 Harmony
 Prefixメソッドの戻り値をboolにし、falseを返す事で元メソッドの処理をスキップする事ができる
-
-
-
-均一なスケーリング
-uniform scaling
 
 
 
@@ -103,10 +130,6 @@ https://developers.line.biz/ja/docs/messaging-api/using-flex-messages/
 
 
 
-1アンペア = 毎秒 約6.2 * 10^18個の電子
-
-
-
 TransformPoint     : 回転とスケールと位置
 TransformVector    : 回転とスケール
 TransformDirection : 回転
@@ -129,6 +152,8 @@ C:\Program Files\Unity\Hub\Editor\2022.3.8f1\Editor\Data\NetStandard\ref\2.1.0\n
 GUI.skin.labelなどのGUIStyleを取得する処理を実行するとき、
 EditorWindowのOnGUI内とMonoBehaviourのOnGUI内で違う結果になる可能性がある
 
+
+
 C#で生成したマテリアルをCommand Bufferで使用するとき、
 そのマテリアルの参照をフィールドなどに保持しておく必要がある
 そうしないとバグるときがある
@@ -141,8 +166,6 @@ AssetBundleは二種類存在する
 
 
 
-       認証   鍵交換         データ
-TLS → RSA  & 楕円曲線暗号 & aes
 
 
 

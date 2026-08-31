@@ -313,10 +313,21 @@ private Matrix4x4 ProbablyGetGPUProjectionMatrix(Matrix4x4 proj, bool renderInto
 // Camera.worldToCameraMatrix の再現
 private static Matrix4x4 CameraWorldToCameraMatrix(Vector3 position, Quaternion rotation)
 {
-    Matrix4x4 matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
-    matrix = matrix.inverse;
+    // スケールが1に設定されている camera.transform.localToWorldMatrix と同じ
+    Matrix4x4 cameraMatrix = Matrix4x4.TRS(position, rotation, Vector3.one);
+
+    Matrix4x4 matrix = Matrix4x4.Inverse(cameraMatrix);
     matrix.SetRow(2, -matrix.GetRow(2));
     return matrix;
+
+
+
+    // SetRow や SetColumn を使わない式
+    Matrix4x4 zFlipMatrix = Matrix4x4.Scale(new Vector3(1f, 1f, -1f));
+    return zFlipMatrix * Matrix4x4.Inverse(cameraMatrix);
+
+    // zFlipMatrix が自己逆行列であることを利用した式変形
+    return Matrix4x4.Inverse(cameraMatrix * zFlipMatrix);
 }
 
 // Camera.projectionMatrix の再現
