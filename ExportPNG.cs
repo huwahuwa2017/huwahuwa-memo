@@ -1,4 +1,4 @@
-// v4 2026-02-25 19:49
+// v6 2026-09-06 12:48
 
 #if UNITY_EDITOR
 
@@ -8,45 +8,26 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-namespace HuwaOutputPNG
+namespace HuwaExportPNG
 {
-    public static class OutputPNG
+    public static class ExportPNG
     {
-        [MenuItem("CONTEXT/Camera/Output png")]
-        private static void Output(MenuCommand menuCommand)
+        [MenuItem("CONTEXT/Camera/Export png")]
+        private static void Export(MenuCommand menuCommand)
         {
-            if (false)
-            {
-                string targetPath = EditorUtility.SaveFilePanel(string.Empty, "Assets", "texture", "png");
-
-                if (string.IsNullOrEmpty(targetPath))
-                    return;
-
-                ScreenCapture.CaptureScreenshot(targetPath);
-
-                return;
-            }
-
             Camera camera = menuCommand.context as Camera;
             RenderTexture temp = camera.targetTexture;
 
             if (temp == null)
             {
-                /*
-                string[] size = UnityStats.screenRes.Split('x');
-                int width = int.Parse(size[0]);
-                int height = int.Parse(size[1]);
-                */
-
                 int width = camera.pixelWidth;
                 int height = camera.pixelHeight;
 
-                RenderTextureDescriptor rtd = new RenderTextureDescriptor(width, height, GraphicsFormat.R8G8B8A8_SRGB, 32);
-                RenderTexture rt = new RenderTexture(rtd);
+                RenderTexture rt = new RenderTexture(width, height, 32, GraphicsFormat.R8G8B8A8_SRGB);
                 camera.targetTexture = rt;
                 camera.Render();
 
-                FPT_TextureOperation.OutputPNG_OpenDialog(rt);
+                HuwaExportPNG.FPT_TextureOperation.ExportPNG_OpenDialog(rt);
 
                 camera.targetTexture = temp;
 
@@ -54,7 +35,7 @@ namespace HuwaOutputPNG
             }
             else
             {
-                FPT_TextureOperation.OutputPNG_OpenDialog(temp);
+                HuwaExportPNG.FPT_TextureOperation.ExportPNG_OpenDialog(temp);
             }
         }
     }
@@ -91,27 +72,27 @@ namespace HuwaOutputPNG
 
 
 
-        public static void OutputPNG(string outputPath, Texture2D texture2D)
+        public static void ExportPNG(string path, Texture2D texture2D)
         {
             try
             {
-                if (string.IsNullOrEmpty(outputPath))
+                if (string.IsNullOrEmpty(path))
                     return;
 
-                Debug.Log($"Output png : {outputPath}\nGraphicsFormat : {texture2D.graphicsFormat}");
+                Debug.Log($"Export png : {path}\nGraphicsFormat : {texture2D.graphicsFormat}");
 
                 string dataPath = Application.dataPath;
 
-                if (!outputPath.StartsWith(dataPath))
+                if (!path.StartsWith(dataPath))
                 {
-                    File.WriteAllBytes(outputPath, texture2D.EncodeToPNG());
+                    File.WriteAllBytes(path, texture2D.EncodeToPNG());
                     return;
                 }
 
-                string relativePath = outputPath.Remove(0, dataPath.Length - 6);
+                string relativePath = path.Remove(0, dataPath.Length - 6);
                 bool existTextureImporter = AssetImporter.GetAtPath(relativePath) is TextureImporter;
 
-                File.WriteAllBytes(outputPath, texture2D.EncodeToPNG());
+                File.WriteAllBytes(path, texture2D.EncodeToPNG());
                 AssetDatabase.ImportAsset(relativePath);
 
                 if (existTextureImporter)
@@ -132,24 +113,24 @@ namespace HuwaOutputPNG
             }
         }
 
-        public static void OutputPNG(string outputPath, RenderTexture renderTexture)
+        public static void ExportPNG(string path, RenderTexture renderTexture)
         {
             Texture2D copyTexture2D = GenerateTexture2D(renderTexture);
             DataTransfer(renderTexture, copyTexture2D);
-            OutputPNG(outputPath, copyTexture2D);
+            ExportPNG(path, copyTexture2D);
             UnityEngine.Object.DestroyImmediate(copyTexture2D);
         }
 
-        public static void OutputPNG_OpenDialog(Texture2D texture2D)
+        public static void ExportPNG_OpenDialog(Texture2D texture2D)
         {
-            string outputPath = EditorUtility.SaveFilePanel("Output PNG", "Assets", "texture", "png");
-            OutputPNG(outputPath, texture2D);
+            string path = EditorUtility.SaveFilePanel("Export png", "Assets", "texture", "png");
+            ExportPNG(path, texture2D);
         }
 
-        public static void OutputPNG_OpenDialog(RenderTexture renderTexture)
+        public static void ExportPNG_OpenDialog(RenderTexture renderTexture)
         {
-            string outputPath = EditorUtility.SaveFilePanel("Output PNG", "Assets", "texture", "png");
-            OutputPNG(outputPath, renderTexture);
+            string path = EditorUtility.SaveFilePanel("Export png", "Assets", "texture", "png");
+            ExportPNG(path, renderTexture);
         }
     }
 }
