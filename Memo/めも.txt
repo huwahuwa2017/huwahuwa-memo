@@ -25,6 +25,21 @@ uniform scaling
 
 
 
+go.SetActive(bool)
+go が Active かを変更する
+
+go.activeSelf {get;}
+go が Active かを返す
+
+go.activeInHierarchy {get;}
+すべてのgoの親 と go が Active であれば true を返す
+
+
+
+Unity の Frame Debugger の Draw Dynamic は Graphics.Blit のこと
+
+
+
 NDC (Normalized Device Coordinates)
 クリップ座標を w で割ると出てくる値のこと
 xとy が -1 ～ 1 の領域が画面の描画範囲内となる

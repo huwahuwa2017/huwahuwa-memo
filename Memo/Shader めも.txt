@@ -1,5 +1,11 @@
 
 
+
+ColorMask 0 にすると、FragmentShaderStage は実行されなくなる
+FragmentShaderStage 以外が実行されなくなるかは不明
+
+
+
 FXC
 HLSLをDXBC形式でコンパイルする
 
