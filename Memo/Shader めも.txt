@@ -1,8 +1,20 @@
 
 
 
+
+
+                  HLSL  C#
+      UNITY_REVERSED_Z  SystemInfo.usesReversedZBuffer
+
+                  HLSL  C#
+UNITY_UV_STARTS_AT_TOP  SystemInfo.graphicsUVStartsAtTop
+
+
+
+
 ColorMask 0 にすると、FragmentShaderStage は実行されなくなる
 FragmentShaderStage 以外が実行されなくなるかは不明
+
 
 
 
@@ -11,6 +23,7 @@ HLSLをDXBC形式でコンパイルする
 
 DXC
 HLSLをDXIL形式やSPIR-V形式でコンパイルする
+
 
 
 
@@ -29,7 +42,6 @@ FP16
 仮数部 = 1100100000
 
 
-
 FP32
 符号部  1bit
 指数部  8bit
@@ -46,6 +58,7 @@ FP32
 
 
 
+
 // log2(x)の近似
 log2(a) ≈ (asuint(a) >> 23) - 127
 log2(a) ≈ asuint(a) / 2^23 - 127
@@ -53,6 +66,7 @@ log2(a) ≈ asuint(a) / 2^23 - 127
 // 2^xの近似
 2^x ≈ asfloat((uint(x) + 127) << 23)
 2^x ≈ asfloat(uint((x + 127) * 2^23))
+
 
 
 
@@ -78,6 +92,7 @@ step(x,y) = x >= y
 
 
 
+
 lerp(a, b, c) = a + (b - a) * c
               = a * (1 - c) + b * c
 
@@ -89,6 +104,7 @@ lerp(1.0, a, 1.0 - c) = lerp(1.0, c, 1.0 - a)
 
 
 
+
 // lerp(a, b, t)
 o = a + (b - a) * t
 
@@ -97,6 +113,7 @@ t = (o - a) / (b - a)
 
 // remap
 lerp(c, d, invLerp(a, b, x))
+
 
 
 
@@ -127,6 +144,7 @@ float temp0 = length(rp - (edge * h));
 
 
 
+
 // ベジェ曲線
 
 // 4ヶ所の座標
@@ -154,19 +172,6 @@ float3 result = time * (time * (time * bccvA + bccvB) + bccvC) + bccvD;
 
 
 
-// 投影行列 DirectX
-x   0   0         0
-0   y   0         0
-0   0   n/(f-n)   nf/(f-n)
-0   0   -1        0
-
-// 逆Depth
-x   0   0          0
-0   y   0          0
-0   0   n/(f-n)   -n*n/(f-n)
-0   0   -1         n+f
-
-
 
 MToon NOTE
 tangent Sign は本来、+1 か -1 の値が望まれる。そしてこれは通常、三角形内ですべておなじ値である。
@@ -175,8 +180,10 @@ tangent Sign は本来、+1 か -1 の値が望まれる。そしてこれは通
 
 
 
+
 FilterMode が Bilinera の tex2Dlod の lod は0.5で切り上げた値となる
 floor(lod + 0.5)と同じ
+
 
 
 
@@ -185,6 +192,7 @@ int a = b;
 ↓
 float b;
 int a = trunc(b);
+
 
 
 
@@ -219,7 +227,9 @@ int result = 2147483646
 
 
 
+
 matrix[0] よりも matrix._11_21_31_41 の方が命令数を節約できる
+
 
 
 
@@ -228,7 +238,6 @@ Tangent (接空間) 座標系
  ↓ transpose(float4x3(wTangent, wBinormal, wNormal, wPos)) で変換
 
 World 座標系
-
 
 
 Object (Local) 座標系
@@ -251,6 +260,7 @@ Screen 座標系
 
 
 
+
 // Clip 座標系から Screen 座標系へ変換
 (cPos.xy / cPos.w) * 0.5 + 0.5
 ↓
@@ -258,6 +268,7 @@ Screen 座標系
 ↓
 // ComputeNonStereoScreenPos とほぼ同じ処理
 (cPos.xy + cPos.ww) * 0.5 / cPos.w
+
 
 
 
@@ -269,23 +280,9 @@ Tessellation は問題ない
 
 
 
+
 Unity かつ DX11 では PSIZE セマンティクスは使えない
 
-
-
-DX11 の Depth
-depth = ((z*n)/(f-n) + (f*n)/(f-n))/-z
-depth = -(n/(f-n) + (f*n)/(f-n)/z)
-depth = -n/(f-n) - (f*n)/(f-n)/z
-depth + n/(f-n) = -(f*n)/(f-n)/z
-z*(depth + n/(f-n)) = -(f*n)/(f-n)
-z = -(f*n)/(f-n)/(depth + n/(f-n))
-z = -1/(depth*(f-n)/(f*n) + n/(f*n))
-z = -1/(depth*(1/n - 1/f) + 1/f)
-
-zBufferParams.z = 1/n - 1/f
-zBufferParams.w = 1/f
-z = 1 / (zBufferParams.z * depth + zBufferParams.w)
 
 
 
@@ -293,6 +290,7 @@ z = 1 / (zBufferParams.z * depth + zBufferParams.w)
 LinearEyeDepth(_CameraDepthTexture[uint2(input.cPos.xy)].r)
 Linear01Depth(_CameraDepthTexture[uint2(input.cPos.xy)].r) * _ProjectionParams.z
 DecodeFloatRG(_CameraDepthNormalsTexture[uint2(input.cPos.xy)].ba) * _ProjectionParams.z
+
 
 
 
@@ -311,7 +309,9 @@ Texture2D _CameraMotionVectorsTexture;
 
 
 
+
 ShadeSH9などの関数を使用したい場合は、LightMode を ForwardBase にする必要がある
+
 
 
 
@@ -320,6 +320,7 @@ CameraのClearFlagsの挙動
 SolidColor : Depthを初期化した後指定した色で塗りつぶしてからMeshを描画
  DepthOnly : Depthだけ初期化してMeshを描画
 Don'tClear : 何も初期化せずにMeshを描画
+
 
 
 
@@ -335,6 +336,7 @@ result = srcColor * srcColor.a + destColor * (1.0 - srcColor.a)
 Blend OneMinusDstColor OneMinusSrcAlpha
 ↓
 result = srcColor * (1.0 - destColor) + destColor * (1.0 - srcColor.a)
+
 
 
 
@@ -360,7 +362,11 @@ shader_feature で一つだけキーワードを宣言した場合
 
 
 
+
 V行列はShaderAPIに関わらず同じ形式で、Z軸が反転している
+これは OpenGL の座標系が右手系で、前方向が負の値になる仕様に合わせるためにこうなったと言われている
+具体的な計算方法は「cs めも.cs」の「Camera.worldToCameraMatrix の再現」に書いた
+
 
 
 
@@ -368,11 +374,88 @@ GL.GetGPUProjectionMatrix は投影行列の形式を OpenGL 形式から選択�
 Camera.projectionMatrix は内部で GL.GetGPUProjectionMatrix を実行していると予想している
 OpenGL 形式の投影行列を Material.SetMatrix でシェーダーに渡す場合に GL.GetGPUProjectionMatrix を使う
 
-P行列の m11 成分の符号は DirectX では- OpenGL では+になる
-P行列の m22 成分の符号は DirectX では+ OpenGL では-になる
-P行列の m23 成分の符号は DirectX では+ OpenGL では-になる
-
 Projector用MVP行列はShaderAPIに関わらず常にOpenGL系らしい(Unity2019で検証)
+
+
+
+
+OpenGL系
+
+通常のP行列で描画 (m11 成分の符号は+)
+↓
+画面に描画
+
+
+OpenGL系 (MSAAがオン、あるいは HDR がオン、あるいは PostProcess がオン、あるいは RenderTexture に描画結果を書き込む場合)
+
+通常のP行列で描画 (m11 成分の符号は+)
+↓
+レンダーテクスチャに書き込み
+↓
+MSAA やトーンマッピングや PostProcess などの処理を実行
+↓
+画面に描画
+
+
+
+
+DirectX系
+
+通常のP行列で描画 (m11 成分の符号は+)
+↓
+画面に描画
+
+
+DirectX系 (MSAAがオン、あるいは HDR がオン、あるいは PostProcess がオン、あるいは RenderTexture に描画結果を書き込む場合)
+
+Y軸が反転したP行列で描画 (m11 成分の符号は-)
+↓
+レンダーテクスチャに書き込み
+↓
+MSAA やトーンマッピングや PostProcess などの処理を実行
+↓
+画面に描画
+
+
+ClaudeAI の補足
+図に挙げられている MSAA / HDR / PostProcess / 明示的なRenderTexture 書き込みは、
+いずれも「最終的にバックバッファへ直接ではなく、いったん中間バッファを経由する」という点で共通しています。
+この他にも、Camera Stacking、Scene view表示自体(エディタが内部的にRTを使う)、
+URP/HDRPのようなパイプライン自体が常に中間バッファを使う設計、なども同じ「RTへの描画」カテゴリに含まれ、
+同様にDirectX系でのみ反転が起きます。
+
+
+
+
+// 投影行列 DirectX
+x   0   0         0
+0   y   0         0
+0   0   n/(f-n)   nf/(f-n)
+0   0   -1        0
+
+// 逆Depth
+x   0   0          0
+0   y   0          0
+0   0   n/(f-n)   -n*n/(f-n)
+0   0   -1         n+f
+
+
+
+
+DX11 の Depth
+depth = ((z*n)/(f-n) + (f*n)/(f-n))/-z
+depth = -(n/(f-n) + (f*n)/(f-n)/z)
+depth = -n/(f-n) - (f*n)/(f-n)/z
+depth + n/(f-n) = -(f*n)/(f-n)/z
+z*(depth + n/(f-n)) = -(f*n)/(f-n)
+z = -(f*n)/(f-n)/(depth + n/(f-n))
+z = -1/(depth*(f-n)/(f*n) + n/(f*n))
+z = -1/(depth*(1/n - 1/f) + 1/f)
+
+zBufferParams.z = 1/n - 1/f
+zBufferParams.w = 1/f
+z = 1 / (zBufferParams.z * depth + zBufferParams.w)
+
 
 
 
@@ -380,6 +463,7 @@ PNGとして出力と入力が両方可能な形式
 R8G8B8A8_UNorm
 R8_UNorm
 R16_UNorm
+
 
 
 
@@ -396,6 +480,7 @@ TEXCOOD5：MA
 
 
 
+
 ShaderLabではDX11をDX9っぽく書けるようにするために色々な関数やマクロが追加されている
 
 DX9
@@ -409,6 +494,7 @@ float4 color = Tex0.Sample(Tex0Sampler, xy)
 
 
 
+
 頂点シェーダーからフラグメントシェーダーに方向を表すベクトルを送る時、
 頂点シェーダー側で正規化してさらにフラグメントシェーダー側でも正規化していたのだが、
 頂点シェーダー側の正規化は必要ないかもしれない
@@ -416,9 +502,11 @@ float4 color = Tex0.Sample(Tex0Sampler, xy)
 
 
 
+
 "Queue" = "Overlay+2147479647"
 "Queue" = "Overlay+815199"
 (8192 * 100 - 1 ?)
+
 
 
 
@@ -432,7 +520,9 @@ Texture2D[uint2(input.cPos.xy)];
 
 
 
+
 vPos.z / 140000 = Zファイティングが発生するポリゴン同士の距離の目安
+
 
 
 
@@ -446,6 +536,7 @@ UV座標　　　　float
 単位ベクトル　float, half
 色　　　　　　half, fixed
 ↓要求精度が低い
+
 
 
 
@@ -467,6 +558,7 @@ pixelあたりの情報量は8bit
 BC7
 RGB,RGBA形式で使える High Quality Compression で出現
 pixelあたりの情報量は8bit
+
 
 
 
@@ -521,7 +613,6 @@ source → 逆ガンマ補正 → シェーダー → ガンマ補正 → dest
 
 
 
-
 UNITY_VERTEX_INPUT_INSTANCE_ID の処理
 Stage の入力構造体に変数を追加する
 
@@ -530,7 +621,6 @@ Stage の入力構造体に変数を追加する
 
 	(defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && !defined(SHADER_API_PSSL)
 	uint instanceID : SV_InstanceID;
-
 
 
 UNITY_VERTEX_OUTPUT_STEREO の処理
@@ -547,10 +637,8 @@ FragmentShaderStage の入力構造体に変数を追加する
 	uint stereoTargetEyeIndex : BLENDINDICES0;
 
 
-
 UNITY_SETUP_INSTANCE_ID(input) の処理
 unity_StereoEyeIndex や unity_InstanceID の上書きとその影響を受ける変数やマクロの更新
-
 
 
 UNITY_TRANSFER_INSTANCE_ID(input, output) の処理
@@ -558,7 +646,6 @@ UNITY_TRANSFER_INSTANCE_ID(input, output) の処理
 
 	defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
 	output.instanceID = UNITY_GET_INSTANCE_ID(input)
-
 
 
 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output) の処理

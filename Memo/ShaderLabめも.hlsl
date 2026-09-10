@@ -938,26 +938,24 @@ float3x3 LookRotation(float3 fv, float3 uv)
 // Rasterrizer Stage Ç»Ç«Ç≈ïœâªÇ∑ÇÈ SV_POSITION ÇçƒåªÇ∑ÇÈéÆ
 float4 CPosToSVPos(float4 cPos)
 {
-    
-//#if UNITY_UV_STARTS_AT_TOP
-//    cPos.y = -cPos.y;
-//#endif
-    
-    cPos.y *= _ProjectionParams.x;
-    
     cPos.xyz /= cPos.w;
     
-#if defined(UNITY_REVERSED_Z)
-    cPos.xy = cPos.xy * 0.5 + 0.5;
-#else
-    cPos.xyz = cPos.xyz * 0.5 + 0.5;
-#endif
+    #if defined(UNITY_UV_STARTS_AT_TOP)
+        // DirectX
+        cPos.y = -cPos.y;
+        cPos.xy = cPos.xy * 0.5 + 0.5;
+    #else
+        // OpenGL
+        cPos.xyz = cPos.xyz * 0.5 + 0.5;
+    #endif
     
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    cPos.x += unity_StereoEyeIndex;
-#endif
+    #if defined(UNITY_SINGLE_PASS_STEREO)
+        cPos.x += unity_StereoEyeIndex;
+    #endif
     
     cPos.xy *= _ScreenParams.xy;
+    
+    cPos.xy = floor(cPos.xy) + 0.5;
     
     return cPos;
 }
@@ -967,23 +965,20 @@ float4 SVPosToCPos(float4 svPos)
 {
     svPos.xy /= _ScreenParams.xy;
 
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    svPos.x -= unity_StereoEyeIndex;
-#endif
+    #if defined(UNITY_SINGLE_PASS_STEREO)
+        svPos.x -= unity_StereoEyeIndex;
+    #endif
     
-#if defined(UNITY_REVERSED_Z)
-    svPos.xy = svPos.xy * 2.0 - 1.0;
-#else
-    svPos.xyz = svPos.xyz * 2.0 - 1.0;
-#endif
+    #if defined(UNITY_UV_STARTS_AT_TOP)
+        // DirectX
+        svPos.xy = svPos.xy * 2.0 - 1.0;
+        svPos.y = -svPos.y;
+    #else
+        // OpenGL
+        svPos.xyz = svPos.xyz * 2.0 - 1.0;
+    #endif
 
     svPos.xyz *= svPos.w;
-    
-    svPos.y *= _ProjectionParams.x;
-    
-//#if UNITY_UV_STARTS_AT_TOP
-//    svPos.y = -svPos.y;
-//#endif
     
     return svPos;
 }

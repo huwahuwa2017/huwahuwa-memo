@@ -46,6 +46,8 @@ xとy が -1 ～ 1 の領域が画面の描画範囲内となる
 
 
 
+カメラから得られる ProjectionMatrix の調査
+
 enable = true, TargetTexture = None, TargetEye = None (MainDisplay)
 ピクセル数はリアルタイムで更新される
 一部の設定値 (ProjectionMatrix, Aspect) はワールド起動時に計算されるが、それ以降は更新されない (たぶん)
