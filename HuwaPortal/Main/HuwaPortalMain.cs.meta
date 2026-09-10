@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 5ecd1f7651f6a144eb74ca5dcc4e7dd6
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _udonSharpBackingUdonBehaviour: {instanceID: 0}
+  - _vrcsdReferenceCamera: {instanceID: 0}
+  - _portalCamera: {instanceID: 0}
+  - _materialDuplicator: {instanceID: 0}
+  - _portalMaterial: {fileID: 2100000, guid: fe36e5d6e65fb4b48a37a5fb82735586, type: 2}
+  - _stencilDepthWriteMaterial: {fileID: 2100000, guid: e50cf90a2a4cd1741b01778d41b0164c,
+      type: 2}
+  - _stencilDepthClearMaterial: {fileID: 2100000, guid: 38f8221a2faf84f4580854784f128af7,
+      type: 2}
+  - _stencilReplaceMaterial: {fileID: 2100000, guid: 5b2c5c0002729b64ba7c69a2e6b900e5,
+      type: 2}
+  - _dummyTexture: {fileID: 8400000, guid: 0a637af6dffae754a9932ada94dedfd0, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
