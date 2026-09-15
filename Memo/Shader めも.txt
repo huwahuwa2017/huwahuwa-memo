@@ -3,6 +3,63 @@
 
 
 
+_ColorMask("Color Mask", Float) = 15   // 動く
+_ColorMask("Color Mask", Int) = 15     // 動く
+_ColorMask("Color Mask", Integer) = 15 // 動かない
+
+
+
+
+Graphics.Blit 用 マテリアルのシェーダーは
+Properties { _MainTex("Main Texture", 2D) = "white" {} }
+を書かないと source が _MainTex に入らない
+
+
+
+
+#pragma を外部ファイルに書きたい場合は、#include_with_pragmas を使うと良いらしい
+
+
+
+
+Unity で GraphicsAPI が OpenGLCore でシェーダーを書く場合、丁寧に書かないとバグるときがある
+
+
+
+
+Unity の URP で Shader を書くとき、
+_ScaledScreenParams という変数が使える
+この変数は _ScreenParams とよく似ているが、
+WebGL Build などの特定条件下で挙動が変わる
+
+URP で Shader を書くときは
+_ScaledScreenParams を使おう
+
+
+
+
+Shader の Properties で整数を扱うときの注意点
+
+ちゃんと整数として定義したい時は
+_Test ("Test", Int) = 1
+ではなく
+_Test ("Test", Integer) = 1
+と書こう
+
+そして Integer として定義した値を C# で変更したい場合は、Material.SetInteger() を使おう
+
+
+
+
+depth : RenderTexture.depthStencilFormat (GraphicsFormat)
+    0 : None
+   16 : D16_UNorm
+   24 : D32_SFloat_S8_UInt
+   32 : D32_SFloat_S8_UInt
+
+
+
+
                   HLSL  C#
       UNITY_REVERSED_Z  SystemInfo.usesReversedZBuffer
 

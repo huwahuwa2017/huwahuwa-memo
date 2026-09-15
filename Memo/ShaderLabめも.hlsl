@@ -424,7 +424,7 @@ struct G2F
 
 struct F2O
 {
-    half4 color0 : SV_Target0;
+    half4 color0 : SV_Target;
     half4 color1 : SV_Target1;
     float depth : SV_Depth;
 };

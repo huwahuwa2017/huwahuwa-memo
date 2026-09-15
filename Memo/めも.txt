@@ -24,6 +24,13 @@ uniform scaling
 
 
 
+C＃でCamera.SetReplacementShaderを実行した場合と
+U＃でCamera.SetReplacementShaderを実行した場合で
+挙動が違う事を発見
+C＃の場合はRGBAがFP32のレンダーテクスチャに正確に値を書き込めるが、U＃だとFP16に変換されてしまう
+
+
+
 
 go.SetActive(bool)
 go が Active かを変更する
