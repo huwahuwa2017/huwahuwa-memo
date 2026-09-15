@@ -1,5 +1,5 @@
 ﻿
-// v3.13 2026-09-11 08:28
+// v3.14 2026-09-15 15:11
 
 using UdonSharp;
 using UnityEngine;
@@ -206,17 +206,20 @@ public class HuwaPortalMain : UdonSharpBehaviour
         if (target == null)
         {
             target = new RenderTexture[2];
+            target[0] = new RenderTexture(width, height, 32, RenderTextureFormat.ARGBHalf);
+            target[1] = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf);
         }
         else
         {
             target[0].Release();
             target[1].Release();
-            Destroy(target[0]);
-            Destroy(target[1]);
+            target[0].width = width;
+            target[1].width = width;
+            target[0].height = height;
+            target[1].height = height;
+            target[0].Create();
+            target[1].Create();
         }
-
-        target[0] = new RenderTexture(width, height, 32, RenderTextureFormat.ARGBHalf);
-        target[1] = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf);
 
         return target;
     }
