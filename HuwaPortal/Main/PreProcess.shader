@@ -1,4 +1,4 @@
-Shader "HuwaPortal/StencilDepthClear"
+Shader "HuwaPortal/PreProcess"
 {
     SubShader
     {
@@ -8,9 +8,10 @@ Shader "HuwaPortal/StencilDepthClear"
             "DisableBatching" = "True"
             "IgnoreProjector" = "True"
         }
-
+        
         Pass
         {
+            ColorMask 0
             ZTest Always
             ZWrite On
 
@@ -31,9 +32,9 @@ Shader "HuwaPortal/StencilDepthClear"
                 float4 cPos : SV_POSITION;
             };
             
-            Texture2D<uint> _StencilTex;
+            Texture2D<uint> _MainTex;
 
-            uint _StencilRef;
+            uint _StencilA;
 
             V2F VertexShaderStage(I2V input)
             {
@@ -57,9 +58,9 @@ Shader "HuwaPortal/StencilDepthClear"
                     float farDepth = 1.0;
                 #endif
 
-                uint data = _StencilTex[uint2(input.cPos.xy)].x;
-                float depth = (data == _StencilRef) ? farDepth : nearDepth;
-                depth = (_StencilRef > 255) ? farDepth : depth;
+                uint data = _MainTex[uint2(input.cPos.xy)].x;
+                float depth = (data == _StencilA) ? farDepth : nearDepth;
+                depth = (_StencilA > 255) ? farDepth : depth;
                 return depth;
             }
 

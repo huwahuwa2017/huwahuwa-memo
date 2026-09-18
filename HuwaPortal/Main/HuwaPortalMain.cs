@@ -1,5 +1,4 @@
-﻿
-// v4.0 2026-09-18 13:49
+﻿// v4.1 2026-09-18 22:24
 
 using UdonSharp;
 using UnityEngine;
@@ -44,27 +43,22 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Material _stencilDepthWriteMaterial = null;
 
     [SerializeField, HideInInspector]
-    private Material _stencilDepthClearMaterial = null;
+    private Material _preProcessMaterial = null;
 
     [SerializeField, HideInInspector]
-    private Material _stencilReplaceMaterial = null;
+    private Material _graphicsBlitMaterial = null;
 
     [SerializeField, HideInInspector]
     private Texture _dummyTexture = null;
 
 
-    [SerializeField]
-    private Material _debugMaterial = null; // Debug
-
-
     private int _leftCameraTexID = -1;
     private int _rightCameraTexID = -1;
     private int _photoCameraTexID = -1;
-    private int _stencilTexID = -1;
     private int _screenCameraPM_m11ID = -1;
     private int _photoCameraPM_m11ID = -1;
     private int _huwaPortalCameraModeID = -1;
-    private int _stencilRefID = -1;
+    private int _mainTexID = -1;
     private int _stencilAID = -1;
     private int _stencilBID = -1;
 
@@ -76,7 +70,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private int _allPortalCount = -1;
     private Renderer[] _allPortalRenderers = null;
     private Material[] _allOriginalMaterials = null;
-
 
 
     private int _queueSize = -1;
@@ -106,11 +99,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Matrix4x4 _photoCameraPM = Matrix4x4.identity;
 
 
-
     private Vector3 _offset = new Vector3(0f, 0.5f, 0f);
     Matrix4x4 _zFlipMatrix = Matrix4x4.Scale(new Vector3(1f, 1f, -1f));
     Plane[] _planesCache = new Plane[6];
-
 
 
     public void SetTargetQueueSize(int input)
@@ -122,7 +113,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
     {
         return _targetQueueSize;
     }
-
 
 
     private void Start()
@@ -158,11 +148,10 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _leftCameraTexID = VRCShader.PropertyToID("_LeftCameraTex");
         _rightCameraTexID = VRCShader.PropertyToID("_RightCameraTex");
         _photoCameraTexID = VRCShader.PropertyToID("_PhotoCameraTex");
-        _stencilTexID = VRCShader.PropertyToID("_StencilTex");
         _screenCameraPM_m11ID = VRCShader.PropertyToID("_ScreenCameraPM_m11");
         _photoCameraPM_m11ID = VRCShader.PropertyToID("_PhotoCameraPM_m11");
         _huwaPortalCameraModeID = VRCShader.PropertyToID("_HuwaPortalCameraMode");
-        _stencilRefID = VRCShader.PropertyToID("_StencilRef");
+        _mainTexID = VRCShader.PropertyToID("_MainTex");
         _stencilAID = VRCShader.PropertyToID("_StencilA");
         _stencilBID = VRCShader.PropertyToID("_StencilB");
 
@@ -190,7 +179,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
             pd.SetStencilDepthWriteMaterial(_materialDuplicator.material);
         }
     }
-
 
 
     public override void OnVRCCameraSettingsChanged(VRCCameraSettings cameraSettings)
@@ -273,13 +261,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     private void RenderPortal(Vector3 eyePos, Quaternion eyeRot, Matrix4x4 projectionMatrix, RenderTexture[] rts)
     {
-        _debugMaterial.SetTexture(VRCShader.PropertyToID("_MainTex"), rts[2]); // Debug
-
-
-
-
-        _stencilDepthClearMaterial.SetTexture(_stencilTexID, rts[3]);
-        _stencilReplaceMaterial.SetTexture(_stencilTexID, rts[3]);
+        _preProcessMaterial.SetTexture(_mainTexID, rts[3]);
         _portalStencilCamera.SetTargetBuffers(rts[2].colorBuffer, rts[0].depthBuffer);
         _portalCamera.SetTargetBuffers(rts[0].colorBuffer, rts[0].depthBuffer);
 
@@ -303,6 +285,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 renderer.sharedMaterial = _allPortals[index].GetStencilDepthWriteMaterial();
             }
 
+            // StencilReset
+            VRCGraphics.Blit(_dummyTexture, rts[2], _graphicsBlitMaterial, 0);
+
             while (_enqueueIndex > _dequeueIndex)
             {
                 // Dequeue
@@ -317,14 +302,12 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 if (renderPortal == null)
                 {
-                    _portalStencilCamera.clearFlags = CameraClearFlags.SolidColor;
                     visiblePortals = _allPortals;
                     clipPlaneTransform = null;
-                    targetStencil = 256;
+                    targetStencil = -1;
                 }
                 else
                 {
-                    _portalStencilCamera.clearFlags = CameraClearFlags.Nothing;
                     visiblePortals = renderPortal.GetVisiblePortals();
                     clipPlaneTransform = renderPortal.GetDestinationClipPlane();
                     targetStencil = _dequeueIndex;
@@ -364,25 +347,18 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     _queueParentIndex[_enqueueIndex] = _dequeueIndex;
 
                     Material material = pd.GetStencilDepthWriteMaterial();
-                    material.SetFloat(_stencilRefID, _enqueueIndex);
-
+                    material.SetFloat(_stencilAID, _enqueueIndex);
                     pd.GetRenderer().enabled = true;
 
                     ++_enqueueIndex;
                 }
 
-                _stencilDepthClearMaterial.SetFloat(_stencilRefID, targetStencil);
+                _preProcessMaterial.SetFloat(_stencilAID, targetStencil);
                 UpdateCameraMatrix(_portalStencilCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
                 _portalStencilCamera.Render();
 
-                // Color Format が UInt の場合は使えない
-                //VRCGraphics.Blit(rts[3], rts[2]);
-
-                // かわりにこれを使う
-                _stencilReplaceMaterial.SetTexture(_stencilTexID, rts[2]);
-                _stencilReplaceMaterial.SetFloat(_stencilAID, 255);
-                _stencilReplaceMaterial.SetFloat(_stencilBID, 255);
-                VRCGraphics.Blit(_dummyTexture, rts[3], _stencilReplaceMaterial);
+                // StencilCopy
+                VRCGraphics.Blit(rts[2], rts[3], _graphicsBlitMaterial, 1);
 
                 ++_dequeueIndex;
             }
@@ -401,6 +377,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 renderer.enabled = true;
             }
 
+            VRCGraphics.Blit(_dummyTexture, rts[0]);
+
             while (_dequeueIndex > 1)
             {
                 --_dequeueIndex;
@@ -418,25 +396,19 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     pd.GetRenderer().sharedMaterial = _portalMaterial;
                 }
 
-                _stencilDepthClearMaterial.SetFloat(_stencilRefID, _dequeueIndex);
+                _preProcessMaterial.SetFloat(_stencilAID, _dequeueIndex);
                 UpdateCameraMatrix(_portalCamera, cameraMatrix, projectionMatrix, renderPortal.GetDestinationClipPlane());
                 _portalCamera.Render();
 
-                _stencilReplaceMaterial.SetTexture(_stencilTexID, rts[3]); // あとで消す
-                _stencilReplaceMaterial.SetFloat(_stencilAID, _dequeueIndex);
-                _stencilReplaceMaterial.SetFloat(_stencilBID, parentIndex);
-                VRCGraphics.Blit(_dummyTexture, rts[2], _stencilReplaceMaterial);
-
-                // Color Format が UInt の場合は使えない
-                //VRCGraphics.Blit(rts[3], rts[2]);
-
-                // かわりにこれを使う
-                _stencilReplaceMaterial.SetTexture(_stencilTexID, rts[2]);
-                _stencilReplaceMaterial.SetFloat(_stencilAID, 255);
-                _stencilReplaceMaterial.SetFloat(_stencilBID, 255);
-                VRCGraphics.Blit(_dummyTexture, rts[3], _stencilReplaceMaterial);
-
                 VRCGraphics.Blit(rts[0], rts[1]);
+
+                // StencilReplace
+                _graphicsBlitMaterial.SetFloat(_stencilAID, _dequeueIndex);
+                _graphicsBlitMaterial.SetFloat(_stencilBID, parentIndex);
+                VRCGraphics.Blit(rts[3], rts[2], _graphicsBlitMaterial, 2);
+
+                // StencilCopy
+                VRCGraphics.Blit(rts[2], rts[3], _graphicsBlitMaterial, 1);
             }
         }
 
@@ -559,7 +531,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
         }
 
 
-
         _preProcess.enabled = true;
         _portalMaterial.SetFloat(_screenCameraPM_m11ID, _leftCameraPM.m11);
         _portalMaterial.SetFloat(_photoCameraPM_m11ID, _photoCameraPM.m11);
@@ -593,7 +564,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         //Debug.Log("End OnPreCull");
     }
-
 
 
 
