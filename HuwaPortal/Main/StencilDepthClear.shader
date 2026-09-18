@@ -1,108 +1,66 @@
 Shader "HuwaPortal/StencilDepthClear"
 {
-    Properties
-    {
-        _StencilRef("Stencil Ref", Float) = 0
-    }
-
     SubShader
     {
-        CGINCLUDE
-        
-        #pragma vertex VertexShaderStage
-        #pragma fragment FragmentShaderStage
-
-        #include "UnityCG.cginc"
-
-        struct I2V
+        Tags
         {
-            float4 lPos : POSITION;
-        };
-
-        struct V2F
-        {
-            float4 cPos : SV_POSITION;
-        };
-        
-        struct F2O
-        {
-            float depth : SV_Depth;
-        };
-
-        V2F VertexShaderStage(I2V input)
-        {
-            V2F output = (V2F) 0;
-            output.cPos = UnityObjectToClipPos(input.lPos);
-            return output;
-        }
-
-        ENDCG
-
-        Pass
-        {
-            ColorMask 0
-            ZTest Always
-
-            Stencil
-            {
-                Ref [_StencilRef]
-                Comp Equal
-                Pass Keep
-            }
-
-            CGPROGRAM
-
-            F2O FragmentShaderStage(V2F input)
-            {
-                // ç≈âìãóó£Ç DepthBuffer Ç…èëÇ´çûÇﬁ
-                float depth;
-
-                #if defined(UNITY_REVERSED_Z)
-                    // DirectX
-                    depth = 0.0;
-                #else
-                    // OpenGL
-                    depth = 1.0;
-                #endif
-
-                F2O output = (F2O) 0;
-                output.depth = depth;
-                return output;
-            }
-
-            ENDCG
+            "Queue" = "Geometry-1999"
+            "DisableBatching" = "True"
+            "IgnoreProjector" = "True"
         }
 
         Pass
         {
-            ColorMask 0
             ZTest Always
-
-            Stencil
-            {
-                Ref [_StencilRef]
-                Comp NotEqual
-                Pass Keep
-            }
+            ZWrite On
 
             CGPROGRAM
 
-            F2O FragmentShaderStage(V2F input)
-            {
-                // ç≈ãﬂãóó£Ç DepthBuffer Ç…èëÇ´çûÇﬁ
-                float depth;
+            #pragma vertex VertexShaderStage
+            #pragma fragment FragmentShaderStage
+            
+            #include "UnityCG.cginc"
 
+            struct I2V
+            {
+                float2 uv : TEXCOORD0;
+            };
+
+            struct V2F
+            {
+                float4 cPos : SV_POSITION;
+            };
+            
+            Texture2D<uint> _StencilTex;
+
+            uint _StencilRef;
+
+            V2F VertexShaderStage(I2V input)
+            {
+                float4 cPos = float4(input.uv * 2.0 - 1.0, 0.5, 1.0);
+                cPos.y *= _ProjectionParams.x;
+
+                V2F output = (V2F)0;
+                output.cPos = cPos;
+                return output;
+            }
+
+            float FragmentShaderStage(V2F input) : SV_Depth
+            {
                 #if defined(UNITY_REVERSED_Z)
                     // DirectX
-                    depth = 1.0;
+                    float nearDepth = 1.0;
+                    float farDepth = 0.0;
                 #else
                     // OpenGL
-                    depth = 0.0;
+                    float nearDepth = 0.0;
+                    float farDepth = 1.0;
                 #endif
 
-                F2O output = (F2O) 0;
-                output.depth = depth;
-                return output;
+                uint data = _StencilTex[uint2(input.cPos.xy)].x;
+                float depth = (data == _StencilRef) ? farDepth : nearDepth;
+                depth = (_StencilRef > 255) ? farDepth : depth;
+                return depth;
             }
 
             ENDCG
