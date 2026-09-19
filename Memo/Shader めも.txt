@@ -3,6 +3,42 @@
 
 
 
+
+
+
+
+カメラの描画結果を U8_UINT に保存してみた
+w成分も書き込めることを確認
+255 を超える値を書き込むと 255 にされる
+もちろん負の値を書き込むと 255 にされる
+
+HDR オン、 MSAA オフ
+{
+  Background の Solid Color
+  1より少しでも小さいと0、1だと255
+
+  Background の Skybox
+  0だと0、0より少しでも大きいと255
+
+  通常のオブジェクト
+  0だと0、0より少しでも大きいと255
+}
+
+HDR オフ、 MSAA オフ
+{
+  Background の Solid Color
+  1より少しでも小さいと0、1だと1
+
+  Background の Skybox
+  0だと0、0より少しでも大きいと255
+
+  通常のオブジェクト
+  0だと0、0より少しでも大きいと255
+}
+
+
+
+
 _ColorMask("Color Mask", Float) = 15   // 動く
 _ColorMask("Color Mask", Int) = 15     // 動く
 _ColorMask("Color Mask", Integer) = 15 // 動かない
@@ -51,15 +87,6 @@ _Test ("Test", Integer) = 1
 
 
 
-depth : RenderTexture.depthStencilFormat (GraphicsFormat)
-    0 : None
-   16 : D16_UNorm
-   24 : D32_SFloat_S8_UInt
-   32 : D32_SFloat_S8_UInt
-
-
-
-
                   HLSL  C#
       UNITY_REVERSED_Z  SystemInfo.usesReversedZBuffer
 
@@ -69,17 +96,7 @@ UNITY_UV_STARTS_AT_TOP  SystemInfo.graphicsUVStartsAtTop
 
 
 
-ColorMask 0 にすると、FragmentShaderStage は実行されなくなる
-FragmentShaderStage 以外が実行されなくなるかは不明
-
-
-
-
-FXC
-HLSLをDXBC形式でコンパイルする
-
-DXC
-HLSLをDXIL形式やSPIR-V形式でコンパイルする
+ColorMask 0 にすると、FragmentShaderStage(?) : SV_Target は実行されなくなる? (要検証)
 
 
 
@@ -372,15 +389,6 @@ ShadeSH9などの関数を使用したい場合は、LightMode を ForwardBase �
 
 
 
-CameraのClearFlagsの挙動
-    SkyBox : Depthを初期化した後SkyBoxを描画してからMeshを描画
-SolidColor : Depthを初期化した後指定した色で塗りつぶしてからMeshを描画
- DepthOnly : Depthだけ初期化してMeshを描画
-Don'tClear : 何も初期化せずにMeshを描画
-
-
-
-
 destColor はすでに描画している色
  srcColor は生成した色
 
@@ -454,8 +462,6 @@ MSAA やトーンマッピングや PostProcess などの処理を実行
 画面に描画
 
 
-
-
 DirectX系
 
 通常のP行列で描画 (m11 成分の符号は+)
@@ -473,6 +479,10 @@ MSAA やトーンマッピングや PostProcess などの処理を実行
 ↓
 画面に描画
 
+
+huwahuwa の補足
+_ProjectionParams.x が 1 だと通常のP行列、-1 だとY軸が反転したP行列となる
+ちなみに Graphics.Blit でも _ProjectionParams.x はちゃんと動いている
 
 ClaudeAI の補足
 図に挙げられている MSAA / HDR / PostProcess / 明示的なRenderTexture 書き込みは、
@@ -512,14 +522,6 @@ z = -1/(depth*(1/n - 1/f) + 1/f)
 zBufferParams.z = 1/n - 1/f
 zBufferParams.w = 1/f
 z = 1 / (zBufferParams.z * depth + zBufferParams.w)
-
-
-
-
-PNGとして出力と入力が両方可能な形式
-R8G8B8A8_UNorm
-R8_UNorm
-R16_UNorm
 
 
 

@@ -330,8 +330,8 @@ Shader"Custom/Example"
             Cull Back Front Off
             Offset
             ZClip False
-            ZTest Always
-            ZWrite Off
+            ZTest Always LEqual
+            ZWrite Off On
             
             Stencil
             {

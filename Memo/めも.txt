@@ -1,15 +1,22 @@
 ﻿
 
 
+
+
 PCに異常が発生したときに役に立つコマンド
 
-Dism.exe /Online /Cleanup-Image /RestoreHealth
+dism /Online /Cleanup-Image /ScanHealth
+dism /Online /Cleanup-Image /CheckHealth
+dism /Online /Cleanup-Image /RestoreHealth
 sfc /scannow
+
 chkdsk/f
 
 
 
+
 1アンペア = 毎秒 約6.2 * 10^18個の電子
+
 
 
 
@@ -18,8 +25,61 @@ TLS → RSA  & 楕円曲線暗号 & aes
 
 
 
+
 均一なスケーリング
 uniform scaling
+
+
+
+
+FXC
+HLSLをDXBC形式でコンパイルする
+
+DXC
+HLSLをDXIL形式やSPIR-V形式でコンパイルする
+
+
+
+
+material.SetTexture(id, renderTexture, RenderTextureSubElement.Stencil)
+が動かないときに確認すべきポイント
+
+カメラの HDR をオンにしている場合、RenderTexture の ColorFormat が HDR 用かを確認しよう
+
+そうしないと HDR → 非HDR の処理が発生して、Depth や Stencil が破棄されるらしい
+
+さらに
+renderTexture.stencilFormat = GraphicsFormat.R8_UInt
+を設定しなければならない
+
+renderTexture.depthStencilFormat = GraphicsFormat.D32_SFloat_S8_UInt
+だけでは足りない
+
+
+
+
+PNGとして出力と入力が両方可能な形式
+R8G8B8A8_UNorm
+R8_UNorm
+R16_UNorm
+
+
+
+
+CameraのClearFlagsの挙動
+    SkyBox : Depthを初期化してSkyBoxとMeshを描画
+SolidColor : Depthを初期化して指定した色で塗りつぶしてからMeshを描画
+ DepthOnly : Depthを初期化してMeshを描画
+Don'tClear : 何も初期化せずにMeshを描画
+
+
+
+
+depth : RenderTexture.depthStencilFormat (GraphicsFormat)
+    0 : None
+   16 : D16_UNorm
+   24 : D32_SFloat_S8_UInt
+   32 : D32_SFloat_S8_UInt
 
 
 
