@@ -37,7 +37,8 @@
                 return output;
             }
 
-            uint FragmentShaderStage(V2F input) : SV_Target
+            // SV_Target0 ではなく、 SV_Target1 であることに注意
+            uint FragmentShaderStage(V2F input) : SV_Target1
             {
                 return _StencilA;
             }

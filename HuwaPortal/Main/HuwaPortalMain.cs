@@ -1,4 +1,4 @@
-﻿// v4.1 2026-09-18 22:24
+﻿// v4.2 2026-09-19 15:05
 
 using UdonSharp;
 using UnityEngine;
@@ -102,6 +102,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Vector3 _offset = new Vector3(0f, 0.5f, 0f);
     Matrix4x4 _zFlipMatrix = Matrix4x4.Scale(new Vector3(1f, 1f, -1f));
     Plane[] _planesCache = new Plane[6];
+    RenderBuffer[] _renderBuffersCache = new RenderBuffer[2];
 
 
     public void SetTargetQueueSize(int input)
@@ -261,9 +262,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     private void RenderPortal(Vector3 eyePos, Quaternion eyeRot, Matrix4x4 projectionMatrix, RenderTexture[] rts)
     {
-        _preProcessMaterial.SetTexture(_mainTexID, rts[3]);
-        _portalStencilCamera.SetTargetBuffers(rts[2].colorBuffer, rts[0].depthBuffer);
+        _renderBuffersCache[0] = rts[0].colorBuffer;
+        _renderBuffersCache[1] = rts[2].colorBuffer;
+        _portalStencilCamera.SetTargetBuffers(_renderBuffersCache, rts[0].depthBuffer);
         _portalCamera.SetTargetBuffers(rts[0].colorBuffer, rts[0].depthBuffer);
+        _preProcessMaterial.SetTexture(_mainTexID, rts[3]);
 
         _enqueueIndex = 0;
         _dequeueIndex = 0;
@@ -275,18 +278,15 @@ public class HuwaPortalMain : UdonSharpBehaviour
         // _portalStencilCamera の処理
         // どの _queueRenderPortal のレンダリング結果を保持するのか、という情報をステンシルに書き込む
         {
+            // StencilReset
+            VRCGraphics.Blit(_dummyTexture, rts[2], _graphicsBlitMaterial, 0);
+
             _preProcess.gameObject.layer = _huwaPortalLayer;
 
             for (int index = 0; index < _allPortalCount; index++)
             {
-                // もうちょっと改善できると思う
-                Renderer renderer = _allPortalRenderers[index];
-                renderer.gameObject.layer = _huwaPortalLayer;
-                renderer.sharedMaterial = _allPortals[index].GetStencilDepthWriteMaterial();
+                _allPortalRenderers[index].gameObject.layer = _huwaPortalLayer;
             }
-
-            // StencilReset
-            VRCGraphics.Blit(_dummyTexture, rts[2], _graphicsBlitMaterial, 0);
 
             while (_enqueueIndex > _dequeueIndex)
             {
@@ -315,7 +315,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 for (int index = 0; index < _allPortalCount; index++)
                 {
-                    _allPortalRenderers[index].enabled = false;
+                    _allPortalRenderers[index].sharedMaterial = _allOriginalMaterials[index];
                 }
 
                 foreach (HuwaPortalData pd in visiblePortals)
@@ -348,7 +348,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                     Material material = pd.GetStencilDepthWriteMaterial();
                     material.SetFloat(_stencilAID, _enqueueIndex);
-                    pd.GetRenderer().enabled = true;
+                    pd.GetRenderer().sharedMaterial = material;
 
                     ++_enqueueIndex;
                 }
@@ -368,16 +368,14 @@ public class HuwaPortalMain : UdonSharpBehaviour
         // _portalCamera の処理
         // ステンシルに合わせてポータルをレンダリングする
         {
+            VRCGraphics.Blit(rts[0], rts[1]);
+
             _preProcess.gameObject.layer = 0;
 
             for (int index = 0; index < _allPortalCount; index++)
             {
-                Renderer renderer = _allPortalRenderers[index];
-                renderer.gameObject.layer = 0;
-                renderer.enabled = true;
+                _allPortalRenderers[index].gameObject.layer = 0;
             }
-
-            VRCGraphics.Blit(_dummyTexture, rts[0]);
 
             while (_dequeueIndex > 1)
             {
