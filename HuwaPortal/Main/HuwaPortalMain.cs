@@ -1,4 +1,4 @@
-﻿// v4.5 2026-09-20 17:35
+﻿// v4.6 2026-09-20 23:13
 
 using UdonSharp;
 using UnityEngine;
@@ -110,68 +110,96 @@ public class HuwaPortalMain : UdonSharpBehaviour
     RenderBuffer[] _renderBuffersCache = new RenderBuffer[2];
 
 
-    public void SetTargetResolutionFactor(float input)
+    public void SetResolutionFactor(float input)
     {
+        input = Mathf.Clamp01(input);
         _targetResolutionFactor = input;
+
+        if (_resolutionFactor != input)
+        {
+            _resolutionFactor = input;
+
+            Debug.Log("_resolutionFactor を変更");
+
+            _screenCameraChangePending = _screenCameraChangePending || (VRCCameraSettings.ScreenCamera != null);
+            _photoCameraChangePending = _photoCameraChangePending || (VRCCameraSettings.PhotoCamera != null);
+        }
     }
 
-    public float GetTargetResolutionFactor()
+    public void SetQueueSize(int input)
     {
-        return _targetResolutionFactor;
-    }
-
-    public void SetTargetQueueSize(int input)
-    {
+        input = Mathf.Clamp(input, 1, 255);
         _targetQueueSize = input;
+
+        if (_queueSize != input)
+        {
+            _queueSize = input;
+
+            Debug.Log("_queueSize を変更");
+
+            _queueRenderPortal = new HuwaPortalData[_queueSize];
+            _queueCameraMatrix = new Matrix4x4[_queueSize];
+            _queueParentIndex = new int[_queueSize];
+        }
     }
 
-    public int GetTargetQueueSize()
+    public float GetResolutionFactor()
     {
-        return _targetQueueSize;
+        return _resolutionFactor;
     }
 
+    public int GetQueueSize()
+    {
+        return _queueSize;
+    }
+
+    private void OnValidate()
+    {
+        SetResolutionFactor(_targetResolutionFactor);
+        SetQueueSize(_targetQueueSize);
+    }
 
     private void Start()
     {
         if (_allPortals == null)
         {
             Debug.LogError("_allPortals が見つかりません");
-            gameObject.SetActive(false);
+            enabled = false;
             return;
         }
 
         if (_sceneDescriptorReferenceCamera == null)
         {
             Debug.LogError("_sceneDescriptorReferenceCamera が見つかりません");
-            gameObject.SetActive(false);
+            enabled = false;
             return;
         }
 
         if (_materialDuplicator == null)
         {
             Debug.LogError("_materialDuplicator が見つかりません");
-            gameObject.SetActive(false);
+            enabled = false;
             return;
         }
 
         if (_preProcess == null)
         {
             Debug.LogError("_preProcess が見つかりません");
-            gameObject.SetActive(false);
+            enabled = false;
             return;
         }
 
         if (_portalCamera == null)
         {
             Debug.LogError("_portalCamera が見つかりません");
-            gameObject.SetActive(false);
+            enabled = false;
             return;
         }
 
         if (_portalStencilCamera == null)
         {
             Debug.LogError("_portalStencilCamera が見つかりません");
-            gameObject.SetActive(false);
+            enabled = false;
             return;
         }
 
@@ -211,23 +239,21 @@ public class HuwaPortalMain : UdonSharpBehaviour
             pd.SetStencilDepthWriteMaterial(_materialDuplicator.material);
         }
 
-        _screenCameraChangePending = VRCCameraSettings.ScreenCamera != null;
-        _photoCameraChangePending = VRCCameraSettings.PhotoCamera != null;
-    }
+        SetResolutionFactor(_targetResolutionFactor);
+        SetQueueSize(_targetQueueSize);
 
+        _screenCameraChangePending = _screenCameraChangePending || (VRCCameraSettings.ScreenCamera != null);
+        _photoCameraChangePending = _photoCameraChangePending || (VRCCameraSettings.PhotoCamera != null);
+    }
 
     public override void OnVRCCameraSettingsChanged(VRCCameraSettings cameraSettings)
     {
-        if (VRCCameraSettings.ScreenCamera == cameraSettings)
-        {
-            _screenCameraChangePending = true;
-        }
-
-        if (VRCCameraSettings.PhotoCamera == cameraSettings)
-        {
-            _photoCameraChangePending = true;
-        }
+        _screenCameraChangePending = _screenCameraChangePending || (VRCCameraSettings.ScreenCamera == cameraSettings);
+        _photoCameraChangePending = _photoCameraChangePending || (VRCCameraSettings.PhotoCamera == cameraSettings);
     }
+
+
+
 
     private RenderTexture[] RegenerateRenderTexture(RenderTexture[] target, int width, int height)
     {
@@ -343,6 +369,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     targetStencil = _dequeueIndex;
                 }
 
+                Vector3 cmgp = cameraMatrix.GetPosition();
+
+                Matrix4x4 cullMatrix = projectionMatrix * _zFlipMatrix * Matrix4x4.Inverse(cameraMatrix);
+                GeometryUtility.CalculateFrustumPlanes(cullMatrix, _planesCache);
+
                 for (int index = 0; index < _allPortalCount; index++)
                 {
                     _allPortalRenderers[index].sharedMaterial = _allOriginalMaterials[index];
@@ -356,29 +387,26 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     if (!pd.gameObject.activeInHierarchy)
                         continue;
 
-                    Vector3 lp = pd.GetOriginClipPlane().InverseTransformPoint(cameraMatrix.GetPosition());
+                    Vector3 lp = pd.GetOriginClipPlane().InverseTransformPoint(cmgp);
                     float d = Vector3.Magnitude(lp);
 
                     if ((lp.z < 0f) || (d > pd.GetVisibleRange()))
                         continue;
 
-                    Matrix4x4 newCameraMatrix = pd.GetDestinationTransform().localToWorldMatrix * pd.GetOriginTransform().worldToLocalMatrix * cameraMatrix;
-                    Matrix4x4 cullMatrix = projectionMatrix * _zFlipMatrix * Matrix4x4.Inverse(cameraMatrix);
-
-                    GeometryUtility.CalculateFrustumPlanes(cullMatrix, _planesCache);
-                    bool tpAABB = GeometryUtility.TestPlanesAABB(_planesCache, pd.GetRenderer().bounds);
+                    Renderer renderer = pd.GetRenderer();
+                    bool tpAABB = GeometryUtility.TestPlanesAABB(_planesCache, renderer.bounds);
 
                     if (!tpAABB)
                         continue;
 
                     // Enqueue
                     _queueRenderPortal[_enqueueIndex] = pd;
-                    _queueCameraMatrix[_enqueueIndex] = newCameraMatrix;
+                    _queueCameraMatrix[_enqueueIndex] = pd.GetDestinationTransform().localToWorldMatrix * pd.GetOriginTransform().worldToLocalMatrix * cameraMatrix;
                     _queueParentIndex[_enqueueIndex] = _dequeueIndex;
 
                     Material material = pd.GetStencilDepthWriteMaterial();
                     material.SetFloat(_stencilAID, _enqueueIndex);
-                    pd.GetRenderer().sharedMaterial = material;
+                    renderer.sharedMaterial = material;
 
                     ++_enqueueIndex;
                 }
@@ -456,42 +484,16 @@ public class HuwaPortalMain : UdonSharpBehaviour
         VRCCameraSettings scs = VRCCameraSettings.ScreenCamera;
         VRCCameraSettings pcs = VRCCameraSettings.PhotoCamera;
 
-        _targetResolutionFactor = Mathf.Clamp01(_targetResolutionFactor);
-
-        if (_resolutionFactor != _targetResolutionFactor)
-        {
-            _resolutionFactor = _targetResolutionFactor;
-
-            Debug.Log("_targetResolutionFactor の変更を検出");
-
-            _screenCameraChangePending = scs != null;
-            _photoCameraChangePending = pcs != null;
-        }
-
-        _targetQueueSize = Mathf.Max(_targetQueueSize, 1);
-
-        if (_queueSize != _targetQueueSize)
-        {
-            _queueSize = _targetQueueSize;
-
-            Debug.Log("_targetQueueSize の変更を検出");
-
-            _queueRenderPortal = new HuwaPortalData[_queueSize];
-            _queueCameraMatrix = new Matrix4x4[_queueSize];
-            _queueParentIndex = new int[_queueSize];
-        }
-
         if (_screenCameraChangePending)
         {
             _screenCameraChangePending = false;
 
-            Debug.Log("ScreenCamera の変更を検出");
-
             _leftCameraIsActive = scs.Active;
             _rightCameraIsActive = scs.Active && _isUserInVR;
 
-            // ProjectionMatrix の更新
             {
+                Debug.Log("ScreenCamera の ProjectionMatrix を更新");
+
                 if (_isUserInVR)
                 {
                     _leftCameraPM = _sceneDescriptorReferenceCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left);
@@ -506,13 +508,14 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 _portalMaterial.SetFloat(_screenCameraPM_m11ID, _leftCameraPM.m11);
             }
 
-            // ピクセル数の変更を検知すると RenderTexture を再生成する
             {
                 int width = Mathf.Max(1, (int)(scs.PixelWidth * _resolutionFactor));
                 int height = Mathf.Max(1, (int)(scs.PixelHeight * _resolutionFactor));
 
                 if (width != _screenCameraWidth || height != _screenCameraHeight)
                 {
+                    Debug.Log("ScreenCamera の RenderTexture を再生成");
+
                     _screenCameraWidth = width;
                     _screenCameraHeight = height;
 
@@ -532,12 +535,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
         {
             _photoCameraChangePending = false;
 
-            Debug.Log("PhotoCamera の変更を検出");
-
             _photoCameraIsActive = pcs.Active;
 
-            // ProjectionMatrix の更新
             {
+                Debug.Log("PhotoCamera の ProjectionMatrix を更新");
+
                 // https://feedback.vrchat.com/bug-reports/p/vrccamerasettings-fov-wrong-for-photo-camera
                 // PhotoCamera の FOV がずれているので 0.85 倍する
                 // 掛ける値が小さすぎると画面端の描画に失敗するので少し余裕を持たせる
@@ -550,13 +552,14 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 _portalMaterial.SetFloat(_photoCameraPM_m11ID, _photoCameraPM.m11);
             }
 
-            // ピクセル数の変更を検知すると RenderTexture を再生成する
             {
                 int width = Mathf.Max(1, (int)(pcs.PixelWidth * _resolutionFactor));
                 int height = Mathf.Max(1, (int)(pcs.PixelHeight * _resolutionFactor));
 
                 if (width != _photoCameraWidth || height != _photoCameraHeight)
                 {
+                    Debug.Log("PhotoCamera の RenderTexture を再生成");
+
                     _photoCameraWidth = width;
                     _photoCameraHeight = height;
 
@@ -604,7 +607,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 offsetPos = _localPlayer.GetPosition() + _offset;
+        Vector3 playerPos = _localPlayer.GetPosition();
+        Vector3 offsetPos = playerPos + _offset;
 
         foreach (HuwaPortalData pd in _allPortals)
         {
@@ -623,12 +627,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
             Transform originTransform = pd.GetOriginTransform();
             Transform destinationTransform = pd.GetDestinationTransform();
 
-            Quaternion tpRot = destinationTransform.rotation;
-            Quaternion mpInvRot = Quaternion.Inverse(originTransform.rotation);
-            Quaternion rRot = tpRot * mpInvRot;
-
-            Vector3 rp = _localPlayer.GetPosition() - originTransform.position;
-            Vector3 wp = destinationTransform.position + (rRot * rp);
+            Vector3 wp = destinationTransform.TransformPoint(originTransform.InverseTransformPoint(playerPos));
+            Quaternion rRot = destinationTransform.rotation * Quaternion.Inverse(originTransform.rotation);
 
             Quaternion playerRot;
 

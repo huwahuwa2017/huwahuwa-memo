@@ -41,6 +41,6 @@ Material:
     - _PhotoCameraPM_m00: 1
     - _PhotoCameraPM_m11: 1
     - _ScreenCameraPM_m00: 1
-    - _ScreenCameraPM_m11: 1.7320508
+    - _ScreenCameraPM_m11: 1
     m_Colors: []
   m_BuildTextureStacks: []
