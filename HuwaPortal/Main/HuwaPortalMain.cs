@@ -1,4 +1,4 @@
-﻿// v4.5 2026-09-20 17:35
+﻿// v4.4 2026-09-20 09:34
 
 using UdonSharp;
 using UnityEngine;
@@ -14,9 +14,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
     // 例えば _targetQueueSize に 16 を設定した場合、レンダリングされるポータルの最大個数は 15 個となります
     [SerializeField, Tooltip("ポータルをレンダリングする回数に影響します\n1以上の値を入力してください")]
     private int _targetQueueSize = 16;
-
-    [SerializeField, Tooltip("ポータルの描画結果を保存するためのテクスチャの解像度の係数")]
-    private float _targetResolutionFactor = 1.0f;
 
     [SerializeField, Tooltip("ポータルのステンシルを決定する段階で使用するレイヤー")]
     private int _huwaPortalLayer = 27;
@@ -77,14 +74,14 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Material[] _allOriginalMaterials = null;
 
 
-    private float _resolutionFactor = 1.0f;
-
     private int _queueSize = -1;
     private int _enqueueIndex = 0;
     private int _dequeueIndex = 0;
     private HuwaPortalData[] _queueRenderPortal = null;
     private Matrix4x4[] _queueCameraMatrix = null;
     private int[] _queueParentIndex = null;
+
+    private bool _startOnPreCull = true;
 
     private bool _screenCameraChangePending = false;
     private bool _photoCameraChangePending = false;
@@ -110,19 +107,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
     RenderBuffer[] _renderBuffersCache = new RenderBuffer[2];
 
 
-    public void SetTargetResolutionFactor(float input)
-    {
-        _targetResolutionFactor = input;
-    }
-
-    public float GetTargetResolutionFactor()
-    {
-        return _targetResolutionFactor;
-    }
-
     public void SetTargetQueueSize(int input)
     {
-        _targetQueueSize = input;
+        _targetQueueSize = Mathf.Max(1, input);
     }
 
     public int GetTargetQueueSize()
@@ -147,20 +134,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
             return;
         }
 
-        if (_materialDuplicator == null)
-        {
-            Debug.LogError("_materialDuplicator が見つかりません");
-            gameObject.SetActive(false);
-            return;
-        }
-
-        if (_preProcess == null)
-        {
-            Debug.LogError("_preProcess が見つかりません");
-            gameObject.SetActive(false);
-            return;
-        }
-
         if (_portalCamera == null)
         {
             Debug.LogError("_portalCamera が見つかりません");
@@ -168,9 +141,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
             return;
         }
 
-        if (_portalStencilCamera == null)
+        if (_materialDuplicator == null)
         {
-            Debug.LogError("_portalStencilCamera が見つかりません");
+            Debug.LogError("_materialDuplicator が見つかりません");
             gameObject.SetActive(false);
             return;
         }
@@ -210,14 +183,14 @@ public class HuwaPortalMain : UdonSharpBehaviour
             _materialDuplicator.sharedMaterial = _stencilDepthWriteMaterial;
             pd.SetStencilDepthWriteMaterial(_materialDuplicator.material);
         }
-
-        _screenCameraChangePending = VRCCameraSettings.ScreenCamera != null;
-        _photoCameraChangePending = VRCCameraSettings.PhotoCamera != null;
     }
 
 
     public override void OnVRCCameraSettingsChanged(VRCCameraSettings cameraSettings)
     {
+        if (cameraSettings == null)
+            return;
+
         if (VRCCameraSettings.ScreenCamera == cameraSettings)
         {
             _screenCameraChangePending = true;
@@ -293,6 +266,10 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     private void RenderPortal(Vector3 cameraPos, Quaternion cameraRot, Matrix4x4 projectionMatrix, RenderTexture[] rts)
     {
+        _renderBuffersCache[0] = rts[0].colorBuffer;
+        _renderBuffersCache[1] = rts[2].colorBuffer;
+        _portalStencilCamera.SetTargetBuffers(_renderBuffersCache, rts[0].depthBuffer);
+        _portalCamera.SetTargetBuffers(rts[0].colorBuffer, rts[0].depthBuffer);
         _preProcessMaterial.SetTexture(_mainTexID, rts[3]);
 
         _enqueueIndex = 0;
@@ -303,14 +280,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
         ++_enqueueIndex;
 
         // _portalStencilCamera の処理
+        // どの _queueRenderPortal のレンダリング結果を保持するのか、という情報をステンシルに書き込む
         {
-            // SV_Target0 : 最も奥のポータルの通常マテリアルの描画結果を保存
-            // SV_Target1 : ピクセルごとに _queueRenderPortal を保存
-            _renderBuffersCache[0] = rts[0].colorBuffer;
-            _renderBuffersCache[1] = rts[2].colorBuffer;
-            _portalStencilCamera.SetTargetBuffers(_renderBuffersCache, rts[0].depthBuffer);
-
-            // ピクセルごとに保存した _queueRenderPortal を初期化 (0 で上書き)
+            // StencilReset
             VRCGraphics.Blit(_dummyTexture, rts[2], _graphicsBlitMaterial, 0);
 
             _preProcess.gameObject.layer = _huwaPortalLayer;
@@ -396,11 +368,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
 
         // _portalCamera の処理
+        // ステンシルに合わせてポータルをレンダリングする
         {
-            // SV_Target0 : ポータルの内部の景色を描画して保存
-            _portalCamera.SetTargetBuffers(rts[0].colorBuffer, rts[0].depthBuffer);
-
-            // 前段階で保存した最も奥のポータルの通常マテリアルの描画結果をコピー
             VRCGraphics.Blit(rts[0], rts[1]);
 
             _preProcess.gameObject.layer = 0;
@@ -456,19 +425,16 @@ public class HuwaPortalMain : UdonSharpBehaviour
         VRCCameraSettings scs = VRCCameraSettings.ScreenCamera;
         VRCCameraSettings pcs = VRCCameraSettings.PhotoCamera;
 
-        _targetResolutionFactor = Mathf.Clamp01(_targetResolutionFactor);
-
-        if (_resolutionFactor != _targetResolutionFactor)
+        // OnVRCCameraSettingsChanged(VRCCameraSettings) はプレイヤーがワールドに入ったときは実行されないので、
+        // OnPreCull() が初めて実行されたときに、 OnVRCCameraSettingsChanged(VRCCameraSettings) を実行する
+        // Start() で実行すれば良いと思うかもしれないが、異常な値が設定されてしまう
+        // おそらく Start() は VRCCameraSettings の準備前に実行されるからと予想している
+        if (_startOnPreCull)
         {
-            _resolutionFactor = _targetResolutionFactor;
-
-            Debug.Log("_targetResolutionFactor の変更を検出");
-
-            _screenCameraChangePending = scs != null;
-            _photoCameraChangePending = pcs != null;
+            _startOnPreCull = false;
+            OnVRCCameraSettingsChanged(scs);
+            OnVRCCameraSettingsChanged(pcs);
         }
-
-        _targetQueueSize = Mathf.Max(_targetQueueSize, 1);
 
         if (_queueSize != _targetQueueSize)
         {
@@ -508,8 +474,10 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
             // ピクセル数の変更を検知すると RenderTexture を再生成する
             {
-                int width = Mathf.Max(1, (int)(scs.PixelWidth * _resolutionFactor));
-                int height = Mathf.Max(1, (int)(scs.PixelHeight * _resolutionFactor));
+                // ここに 1 未満の値が入る状況は見たことは無いが、
+                // 念のために 1 未満の値が入らないようにしておく
+                int width = Mathf.Max(1, scs.PixelWidth);
+                int height = Mathf.Max(1, scs.PixelHeight);
 
                 if (width != _screenCameraWidth || height != _screenCameraHeight)
                 {
@@ -552,8 +520,10 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
             // ピクセル数の変更を検知すると RenderTexture を再生成する
             {
-                int width = Mathf.Max(1, (int)(pcs.PixelWidth * _resolutionFactor));
-                int height = Mathf.Max(1, (int)(pcs.PixelHeight * _resolutionFactor));
+                // ここに 1 未満の値が入る状況は見たことは無いが、
+                // 念のために 1 未満の値が入らないようにしておく
+                int width = Mathf.Max(1, pcs.PixelWidth);
+                int height = Mathf.Max(1, pcs.PixelHeight);
 
                 if (width != _photoCameraWidth || height != _photoCameraHeight)
                 {
