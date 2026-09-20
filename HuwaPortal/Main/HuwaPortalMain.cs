@@ -1,4 +1,4 @@
-﻿// v4.2 2026-09-19 15:05
+﻿// v4.3 2026-09-20 08:58
 
 using UdonSharp;
 using UnityEngine;
@@ -88,8 +88,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private int _screenCameraHeight = -1;
     private int _photoCameraHeight = -1;
 
-    private bool _leftEyeIsActive = false;
-    private bool _rightEyeIsActive = false;
+    private bool _leftCameraIsActive = false;
+    private bool _rightCameraIsActive = false;
     private bool _photoCameraIsActive = false;
     private RenderTexture[] _leftCameraRTs = null;
     private RenderTexture[] _rightCameraRTs = null;
@@ -260,7 +260,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
         }
     }
 
-    private void RenderPortal(Vector3 eyePos, Quaternion eyeRot, Matrix4x4 projectionMatrix, RenderTexture[] rts)
+    private void RenderPortal(Vector3 cameraPos, Quaternion cameraRot, Matrix4x4 projectionMatrix, RenderTexture[] rts)
     {
         _renderBuffersCache[0] = rts[0].colorBuffer;
         _renderBuffersCache[1] = rts[2].colorBuffer;
@@ -272,7 +272,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _dequeueIndex = 0;
 
         _queueRenderPortal[_enqueueIndex] = null;
-        _queueCameraMatrix[_enqueueIndex] = Matrix4x4.TRS(eyePos, eyeRot, Vector3.one);
+        _queueCameraMatrix[_enqueueIndex] = Matrix4x4.TRS(cameraPos, cameraRot, Vector3.one);
         ++_enqueueIndex;
 
         // _portalStencilCamera の処理
@@ -293,8 +293,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 // Dequeue
                 HuwaPortalData renderPortal = _queueRenderPortal[_dequeueIndex];
                 Matrix4x4 cameraMatrix = _queueCameraMatrix[_dequeueIndex];
-
-                Vector3 cameraPos = cameraMatrix.GetPosition();
 
                 HuwaPortalData[] visiblePortals;
                 Transform clipPlaneTransform;
@@ -326,7 +324,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     if (!pd.gameObject.activeInHierarchy)
                         continue;
 
-                    Vector3 lp = pd.GetOriginClipPlane().InverseTransformPoint(cameraPos);
+                    Vector3 lp = pd.GetOriginClipPlane().InverseTransformPoint(cameraMatrix.GetPosition());
                     float d = Vector3.Magnitude(lp);
 
                     if ((lp.z < 0f) || (d > pd.GetVisibleRange()))
@@ -425,8 +423,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         // OnVRCCameraSettingsChanged(VRCCameraSettings) はプレイヤーがワールドに入ったときは実行されないので、
         // OnPreCull() が初めて実行されたときに、 OnVRCCameraSettingsChanged(VRCCameraSettings) を実行する
-        // Start() で実行すれば？ と思うかもしれないが、異常な値が設定されてしまう
-        // おそらく Start() は VRCCameraSettings が準備する前に実行されるからと予想している
+        // Start() で実行すれば良いと思うかもしれないが、異常な値が設定されてしまう
+        // おそらく Start() は VRCCameraSettings の準備前に実行されるからと予想している
         if (_startOnPreCull)
         {
             _startOnPreCull = false;
@@ -451,8 +449,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
             Debug.Log("ScreenCamera の変更を検出");
 
-            _leftEyeIsActive = scs.Active;
-            _rightEyeIsActive = scs.Active && _isUserInVR;
+            _leftCameraIsActive = scs.Active;
+            _rightCameraIsActive = scs.Active && _isUserInVR;
 
             // ProjectionMatrix の更新
             {
@@ -465,6 +463,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 {
                     _leftCameraPM = Matrix4x4.Perspective(scs.FieldOfView, scs.Aspect, scs.NearClipPlane, scs.FarClipPlane);
                 }
+
+                _portalMaterial.SetFloat(_screenCameraPM_m11ID, _leftCameraPM.m11);
             }
 
             // ピクセル数の変更を検知すると RenderTexture を再生成する
@@ -508,6 +508,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 float photoCameraFOV = pcs.FieldOfView * 0.85f;
 
                 _photoCameraPM = Matrix4x4.Perspective(photoCameraFOV, pcs.Aspect, pcs.NearClipPlane, pcs.FarClipPlane);
+
+                _portalMaterial.SetFloat(_photoCameraPM_m11ID, _photoCameraPM.m11);
             }
 
             // ピクセル数の変更を検知すると RenderTexture を再生成する
@@ -530,31 +532,29 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
 
         _preProcess.enabled = true;
-        _portalMaterial.SetFloat(_screenCameraPM_m11ID, _leftCameraPM.m11);
-        _portalMaterial.SetFloat(_photoCameraPM_m11ID, _photoCameraPM.m11);
 
-        if (_leftEyeIsActive)
+        if (_leftCameraIsActive)
         {
             _portalMaterial.SetFloat(_huwaPortalCameraModeID, 0f);
-            Vector3 eyePos = VRCCameraSettings.GetEyePosition(Camera.StereoscopicEye.Left);
-            Quaternion eyeRot = VRCCameraSettings.GetEyeRotation(Camera.StereoscopicEye.Left);
-            RenderPortal(eyePos, eyeRot, _leftCameraPM, _leftCameraRTs);
+            Vector3 cameraPos = VRCCameraSettings.GetEyePosition(Camera.StereoscopicEye.Left);
+            Quaternion cameraRot = VRCCameraSettings.GetEyeRotation(Camera.StereoscopicEye.Left);
+            RenderPortal(cameraPos, cameraRot, _leftCameraPM, _leftCameraRTs);
         }
 
-        if (_rightEyeIsActive)
+        if (_rightCameraIsActive)
         {
             _portalMaterial.SetFloat(_huwaPortalCameraModeID, 1f);
-            Vector3 eyePos = VRCCameraSettings.GetEyePosition(Camera.StereoscopicEye.Right);
-            Quaternion eyeRot = VRCCameraSettings.GetEyeRotation(Camera.StereoscopicEye.Right);
-            RenderPortal(eyePos, eyeRot, _rightCameraPM, _rightCameraRTs);
+            Vector3 cameraPos = VRCCameraSettings.GetEyePosition(Camera.StereoscopicEye.Right);
+            Quaternion cameraRot = VRCCameraSettings.GetEyeRotation(Camera.StereoscopicEye.Right);
+            RenderPortal(cameraPos, cameraRot, _rightCameraPM, _rightCameraRTs);
         }
 
         if (_photoCameraIsActive)
         {
             _portalMaterial.SetFloat(_huwaPortalCameraModeID, 2f);
-            Vector3 eyePos = pcs.Position;
-            Quaternion eyeRot = pcs.Rotation;
-            RenderPortal(eyePos, eyeRot, _photoCameraPM, _photoCameraRTs);
+            Vector3 cameraPos = pcs.Position;
+            Quaternion cameraRot = pcs.Rotation;
+            RenderPortal(cameraPos, cameraRot, _photoCameraPM, _photoCameraRTs);
         }
 
         _portalMaterial.SetFloat(_huwaPortalCameraModeID, -1f);
@@ -602,8 +602,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
             }
             else
             {
-                // DesktopMode で落下アニメーション中に localPlayer.GetRotation() でプレイヤーの回転を取得すると
-                // おかしくなるので、代わりに VRCCameraSettings.GetEyeRotation を使う
+                // DesktopMode で落下アニメーション中に localPlayer.GetRotation() でプレイヤーの回転を取得するとおかしくなる
+                // かわりに VRCCameraSettings.GetEyeRotation を使う
                 playerRot = VRCCameraSettings.GetEyeRotation(Camera.StereoscopicEye.Left);
             }
 
