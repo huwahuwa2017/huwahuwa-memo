@@ -5,7 +5,7 @@
         Tags
         {
             "Queue" = "Geometry"
-            "DisableBatching" = "True"
+            "DisableBatching" = "False"
             "IgnoreProjector" = "True"
         }
 

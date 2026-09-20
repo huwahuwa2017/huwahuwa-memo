@@ -1,4 +1,4 @@
-﻿// v4.3 2026-09-20 08:58
+﻿// v4.4 2026-09-20 09:34
 
 using UdonSharp;
 using UnityEngine;
@@ -55,7 +55,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private int _leftCameraTexID = -1;
     private int _rightCameraTexID = -1;
     private int _photoCameraTexID = -1;
+    private int _screenCameraPM_m00ID = -1;
     private int _screenCameraPM_m11ID = -1;
+    private int _photoCameraPM_m00ID = -1;
     private int _photoCameraPM_m11ID = -1;
     private int _huwaPortalCameraModeID = -1;
     private int _mainTexID = -1;
@@ -149,7 +151,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _leftCameraTexID = VRCShader.PropertyToID("_LeftCameraTex");
         _rightCameraTexID = VRCShader.PropertyToID("_RightCameraTex");
         _photoCameraTexID = VRCShader.PropertyToID("_PhotoCameraTex");
+        _screenCameraPM_m00ID = VRCShader.PropertyToID("_ScreenCameraPM_m00");
         _screenCameraPM_m11ID = VRCShader.PropertyToID("_ScreenCameraPM_m11");
+        _photoCameraPM_m00ID = VRCShader.PropertyToID("_PhotoCameraPM_m00");
         _photoCameraPM_m11ID = VRCShader.PropertyToID("_PhotoCameraPM_m11");
         _huwaPortalCameraModeID = VRCShader.PropertyToID("_HuwaPortalCameraMode");
         _mainTexID = VRCShader.PropertyToID("_MainTex");
@@ -464,6 +468,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     _leftCameraPM = Matrix4x4.Perspective(scs.FieldOfView, scs.Aspect, scs.NearClipPlane, scs.FarClipPlane);
                 }
 
+                _portalMaterial.SetFloat(_screenCameraPM_m00ID, _leftCameraPM.m00);
                 _portalMaterial.SetFloat(_screenCameraPM_m11ID, _leftCameraPM.m11);
             }
 
@@ -509,6 +514,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 _photoCameraPM = Matrix4x4.Perspective(photoCameraFOV, pcs.Aspect, pcs.NearClipPlane, pcs.FarClipPlane);
 
+                _portalMaterial.SetFloat(_photoCameraPM_m00ID, _photoCameraPM.m00);
                 _portalMaterial.SetFloat(_photoCameraPM_m11ID, _photoCameraPM.m11);
             }
 

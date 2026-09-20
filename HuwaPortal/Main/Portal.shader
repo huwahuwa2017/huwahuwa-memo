@@ -10,8 +10,10 @@
 
         [NoScaleOffset]
         _PhotoCameraTex("_PhotoCameraTex", 2D) = "white" {}
-
+        
+        _ScreenCameraPM_m00("_ScreenCameraPM_m00", Float) = 1.0
         _ScreenCameraPM_m11("_ScreenCameraPM_m11", Float) = 1.0
+        _PhotoCameraPM_m00("_PhotoCameraPM_m00", Float) = 1.0
         _PhotoCameraPM_m11("_PhotoCameraPM_m11", Float) = 1.0
         _HuwaPortalCameraMode("_HuwaPortalCameraMode", Float) = -1.0
     }
@@ -21,7 +23,7 @@
         Tags
         {
             "Queue" = "Geometry"
-            "DisableBatching" = "True"
+            "DisableBatching" = "False"
             "IgnoreProjector" = "True"
         }
 
@@ -57,8 +59,10 @@
 
             float4 _LeftCameraTex_TexelSize;
             float4 _PhotoCameraTex_TexelSize;
-
+            
+            float _ScreenCameraPM_m00;
             float _ScreenCameraPM_m11;
+            float _PhotoCameraPM_m00;
             float _PhotoCameraPM_m11;
             int _HuwaPortalCameraMode;
             
@@ -71,12 +75,12 @@
                 float2 scale;
                 {
                     bool isPhotoCamera = cameraMode == 2;
-                    float2 texelSize = isPhotoCamera ? _PhotoCameraTex_TexelSize.zw : _LeftCameraTex_TexelSize.zw;
+                    float cameraP_m00 = isPhotoCamera ? _PhotoCameraPM_m00 : _ScreenCameraPM_m00;
                     float cameraP_m11 = isPhotoCamera ? _PhotoCameraPM_m11 : _ScreenCameraPM_m11;
                     
                     // aspect = x/y = (1/y)/(1/x) = m11/m00
+                    float cameraAspect = abs(cameraP_m11 / cameraP_m00);
                     float shaderAspect = abs(UNITY_MATRIX_P._m11 / UNITY_MATRIX_P._m00);
-                    float cameraAspect = texelSize.x / texelSize.y;
 
                     scale = abs(cameraP_m11 / UNITY_MATRIX_P._m11);
                     scale.x *= shaderAspect / cameraAspect;
