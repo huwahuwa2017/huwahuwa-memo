@@ -40,7 +40,7 @@ Material:
     - _HuwaPortalCameraMode: -1
     - _PhotoCameraPM_m00: 1
     - _PhotoCameraPM_m11: 1
-    - _ScreenCameraPM_m00: 1
+    - _ScreenCameraPM_m00: 0.8476644
     - _ScreenCameraPM_m11: 1.7320508
     m_Colors: []
   m_BuildTextureStacks: []
