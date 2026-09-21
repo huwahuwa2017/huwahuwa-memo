@@ -1,4 +1,4 @@
-﻿// v4.6 2026-09-20 23:13
+﻿// v4.7 2026-09-21 12:54
 
 using UdonSharp;
 using UnityEngine;
@@ -105,7 +105,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
 
     private Vector3 _offset = new Vector3(0f, 0.5f, 0f);
-    Matrix4x4 _zFlipMatrix = Matrix4x4.Scale(new Vector3(1f, 1f, -1f));
     Plane[] _planesCache = new Plane[6];
     RenderBuffer[] _renderBuffersCache = new RenderBuffer[2];
 
@@ -231,7 +230,10 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
             Renderer renderer = pd.GetRenderer();
             _allPortalRenderers[index] = renderer;
-            _allOriginalMaterials[index] = renderer.sharedMaterial;
+
+            Material originalMaterial = renderer.sharedMaterial;
+            _allOriginalMaterials[index] = originalMaterial;
+            pd.SetOriginalMaterial(originalMaterial);
 
             // Udon は Instantiate(material) や new Material(material) が使えないので、
             // Renderer.material を利用してマテリアルを複製する
@@ -299,7 +301,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         camera.projectionMatrix = projectionMatrix;
 
-        camera.ResetCullingMatrix();
+        //camera.ResetCullingMatrix();
 
         if (clipPlaneTransform != null)
         {
@@ -371,13 +373,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 Vector3 cmgp = cameraMatrix.GetPosition();
 
-                Matrix4x4 cullMatrix = projectionMatrix * _zFlipMatrix * Matrix4x4.Inverse(cameraMatrix);
-                GeometryUtility.CalculateFrustumPlanes(cullMatrix, _planesCache);
-
-                for (int index = 0; index < _allPortalCount; index++)
-                {
-                    _allPortalRenderers[index].sharedMaterial = _allOriginalMaterials[index];
-                }
+                UpdateCameraMatrix(_portalStencilCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
+                GeometryUtility.CalculateFrustumPlanes(_portalStencilCamera.cullingMatrix, _planesCache);
 
                 foreach (HuwaPortalData pd in visiblePortals)
                 {
@@ -412,8 +409,12 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 }
 
                 _preProcessMaterial.SetFloat(_stencilAID, targetStencil);
-                UpdateCameraMatrix(_portalStencilCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
                 _portalStencilCamera.Render();
+
+                foreach (HuwaPortalData pd in visiblePortals)
+                {
+                    pd.GetRenderer().sharedMaterial = pd.GetOriginalMaterial();
+                }
 
                 // StencilCopy
                 VRCGraphics.Blit(rts[2], rts[3], _graphicsBlitMaterial, 1);
@@ -445,19 +446,21 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 Matrix4x4 cameraMatrix = _queueCameraMatrix[_dequeueIndex];
                 int parentIndex = _queueParentIndex[_dequeueIndex];
 
-                for (int index = 0; index < _allPortalCount; index++)
-                {
-                    _allPortalRenderers[index].sharedMaterial = _allOriginalMaterials[index];
-                }
+                HuwaPortalData[] visiblePortals = renderPortal.GetVisiblePortals();
 
-                foreach (HuwaPortalData pd in renderPortal.GetVisiblePortals())
+                foreach (HuwaPortalData pd in visiblePortals)
                 {
                     pd.GetRenderer().sharedMaterial = _portalMaterial;
                 }
 
-                _preProcessMaterial.SetFloat(_stencilAID, _dequeueIndex);
                 UpdateCameraMatrix(_portalCamera, cameraMatrix, projectionMatrix, renderPortal.GetDestinationClipPlane());
+                _preProcessMaterial.SetFloat(_stencilAID, _dequeueIndex);
                 _portalCamera.Render();
+
+                foreach (HuwaPortalData pd in visiblePortals)
+                {
+                    pd.GetRenderer().sharedMaterial = pd.GetOriginalMaterial();
+                }
 
                 VRCGraphics.Blit(rts[0], rts[1]);
 
@@ -469,11 +472,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 // StencilCopy
                 VRCGraphics.Blit(rts[2], rts[3], _graphicsBlitMaterial, 1);
             }
-        }
-
-        for (int index = 0; index < _allPortalCount; index++)
-        {
-            _allPortalRenderers[index].sharedMaterial = _portalMaterial;
         }
     }
 
@@ -572,6 +570,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         _preProcess.enabled = true;
 
+        for (int index = 0; index < _allPortalCount; index++)
+        {
+            _allPortalRenderers[index].sharedMaterial = _allOriginalMaterials[index];
+        }
+
         if (_leftCameraIsActive)
         {
             _portalMaterial.SetFloat(_huwaPortalCameraModeID, 0f);
@@ -594,6 +597,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
             Vector3 cameraPos = pcs.Position;
             Quaternion cameraRot = pcs.Rotation;
             RenderPortal(cameraPos, cameraRot, _photoCameraPM, _photoCameraRTs);
+        }
+
+        for (int index = 0; index < _allPortalCount; index++)
+        {
+            _allPortalRenderers[index].sharedMaterial = _portalMaterial;
         }
 
         _portalMaterial.SetFloat(_huwaPortalCameraModeID, -1f);
