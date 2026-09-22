@@ -28,7 +28,7 @@ public class HuwaPortalTeleport : UdonSharpBehaviour
 
         for (int index = 0; index < _allPortalCount; index++)
         {
-            _allTeleportTriggers[index] = _allPortals[index].GetTeleportTrigger();
+            _allTeleportTriggers[index] = _allPortals[index]._teleportTrigger;
         }
     }
 
@@ -53,8 +53,8 @@ public class HuwaPortalTeleport : UdonSharpBehaviour
                 continue;
 
             HuwaPortalData pd = _allPortals[index];
-            Transform originTransform = pd.GetOriginTransform();
-            Transform destinationTransform = pd.GetDestinationTransform();
+            Transform originTransform = pd._originTransform;
+            Transform destinationTransform = pd._destinationTransform;
 
             Vector3 wp = destinationTransform.TransformPoint(originTransform.InverseTransformPoint(playerPos));
             Quaternion rRot = destinationTransform.rotation * Quaternion.Inverse(originTransform.rotation);
