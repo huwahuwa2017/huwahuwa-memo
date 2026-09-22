@@ -1,4 +1,4 @@
-﻿// v4.9 2026-09-22 10:06
+﻿// v4.10 2026-09-22 15:41
 
 using UdonSharp;
 using UnityEngine;
@@ -105,7 +105,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Matrix4x4 _photoCameraPM = Matrix4x4.identity;
 
 
-    private Vector3 _offset = new Vector3(0f, 0.5f, 0f);
     Plane[] _planesCache = new Plane[6];
     RenderBuffer[] _renderBuffersCache = new RenderBuffer[2];
 
@@ -601,53 +600,5 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _preProcess.SetActive(false);
 
         //Debug.Log("End OnPreCull");
-    }
-
-
-
-
-    private void FixedUpdate()
-    {
-        Vector3 playerPos = _localPlayer.GetPosition();
-        Vector3 offsetPos = playerPos + _offset;
-
-        foreach (HuwaPortalData pd in _allPortals)
-        {
-            Collider collider = pd.GetTeleportTrigger();
-
-            // Collider が有効になっているのかを確認したいが、 collider.enabled だけでは不十分である。
-            // Collider の親オブジェクトが無効になっているかも確認する
-            if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy)
-                continue;
-
-            Vector3 closestPos = collider.ClosestPoint(offsetPos);
-
-            if (Vector3.SqrMagnitude(closestPos - offsetPos) >= 0.000001f)
-                continue;
-
-            Transform originTransform = pd.GetOriginTransform();
-            Transform destinationTransform = pd.GetDestinationTransform();
-
-            Vector3 wp = destinationTransform.TransformPoint(originTransform.InverseTransformPoint(playerPos));
-            Quaternion rRot = destinationTransform.rotation * Quaternion.Inverse(originTransform.rotation);
-
-            Quaternion playerRot;
-
-            if (_isUserInVR)
-            {
-                playerRot = _localPlayer.GetRotation();
-            }
-            else
-            {
-                // DesktopMode で落下アニメーション中に localPlayer.GetRotation() でプレイヤーの回転を取得するとおかしくなる
-                // かわりに VRCCameraSettings.GetEyeRotation を使う
-                playerRot = VRCCameraSettings.GetEyeRotation(Camera.StereoscopicEye.Left);
-            }
-
-            _localPlayer.TeleportTo(wp, rRot * playerRot);
-            _localPlayer.SetVelocity(rRot * _localPlayer.GetVelocity());
-
-            break;
-        }
     }
 }
