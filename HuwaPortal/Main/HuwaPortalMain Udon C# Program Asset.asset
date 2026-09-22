@@ -1710,19 +1710,19 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: _allPortalGameObjects
+      Data: _allPortalRenderers
     - Name: $v
       Entry: 7
       Data: 100|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: _allPortalGameObjects
+      Data: _allPortalRenderers
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 101|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UnityEngine.GameObject[], UnityEngine.CoreModule
+      Data: UnityEngine.Renderer[], UnityEngine.CoreModule
     - Name: 
       Entry: 8
       Data: 
@@ -1765,19 +1765,19 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: _allPortalRenderers
+      Data: _allPortalGameObjects
     - Name: $v
       Entry: 7
       Data: 103|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: _allPortalRenderers
+      Data: _allPortalGameObjects
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 104|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UnityEngine.Renderer[], UnityEngine.CoreModule
+      Data: UnityEngine.GameObject[], UnityEngine.CoreModule
     - Name: 
       Entry: 8
       Data: 

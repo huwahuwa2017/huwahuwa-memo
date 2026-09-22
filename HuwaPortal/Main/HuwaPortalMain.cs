@@ -1,4 +1,4 @@
-﻿// v4.8 2026-09-22 09:36
+﻿// v4.9 2026-09-22 10:06
 
 using UdonSharp;
 using UnityEngine;
@@ -73,8 +73,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Transform _portalCameraTransform = null;
 
     private int _allPortalCount = -1;
-    private GameObject[] _allPortalGameObjects = null;
     private Renderer[] _allPortalRenderers = null;
+    private GameObject[] _allPortalGameObjects = null;
     private Material[] _allOriginalMaterials = null;
 
 
@@ -218,12 +218,15 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _localPlayer = Networking.LocalPlayer;
         _isUserInVR = _localPlayer.IsUserInVR();
 
+        int mask = 1 << _huwaPortalLayer;
+        _preProcess.layer = _huwaPortalLayer;
+        _portalCamera.cullingMask = _portalCamera.cullingMask | mask;
+        _portalStencilCamera.cullingMask = mask;
         _portalCameraTransform = _portalStencilCamera.transform.parent;
-        _portalStencilCamera.cullingMask = 1 << _huwaPortalLayer;
 
         _allPortalCount = _allPortals.Length;
-        _allPortalGameObjects = new GameObject[_allPortalCount];
         _allPortalRenderers = new Renderer[_allPortalCount];
+        _allPortalGameObjects = new GameObject[_allPortalCount];
         _allOriginalMaterials = new Material[_allPortalCount];
 
         for (int index = 0; index < _allPortalCount; index++)
@@ -232,10 +235,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
             Renderer renderer = pd.GetRenderer();
             Material originalMaterial = renderer.sharedMaterial;
 
-            // _allPortalGameObjects[index] = pd.gameObject; と書くとバグる
-            // Start() の段階では Udon の準備がまだできていないから、このようなバグが発生すると予想している
-            _allPortalGameObjects[index] = renderer.gameObject;
             _allPortalRenderers[index] = renderer;
+            _allPortalGameObjects[index] = renderer.gameObject;
             _allOriginalMaterials[index] = originalMaterial;
             pd.SetOriginalMaterial(originalMaterial);
 
@@ -345,13 +346,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
             // ピクセルごとに保存した _queueRenderPortal を初期化 (0 で上書き)
             VRCGraphics.Blit(_dummyTexture, rts[2], _graphicsBlitMaterial, 0);
 
-            _preProcess.layer = _huwaPortalLayer;
-
-            for (int index = 0; index < _allPortalCount; index++)
-            {
-                _allPortalGameObjects[index].layer = _huwaPortalLayer;
-            }
-
             while (_enqueueIndex > _dequeueIndex)
             {
                 // Dequeue
@@ -435,13 +429,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
             // 前段階で保存した最も奥のポータルの通常マテリアルの描画結果をコピー
             VRCGraphics.Blit(rts[0], rts[1]);
-
-            _preProcess.layer = 0;
-
-            for (int index = 0; index < _allPortalCount; index++)
-            {
-                _allPortalGameObjects[index].layer = 0;
-            }
 
             while (_dequeueIndex > 1)
             {
@@ -576,6 +563,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         for (int index = 0; index < _allPortalCount; index++)
         {
+            _allPortalGameObjects[index].layer = _huwaPortalLayer;
             _allPortalRenderers[index].sharedMaterial = _allOriginalMaterials[index];
         }
 
@@ -605,6 +593,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         for (int index = 0; index < _allPortalCount; index++)
         {
+            _allPortalGameObjects[index].layer = 0;
             _allPortalRenderers[index].sharedMaterial = _portalMaterial;
         }
 
