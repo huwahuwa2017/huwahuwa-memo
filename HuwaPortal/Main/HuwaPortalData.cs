@@ -30,6 +30,7 @@ public class HuwaPortalData : UdonSharpBehaviour
     private HuwaPortalData[] _visiblePortals = null;
 
 
+    private float _visibleRangePow2 = 1f;
     private Material _stencilDepthWriteMaterial = null;
     private Material _originalMaterial = null;
 
@@ -74,6 +75,16 @@ public class HuwaPortalData : UdonSharpBehaviour
         return _visiblePortals;
     }
 
+
+    public void SetVisibleRangePow2(float input)
+    {
+        _visibleRangePow2 = input;
+    }
+
+    public float GetVisibleRangePow2()
+    {
+        return _visibleRangePow2;
+    }
 
     public void SetOriginalMaterial(Material input)
     {

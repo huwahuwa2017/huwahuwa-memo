@@ -12,7 +12,9 @@ public class HuwaPortalTeleport : UdonSharpBehaviour
 
     private VRCPlayerApi _localPlayer = null;
     private bool _isUserInVR = false;
+
     private int _allPortalCount = -1;
+    private Collider[] _allTeleportTriggers = null;
 
     private Vector3 _offset = new Vector3(0f, 0.5f, 0f);
 
@@ -20,7 +22,14 @@ public class HuwaPortalTeleport : UdonSharpBehaviour
     {
         _localPlayer = Networking.LocalPlayer;
         _isUserInVR = _localPlayer.IsUserInVR();
+
         _allPortalCount = _allPortals.Length;
+        _allTeleportTriggers = new Collider[_allPortalCount];
+
+        for (int index = 0; index < _allPortalCount; index++)
+        {
+            _allTeleportTriggers[index] = _allPortals[index].GetTeleportTrigger();
+        }
     }
 
     private void FixedUpdate()
@@ -30,19 +39,20 @@ public class HuwaPortalTeleport : UdonSharpBehaviour
 
         for (int index = 0; index < _allPortalCount; index++)
         {
-            HuwaPortalData pd = _allPortals[index];
-            Collider collider = pd.GetTeleportTrigger();
+            Collider collider = _allTeleportTriggers[index];
 
-            // Collider が有効になっているのかを確認したいが、 collider.enabled だけでは不十分である。
-            // Collider の親オブジェクトが無効になっているかも確認する
-            if (collider == null || !collider.enabled || !collider.gameObject.activeInHierarchy)
+            if (collider == null)
+                continue;
+
+            if (!(collider.enabled && collider.gameObject.activeInHierarchy))
                 continue;
 
             Vector3 closestPos = collider.ClosestPoint(offsetPos);
 
-            if (Vector3.SqrMagnitude(closestPos - offsetPos) > 0.000001f)
+            if (Vector3.Distance(closestPos, offsetPos) > 0.001f)
                 continue;
 
+            HuwaPortalData pd = _allPortals[index];
             Transform originTransform = pd.GetOriginTransform();
             Transform destinationTransform = pd.GetDestinationTransform();
 

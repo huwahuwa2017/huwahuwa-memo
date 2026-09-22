@@ -1,4 +1,4 @@
-﻿// v4.10 2026-09-22 15:41
+﻿// v4.11 2026-09-22 17:54
 
 using UdonSharp;
 using UnityEngine;
@@ -234,6 +234,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
             Renderer renderer = pd.GetRenderer();
             Material originalMaterial = renderer.sharedMaterial;
 
+            float visibleRange = pd.GetVisibleRange();
+            pd.SetVisibleRangePow2(visibleRange * visibleRange);
+
             _allPortalRenderers[index] = renderer;
             _allPortalGameObjects[index] = renderer.gameObject;
             _allOriginalMaterials[index] = originalMaterial;
@@ -368,29 +371,33 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     targetStencil = _dequeueIndex;
                 }
 
+                int visiblePortalsCount = visiblePortals.Length;
+
                 Vector3 cmgp = cameraMatrix.GetPosition();
 
                 UpdateCameraMatrix(_portalStencilCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
                 GeometryUtility.CalculateFrustumPlanes(_portalStencilCamera.cullingMatrix, _planesCache);
 
-                foreach (HuwaPortalData pd in visiblePortals)
+                for (int index = 0; index < visiblePortalsCount; index++)
                 {
                     if (_enqueueIndex >= _queueSize)
                         break;
 
-                    if (!pd.gameObject.activeInHierarchy)
+                    HuwaPortalData pd = visiblePortals[index];
+                    Renderer renderer = pd.GetRenderer();
+
+                    if (!(renderer.enabled && renderer.gameObject.activeInHierarchy))
                         continue;
 
                     Vector3 lp = pd.GetOriginClipPlane().InverseTransformPoint(cmgp);
-                    float d = Vector3.Magnitude(lp);
 
-                    if ((lp.z < 0f) || (d > pd.GetVisibleRange()))
+                    if (lp.z < 0f)
                         continue;
 
-                    Renderer renderer = pd.GetRenderer();
-                    bool tpAABB = GeometryUtility.TestPlanesAABB(_planesCache, renderer.bounds);
+                    if (Vector3.SqrMagnitude(lp) > pd.GetVisibleRangePow2())
+                        continue;
 
-                    if (!tpAABB)
+                    if (!GeometryUtility.TestPlanesAABB(_planesCache, renderer.bounds))
                         continue;
 
                     // Enqueue
@@ -408,8 +415,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 _preProcessMaterial.SetFloat(_stencilAID, targetStencil);
                 _portalStencilCamera.Render();
 
-                foreach (HuwaPortalData pd in visiblePortals)
+                for (int index = 0; index < visiblePortalsCount; index++)
                 {
+                    HuwaPortalData pd = visiblePortals[index];
                     pd.GetRenderer().sharedMaterial = pd.GetOriginalMaterial();
                 }
 
@@ -438,8 +446,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 HuwaPortalData[] visiblePortals = renderPortal.GetVisiblePortals();
 
-                foreach (HuwaPortalData pd in visiblePortals)
+                int visiblePortalsCount = visiblePortals.Length;
+
+                for (int index = 0; index < visiblePortalsCount; index++)
                 {
+                    HuwaPortalData pd = visiblePortals[index];
                     pd.GetRenderer().sharedMaterial = _portalMaterial;
                 }
 
@@ -447,8 +458,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 _preProcessMaterial.SetFloat(_stencilAID, _dequeueIndex);
                 _portalCamera.Render();
 
-                foreach (HuwaPortalData pd in visiblePortals)
+                for (int index = 0; index < visiblePortalsCount; index++)
                 {
+                    HuwaPortalData pd = visiblePortals[index];
                     pd.GetRenderer().sharedMaterial = pd.GetOriginalMaterial();
                 }
 
