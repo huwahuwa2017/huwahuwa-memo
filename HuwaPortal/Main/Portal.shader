@@ -123,5 +123,50 @@
 
             ENDCG
         }
+
+        Pass
+        {
+            ColorMask 0
+
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
+
+            CGPROGRAM
+            
+            #pragma vertex VertexShaderStage_ShadowCaster
+            #pragma fragment FragmentShaderStage_ShadowCaster
+
+            #include "UnityCG.cginc"
+            
+            struct I2V_ShadowCaster
+            {
+                float4 lPos : POSITION;
+                float3 lNormal : NORMAL;
+            };
+
+            struct V2F_ShadowCaster
+            {
+                float4 cPos : SV_POSITION;
+            };
+
+            V2F_ShadowCaster VertexShaderStage_ShadowCaster(I2V_ShadowCaster input)
+            {
+                float4 opos = UnityClipSpaceShadowCasterPos(input.lPos, input.lNormal);
+                opos = UnityApplyLinearShadowBias(opos);
+    
+                V2F_ShadowCaster output = (V2F_ShadowCaster) 0;
+                output.cPos = opos;
+                return output;
+            }
+
+            half4 FragmentShaderStage_ShadowCaster() : SV_Target
+            {
+                return 0.0;
+            }
+
+            ENDCG
+        }
     }
 }

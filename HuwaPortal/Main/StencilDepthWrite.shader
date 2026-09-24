@@ -4,7 +4,7 @@
     {
         Tags
         {
-            "Queue" = "Geometry"
+            "Queue" = "Overlay+500"
             "DisableBatching" = "False"
             "IgnoreProjector" = "True"
         }
