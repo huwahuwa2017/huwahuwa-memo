@@ -1,4 +1,4 @@
-﻿// v4.15 2026-09-24 16:33
+﻿// v4.16 2026-09-25 01:17
 
 using UdonSharp;
 using UnityEngine;
@@ -33,6 +33,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
     [SerializeField, Tooltip("プリプロセス用の MeshRenderer を設定してください")]
     private GameObject _preProcess = null;
 
+    [SerializeField, Tooltip("ポストプロセス用の MeshRenderer を設定してください")]
+    private GameObject _postProcess = null;
+
     [SerializeField, Tooltip("ポータルをレンダリングするカメラを設定してください")]
     private Camera _portalCamera = null;
 
@@ -47,6 +50,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     [SerializeField, HideInInspector]
     private Material _preProcessMaterial = null;
+
+    [SerializeField, HideInInspector]
+    private Material _postProcessMaterial = null;
 
     [SerializeField, HideInInspector]
     private Material _graphicsBlitMaterial = null;
@@ -64,6 +70,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private int _photoCameraPM_m11ID = -1;
     private int _huwaPortalCameraModeID = -1;
     private int _mainTexID = -1;
+    private int _stencilTexID = -1;
     private int _stencilAID = -1;
     private int _stencilBID = -1;
 
@@ -158,47 +165,19 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     private void Start()
     {
-        if (_allPortals == null)
+        if (_allPortals == null ||
+            _sceneDescriptorReferenceCamera == null ||
+            _materialDuplicator == null ||
+            _preProcess == null ||
+            _postProcess == null ||
+            _portalCamera == null ||
+            _portalStencilCamera == null)
         {
-            Debug.LogError("_allPortals が見つかりません");
+            Debug.LogError("必要な参照が null です");
             enabled = false;
             return;
         }
 
-        if (_sceneDescriptorReferenceCamera == null)
-        {
-            Debug.LogError("_sceneDescriptorReferenceCamera が見つかりません");
-            enabled = false;
-            return;
-        }
-
-        if (_materialDuplicator == null)
-        {
-            Debug.LogError("_materialDuplicator が見つかりません");
-            enabled = false;
-            return;
-        }
-
-        if (_preProcess == null)
-        {
-            Debug.LogError("_preProcess が見つかりません");
-            enabled = false;
-            return;
-        }
-
-        if (_portalCamera == null)
-        {
-            Debug.LogError("_portalCamera が見つかりません");
-            enabled = false;
-            return;
-        }
-
-        if (_portalStencilCamera == null)
-        {
-            Debug.LogError("_portalStencilCamera が見つかりません");
-            enabled = false;
-            return;
-        }
 
         _leftCameraTexID = VRCShader.PropertyToID("_LeftCameraTex");
         _rightCameraTexID = VRCShader.PropertyToID("_RightCameraTex");
@@ -209,6 +188,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _photoCameraPM_m11ID = VRCShader.PropertyToID("_PhotoCameraPM_m11");
         _huwaPortalCameraModeID = VRCShader.PropertyToID("_HuwaPortalCameraMode");
         _mainTexID = VRCShader.PropertyToID("_MainTex");
+        _stencilTexID = VRCShader.PropertyToID("_StencilTex");
         _stencilAID = VRCShader.PropertyToID("_StencilA");
         _stencilBID = VRCShader.PropertyToID("_StencilB");
 
@@ -217,6 +197,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         int mask = 1 << _huwaPortalLayer;
         _preProcess.layer = _huwaPortalLayer;
+        _postProcess.layer = _huwaPortalLayer;
         _portalCamera.cullingMask = _portalCamera.cullingMask | mask;
         _portalStencilCamera.cullingMask = mask;
         _portalCameraTransform = _portalStencilCamera.transform.parent;
@@ -330,7 +311,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
         RenderTexture stencilTempRT = rts[2];
         RenderTexture stencilRT = rts[3];
 
-        _preProcessMaterial.SetTexture(_mainTexID, stencilRT);
+        _preProcessMaterial.SetTexture(_stencilTexID, stencilRT);
+        _postProcessMaterial.SetTexture(_mainTexID, colorRT);
+        _postProcessMaterial.SetTexture(_stencilTexID, stencilRT);
 
         int enqueueIndex = 0;
         int dequeueIndex = 0;
@@ -415,6 +398,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 }
 
                 _preProcessMaterial.SetFloat(_stencilAID, targetStencil);
+                _postProcessMaterial.SetFloat(_stencilAID, targetStencil);
                 _portalStencilCamera.Render();
 
                 for (int index = 0; index < visiblePortalsCount; index++)
@@ -422,6 +406,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     HuwaPortalData pd = visiblePortals[index];
                     pd._renderer.sharedMaterial = pd._originalMaterial;
                 }
+
+                VRCGraphics.Blit(colorTempRT, colorRT);
 
                 // StencilCopy
                 VRCGraphics.Blit(stencilTempRT, stencilRT, _graphicsBlitMaterial, 1);
@@ -435,9 +421,6 @@ public class HuwaPortalMain : UdonSharpBehaviour
         {
             // SV_Target0 : ポータルの内部の景色を描画して保存
             _portalCamera.SetTargetBuffers(colorTempRT.colorBuffer, colorTempRT.depthBuffer);
-
-            // 前段階で保存した最も奥のポータルの通常マテリアルの描画結果をコピー
-            VRCGraphics.Blit(colorTempRT, colorRT);
 
             while (dequeueIndex > 1)
             {
@@ -458,6 +441,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 UpdateCameraMatrix(_portalCamera, cameraMatrix, projectionMatrix, renderPortal._destinationClipPlane);
                 _preProcessMaterial.SetFloat(_stencilAID, dequeueIndex);
+                _postProcessMaterial.SetFloat(_stencilAID, dequeueIndex);
                 _portalCamera.Render();
 
                 for (int index = 0; index < visiblePortalsCount; index++)
@@ -573,6 +557,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
 
         _preProcess.SetActive(true);
+        _postProcess.SetActive(true);
 
         for (int index = 0; index < _allPortalCount; index++)
         {
@@ -612,6 +597,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         _portalMaterial.SetFloat(_huwaPortalCameraModeID, -1f);
         _preProcess.SetActive(false);
+        _postProcess.SetActive(false);
 
         //Debug.Log("End OnPreCull");
     }

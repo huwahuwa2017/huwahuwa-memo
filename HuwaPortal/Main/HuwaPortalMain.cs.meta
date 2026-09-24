@@ -8,12 +8,15 @@ MonoImporter:
   - _sceneDescriptorReferenceCamera: {instanceID: 0}
   - _materialDuplicator: {instanceID: 0}
   - _preProcess: {instanceID: 0}
+  - _postProcess: {instanceID: 0}
   - _portalCamera: {instanceID: 0}
   - _portalStencilCamera: {instanceID: 0}
   - _portalMaterial: {fileID: 2100000, guid: fe36e5d6e65fb4b48a37a5fb82735586, type: 2}
   - _stencilDepthWriteMaterial: {fileID: 2100000, guid: e50cf90a2a4cd1741b01778d41b0164c,
       type: 2}
   - _preProcessMaterial: {fileID: 2100000, guid: 38f8221a2faf84f4580854784f128af7,
+      type: 2}
+  - _postProcessMaterial: {fileID: 2100000, guid: 4e4589c40b57a6149bc78edb40e65a92,
       type: 2}
   - _graphicsBlitMaterial: {fileID: 2100000, guid: 3cc29fa65de06924391eb016c8d0ffe7,
       type: 2}

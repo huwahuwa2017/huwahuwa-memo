@@ -1,19 +1,18 @@
-Shader "HuwaPortal/PreProcess"
+Shader "HuwaPortal/PostProcess"
 {
     SubShader
     {
         Tags
         {
-            "Queue" = "Background-1000"
+            "Queue" = "Overlay+800000"
             "DisableBatching" = "True"
             "IgnoreProjector" = "True"
         }
         
         Pass
         {
-            ColorMask 0
             ZTest Always
-            ZWrite On
+            ZWrite Off
 
             CGPROGRAM
 
@@ -32,6 +31,7 @@ Shader "HuwaPortal/PreProcess"
                 float4 cPos : SV_POSITION;
             };
             
+            Texture2D _MainTex;
             Texture2D<uint> _StencilTex;
 
             uint _StencilA;
@@ -46,23 +46,15 @@ Shader "HuwaPortal/PreProcess"
                 return output;
             }
 
-            float FragmentShaderStage(V2F input) : SV_Depth
+            half4 FragmentShaderStage(V2F input) : SV_Target
             {
-                #if defined(UNITY_REVERSED_Z)
-                    // DirectX
-                    float nearDepth = 1.0;
-                    float farDepth = 0.0;
-                #else
-                    // OpenGL
-                    float nearDepth = 0.0;
-                    float farDepth = 1.0;
-                #endif
-                
                 uint2 index = uint2(input.cPos.xy);
                 uint data = _StencilTex[index];
-                
+
                 bool flag = (_StencilA > 255) || (data == _StencilA);
-                return flag ? farDepth : nearDepth;
+                clip(-flag);
+
+                return _MainTex[index];
             }
 
             ENDCG
