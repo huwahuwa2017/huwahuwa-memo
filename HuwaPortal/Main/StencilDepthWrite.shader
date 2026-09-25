@@ -37,9 +37,11 @@
                 return output;
             }
 
-            // SV_Target0 ではなく、 SV_Target1 であることに注意
-            uint FragmentShaderStage(V2F input) : SV_Target1
+            uint FragmentShaderStage(V2F input) : SV_Target
             {
+                bool flag = (_StencilA > 255);
+                clip(-flag);
+
                 return _StencilA;
             }
 
