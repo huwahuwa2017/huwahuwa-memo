@@ -1,4 +1,4 @@
-﻿// v4.16 2026-09-25 01:17
+﻿// v4.17 2026-09-25 15:01
 
 using UdonSharp;
 using UnityEngine;
@@ -91,6 +91,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private HuwaPortalData[] _queueRenderPortal = null;
     private Matrix4x4[] _queueCameraMatrix = null;
     private int[] _queueParentIndex = null;
+    private uint[] _queueVisibleBitFlag = null;
 
     private bool _screenCameraChangePending = false;
     private bool _photoCameraChangePending = false;
@@ -144,6 +145,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
             _queueRenderPortal = new HuwaPortalData[_queueSize];
             _queueCameraMatrix = new Matrix4x4[_queueSize];
             _queueParentIndex = new int[_queueSize];
+            _queueVisibleBitFlag = new uint[_queueSize];
         }
     }
 
@@ -359,6 +361,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 int visiblePortalsCount = visiblePortals.Length;
 
                 Vector3 cmgp = cameraMatrix.GetPosition();
+                uint visibleBitFlag = 0;
 
                 UpdateCameraMatrix(_portalStencilCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
                 GeometryUtility.CalculateFrustumPlanes(_portalStencilCamera.cullingMatrix, _planesCache);
@@ -390,12 +393,16 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     _queueCameraMatrix[enqueueIndex] = pd._destinationTransform.localToWorldMatrix * pd._originTransform.worldToLocalMatrix * cameraMatrix;
                     _queueParentIndex[enqueueIndex] = dequeueIndex;
 
+                    visibleBitFlag = visibleBitFlag | (1u << index);
+
                     Material material = pd._stencilDepthWriteMaterial;
                     material.SetFloat(_stencilAID, enqueueIndex);
                     renderer.sharedMaterial = material;
 
                     ++enqueueIndex;
                 }
+
+                _queueVisibleBitFlag[dequeueIndex] = visibleBitFlag;
 
                 _preProcessMaterial.SetFloat(_stencilAID, targetStencil);
                 _postProcessMaterial.SetFloat(_stencilAID, targetStencil);
@@ -407,7 +414,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     pd._renderer.sharedMaterial = pd._originalMaterial;
                 }
 
-                VRCGraphics.Blit(colorTempRT, colorRT);
+                // _queueVisibleBitFlag を実装したので SV_Target0 の結果が必要なくなった
+                // あとで大改修する
+                //VRCGraphics.Blit(colorTempRT, colorRT);
 
                 // StencilCopy
                 VRCGraphics.Blit(stencilTempRT, stencilRT, _graphicsBlitMaterial, 1);
@@ -428,6 +437,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 HuwaPortalData renderPortal = _queueRenderPortal[dequeueIndex];
                 Matrix4x4 cameraMatrix = _queueCameraMatrix[dequeueIndex];
                 int parentIndex = _queueParentIndex[dequeueIndex];
+                uint visibleBitFlag = _queueVisibleBitFlag[dequeueIndex];
 
                 HuwaPortalData[] visiblePortals = renderPortal._visiblePortals;
 
@@ -435,8 +445,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 for (int index = 0; index < visiblePortalsCount; index++)
                 {
-                    HuwaPortalData pd = visiblePortals[index];
-                    pd._renderer.sharedMaterial = _portalMaterial;
+                    if ((visibleBitFlag & (1u << index)) != 0)
+                    {
+                        HuwaPortalData pd = visiblePortals[index];
+                        pd._renderer.sharedMaterial = _portalMaterial;
+                    }
                 }
 
                 UpdateCameraMatrix(_portalCamera, cameraMatrix, projectionMatrix, renderPortal._destinationClipPlane);
