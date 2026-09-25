@@ -501,6 +501,7 @@ MonoBehaviour:
     type: 2}
   _graphicsBlitMaterial: {fileID: 2100000, guid: 3cc29fa65de06924391eb016c8d0ffe7,
     type: 2}
+  _rtd_R8_UInt: {fileID: 8400000, guid: 792e70b8c3346b144b8f0c333e3d6771, type: 2}
   _dummyTexture: {fileID: 8400000, guid: 0a637af6dffae754a9932ada94dedfd0, type: 2}
 --- !u!114 &8327601835590011651
 MonoBehaviour:

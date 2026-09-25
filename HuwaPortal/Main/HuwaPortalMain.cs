@@ -1,4 +1,4 @@
-﻿// v4.18 2026-09-25 17:00
+﻿// v4.19 2026-09-25 18:52
 
 using UdonSharp;
 using UnityEngine;
@@ -58,6 +58,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private Material _graphicsBlitMaterial = null;
 
     [SerializeField, HideInInspector]
+    private RenderTexture _rtd_R8_UInt = null;
+
+    [SerializeField, HideInInspector]
     private Texture _dummyTexture = null;
 
 
@@ -92,7 +95,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
     private HuwaPortalData[] _queueRenderPortal = null;
     private Matrix4x4[] _queueCameraMatrix = null;
     private int[] _queueParentIndex = null;
-    private uint[] _queueVisibleBitFlag = null;
+    private int[] _queueChildStartIndex = null;
+    private int[] _queueChildEndIndex = null;
 
     private bool _screenCameraChangePending = false;
     private bool _photoCameraChangePending = false;
@@ -145,7 +149,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
             _queueRenderPortal = new HuwaPortalData[_queueSize];
             _queueCameraMatrix = new Matrix4x4[_queueSize];
             _queueParentIndex = new int[_queueSize];
-            _queueVisibleBitFlag = new uint[_queueSize];
+            _queueChildStartIndex = new int[_queueSize];
+            _queueChildEndIndex = new int[_queueSize];
         }
     }
 
@@ -253,11 +258,15 @@ public class HuwaPortalMain : UdonSharpBehaviour
     {
         if (target == null)
         {
+            RenderTextureDescriptor rtd = _rtd_R8_UInt.descriptor;
+            rtd.width = width;
+            rtd.height = height;
+
             target = new RenderTexture[4];
             target[0] = new RenderTexture(width, height, 32, RenderTextureFormat.ARGBHalf);
             target[1] = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf);
-            target[2] = new RenderTexture(width, height, 0, RenderTextureFormat.RInt);
-            target[3] = new RenderTexture(width, height, 0, RenderTextureFormat.RInt);
+            target[2] = new RenderTexture(rtd);
+            target[3] = new RenderTexture(rtd);
         }
         else
         {
@@ -367,10 +376,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 int visiblePortalsCount = visiblePortals.Length;
 
                 Vector3 cmgp = cameraMatrix.GetPosition();
-                uint visibleBitFlag = 0;
 
                 UpdateCameraMatrix(_portalStencilCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
                 GeometryUtility.CalculateFrustumPlanes(_portalStencilCamera.cullingMatrix, _planesCache);
+
+                _queueChildStartIndex[dequeueIndex] = enqueueIndex;
 
                 for (int index = 0; index < visiblePortalsCount; index++)
                 {
@@ -399,14 +409,12 @@ public class HuwaPortalMain : UdonSharpBehaviour
                     _queueCameraMatrix[enqueueIndex] = pd._destinationTransform.localToWorldMatrix * pd._originTransform.worldToLocalMatrix * cameraMatrix;
                     _queueParentIndex[enqueueIndex] = dequeueIndex;
 
-                    visibleBitFlag = visibleBitFlag | (1u << index);
-
                     pd._stencilDepthWriteMaterial.SetFloat(_stencilAID, enqueueIndex);
 
                     ++enqueueIndex;
                 }
 
-                _queueVisibleBitFlag[dequeueIndex] = visibleBitFlag;
+                _queueChildEndIndex[dequeueIndex] = enqueueIndex;
 
                 _preProcessMaterial.SetFloat(_stencilAID, dequeueIndex);
                 _portalStencilCamera.Render();
@@ -440,7 +448,8 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 HuwaPortalData renderPortal = _queueRenderPortal[dequeueIndex];
                 Matrix4x4 cameraMatrix = _queueCameraMatrix[dequeueIndex];
                 int parentIndex = _queueParentIndex[dequeueIndex];
-                uint visibleBitFlag = _queueVisibleBitFlag[dequeueIndex];
+                int childStartIndex = _queueChildStartIndex[dequeueIndex];
+                int childEndIndex = _queueChildEndIndex[dequeueIndex];
 
                 HuwaPortalData[] visiblePortals;
                 Transform clipPlaneTransform;
@@ -458,13 +467,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 int visiblePortalsCount = visiblePortals.Length;
 
-                for (int index = 0; index < visiblePortalsCount; index++)
+                for (int index = childStartIndex; index < childEndIndex; index++)
                 {
-                    if ((visibleBitFlag & (1u << index)) != 0)
-                    {
-                        HuwaPortalData pd = visiblePortals[index];
-                        pd._renderer.sharedMaterial = _portalMaterial;
-                    }
+                    _queueRenderPortal[index]._renderer.sharedMaterial = _portalMaterial;
                 }
 
                 UpdateCameraMatrix(_portalCamera, cameraMatrix, projectionMatrix, clipPlaneTransform);
@@ -472,9 +477,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
                 _postProcessMaterial.SetFloat(_stencilAID, dequeueIndex);
                 _portalCamera.Render();
 
-                for (int index = 0; index < visiblePortalsCount; index++)
+                for (int index = childStartIndex; index < childEndIndex; index++)
                 {
-                    HuwaPortalData pd = visiblePortals[index];
+                    HuwaPortalData pd = _queueRenderPortal[index];
                     pd._renderer.sharedMaterial = pd._originalMaterial;
                 }
 
