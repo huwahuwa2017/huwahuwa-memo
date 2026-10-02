@@ -1,4 +1,4 @@
-﻿// v4.19 2026-09-25 18:52
+﻿// v4.20 2026-10-02 18:52
 
 using UdonSharp;
 using UnityEngine;
@@ -79,6 +79,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
     private VRCPlayerApi _localPlayer = null;
     private bool _isUserInVR = false;
+
+    private int _portalLayerCullingMask = -1;
+    private int _portalCameraCullingMask = -1;
 
     private Transform _portalCameraTransform = null;
 
@@ -202,11 +205,12 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _localPlayer = Networking.LocalPlayer;
         _isUserInVR = _localPlayer.IsUserInVR();
 
-        int mask = 1 << _huwaPortalLayer;
+        _portalLayerCullingMask = 1 << _huwaPortalLayer;
+        _portalCameraCullingMask = _portalCamera.cullingMask | _portalLayerCullingMask;
+        _portalStencilCamera.cullingMask = _portalLayerCullingMask;
         _preProcess.layer = _huwaPortalLayer;
         _postProcess.layer = _huwaPortalLayer;
-        _portalCamera.cullingMask = _portalCamera.cullingMask | mask;
-        _portalStencilCamera.cullingMask = mask;
+
         _portalCameraTransform = _portalStencilCamera.transform.parent;
 
         _allPortalCount = _allPortals.Length;
@@ -339,7 +343,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         // _portalStencilCamera の処理
         {
-            // SV_Target0 : ピクセルごとに _queueRenderPortal を保存
+            // ピクセルごとに _queueRenderPortal を保存
             _portalStencilCamera.SetTargetBuffers(stencilTempRT.colorBuffer, colorTempRT.depthBuffer);
 
             // postProcess オフ
@@ -364,6 +368,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 if (renderPortal == null)
                 {
+                    // 最初の描画
                     visiblePortals = _allPortals;
                     clipPlaneTransform = null;
                 }
@@ -434,8 +439,9 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
         // _portalCamera の処理
         {
-            // SV_Target0 : ポータルの内部の景色を描画して保存
+            // ポータルの内部の景色を描画して保存
             _portalCamera.SetTargetBuffers(colorTempRT.colorBuffer, colorTempRT.depthBuffer);
+            _portalCamera.cullingMask = _portalCameraCullingMask;
 
             for (int index = 0; index < _allPortalCount; index++)
             {
@@ -456,8 +462,11 @@ public class HuwaPortalMain : UdonSharpBehaviour
 
                 if (renderPortal == null)
                 {
+                    // 最後の描画
                     visiblePortals = _allPortals;
                     clipPlaneTransform = null;
+
+                    _portalCamera.cullingMask = _portalLayerCullingMask;
                 }
                 else
                 {
@@ -632,5 +641,22 @@ public class HuwaPortalMain : UdonSharpBehaviour
         _postProcess.SetActive(false);
 
         //Debug.Log("End OnPreCull");
+    }
+
+
+
+
+    private int _frameCount = 0;
+
+    private void FixedUpdate()
+    {
+        ++_frameCount;
+
+        if (_frameCount > 100)
+        {
+            _frameCount = 0;
+            _screenCameraChangePending = _screenCameraChangePending || (VRCCameraSettings.ScreenCamera != null);
+            _photoCameraChangePending = _photoCameraChangePending || (VRCCameraSettings.PhotoCamera != null);
+        }
     }
 }
