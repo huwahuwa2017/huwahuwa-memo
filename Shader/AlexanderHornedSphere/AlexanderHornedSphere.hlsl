@@ -1,4 +1,4 @@
-// MIT License
+ï»¿// MIT License
 // Copyright (c) 2019 Inigo Quilez
 // https://www.shadertoy.com/view/tl23RK
 
@@ -135,17 +135,24 @@ float dist_func(float3 rayPos)
     return result;
 }
 
+/*
+æ³•ç·š = normalize(âˆ‡f)
+     = normalize((âˆ‚f/âˆ‚x, âˆ‚f/âˆ‚y, âˆ‚f/âˆ‚z))
+     â‰ˆ normalize(((f(x+Îµ, y, z)-f(x, y, z))/Îµ, (f(x, y+Îµ, z)-f(x, y, z))/Îµ, (f(x, y, z+Îµ)-f(x, y, z))/Îµ))
+     â‰ˆ normalize((f(x+Îµ, y, z)-f(x, y, z), f(x, y+Îµ, z)-f(x, y, z), f(x, y, z+Îµ)-f(x, y, z)))
+     â‰ˆ normalize((f(x+Îµ, y, z), f(x, y+Îµ, z), f(x, y, z+Îµ))-(f(x, y, z), f(x, y, z), f(x, y, z)))
+*/
 float3 CalcNormal(float3 pos, float origineD)
 {
     float3 vx = pos;
     float3 vy = pos;
     float3 vz = pos;
     
-    vx.x -= _Epsilon;
-    vy.y -= _Epsilon;
-    vz.z -= _Epsilon;
+    vx.x += _Epsilon;
+    vy.y += _Epsilon;
+    vz.z += _Epsilon;
     
-    return normalize(origineD.xxx - float3(dist_func(vx), dist_func(vy), dist_func(vz)));
+    return normalize(float3(dist_func(vx), dist_func(vy), dist_func(vz)) - origineD.xxx);
 }
 
 // Created based on VertexGIForward
@@ -163,10 +170,10 @@ half3 SimpleGI(float3 wPos, half3 wNormal)
 
 V2F VertexShaderStage(I2V input)
 {
-    // ƒJƒƒ‰‚ÌˆÊ’u(ƒ[ƒ‹ƒhÀ•WŒn)‚ğƒ[ƒJƒ‹À•WŒn‚É•ÏŠ·
+    // ã‚«ãƒ¡ãƒ©ã®ä½ç½®(ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ç³»)ã‚’ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ç³»ã«å¤‰æ›
     float3 localCameraPos = mul(UNITY_MATRIX_I_M, float4(_WorldSpaceCameraPos, 1.0)).xyz;
     
-    // ƒ[ƒJƒ‹À•WŒn‚ÅRay‚ğŒvZ
+    // ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ç³»ã§Rayã‚’è¨ˆç®—
     float3 lRay = input.lPos.xyz - localCameraPos;
     
     V2F output = (V2F) 0;
