@@ -1,4 +1,4 @@
-
+﻿
 #if !defined(UNITY_MATRIX_I_M)
 #define UNITY_MATRIX_I_M unity_WorldToObject
 #endif
@@ -98,17 +98,24 @@ float dist_func(float3 p)
     return deMandelbox(p, 2.0, 0.75 + _SinTime.z * 0.25, 1.25 + _CosTime.z * 0.25);
 }
 
+/*
+法線 = normalize(∇f)
+     = normalize((∂f/∂x, ∂f/∂y, ∂f/∂z))
+     ≈ normalize(((f(x+ε, y, z)-f(x, y, z))/ε, (f(x, y+ε, z)-f(x, y, z))/ε, (f(x, y, z+ε)-f(x, y, z))/ε))
+     ≈ normalize((f(x+ε, y, z)-f(x, y, z), f(x, y+ε, z)-f(x, y, z), f(x, y, z+ε)-f(x, y, z)))
+     ≈ normalize((f(x+ε, y, z), f(x, y+ε, z), f(x, y, z+ε))-(f(x, y, z), f(x, y, z), f(x, y, z)))
+*/
 float3 CalcNormal(float3 pos, float origineD)
 {
     float3 vx = pos;
     float3 vy = pos;
     float3 vz = pos;
     
-    vx.x -= _Epsilon;
-    vy.y -= _Epsilon;
-    vz.z -= _Epsilon;
+    vx.x += _Epsilon;
+    vy.y += _Epsilon;
+    vz.z += _Epsilon;
     
-    return normalize(origineD.xxx - float3(dist_func(vx), dist_func(vy), dist_func(vz)));
+    return normalize(float3(dist_func(vx), dist_func(vy), dist_func(vz)) - origineD.xxx);
 }
 
 
