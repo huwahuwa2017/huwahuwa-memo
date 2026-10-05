@@ -1,4 +1,4 @@
-﻿// v4.20 2026-10-02 18:52
+﻿// v4.22 2026-10-05 21:43
 
 using UdonSharp;
 using UnityEngine;
@@ -440,7 +440,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
         // _portalCamera の処理
         {
             // ポータルの内部の景色を描画して保存
-            _portalCamera.SetTargetBuffers(colorTempRT.colorBuffer, colorTempRT.depthBuffer);
+            _portalCamera.targetTexture = colorTempRT;
             _portalCamera.cullingMask = _portalCameraCullingMask;
 
             for (int index = 0; index < _allPortalCount; index++)
