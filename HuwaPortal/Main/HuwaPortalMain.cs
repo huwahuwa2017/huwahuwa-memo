@@ -1,4 +1,4 @@
-﻿// v4.21 2026-10-05 21:15
+﻿// v4.20 2026-10-02 18:52
 
 using UdonSharp;
 using UnityEngine;
@@ -344,7 +344,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
         // _portalStencilCamera の処理
         {
             // ピクセルごとに _queueRenderPortal を保存
-            _portalCamera.targetTexture = stencilTempRT;
+            _portalStencilCamera.SetTargetBuffers(stencilTempRT.colorBuffer, colorTempRT.depthBuffer);
 
             // postProcess オフ
             _postProcessMaterial.SetFloat(_stencilAID, -1);
@@ -440,7 +440,7 @@ public class HuwaPortalMain : UdonSharpBehaviour
         // _portalCamera の処理
         {
             // ポータルの内部の景色を描画して保存
-            _portalCamera.targetTexture = colorTempRT;
+            _portalCamera.SetTargetBuffers(colorTempRT.colorBuffer, colorTempRT.depthBuffer);
             _portalCamera.cullingMask = _portalCameraCullingMask;
 
             for (int index = 0; index < _allPortalCount; index++)
