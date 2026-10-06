@@ -3,7 +3,34 @@
 
 
 
-PCに異常が発生したときに役に立つコマンド
+
+
+
+
+
+
+四面体
+Tetrahedron
+
+
+
+
+VRC の Layer の設定
+
+MirrorReflection
+自分のアバター
+
+Player
+自分以外のアバター
+
+PlayerLocal
+自分のアバター (頭なし)
+
+
+
+
+Windows 整合性チェックコマンド
+上から1行ずつ実行しよう
 
 dism /Online /Cleanup-Image /ScanHealth
 dism /Online /Cleanup-Image /CheckHealth
@@ -71,6 +98,20 @@ CameraのClearFlagsの挙動
 SolidColor : Depthを初期化して指定した色で塗りつぶしてからMeshを描画
  DepthOnly : Depthを初期化してMeshを描画
 Don'tClear : 何も初期化せずにMeshを描画
+
+
+
+
+Queue が 2500 以下は不透明 (Render.OpaqueGeometry)
+Queue が 2500 以下かつ同じ値のオブジェクトが複数ある場合、
+ランダムな順番(ソートしない)で描画する
+            
+Queue が 2500 と 2501 の間に
+Lighting の Environment の Skybox Material を描画する (Camera.RenderSkybox)
+
+Queue が 2501 以上は半透明   (Render.TransparentGeometry)
+Queue が 2501 以上かつ同じ値のオブジェクトが複数ある場合、
+遠いオブジェクトから先に描画する
 
 
 

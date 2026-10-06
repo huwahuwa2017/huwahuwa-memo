@@ -1,4 +1,4 @@
-
+ï»¿
 // Unity2022.3 UnityCG.cginc
 #define UNITY_PI            3.14159265359f
 #define UNITY_TWO_PI        6.28318530718f
@@ -38,45 +38,45 @@ fixed3 UnpackNormalWithScale(fixed4 packednormal, float scale)
 #define UNITY_MATRIX_M unity_ObjectToWorld
 
 // Unity2022.3 UnityShaderVariables.cginc
-// ‰º‹L‚Ì•Ï”‚ÍCPU‚©‚ç’l‚ª‘—‚ç‚ê‚é‚Ì‚Å‚Í‚È‚­AƒVƒF[ƒ_[“à‚ÅŒvZ‚³‚ê‚é
+// ä¸‹è¨˜ã®å¤‰æ•°ã¯CPUã‹ã‚‰å€¤ãŒé€ã‚‰ã‚Œã‚‹ã®ã§ã¯ãªãã€ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼å†…ã§è¨ˆç®—ã•ã‚Œã‚‹
 static float4x4 unity_MatrixMVP = mul(unity_MatrixVP, unity_ObjectToWorld);
 static float4x4 unity_MatrixMV = mul(unity_MatrixV, unity_ObjectToWorld);
 static float4x4 unity_MatrixTMV = transpose(unity_MatrixMV);
 static float4x4 unity_MatrixITMV = transpose(mul(unity_WorldToObject, unity_MatrixInvV));
 
 // Unity2022.3 UnityShaderVariables.cginc, UnityInstancing.cginc
-// ‰º‹L‚Ìƒ}ƒNƒ‚Íã‹L‚Ì•Ï”‚ğg—p‚·‚é
+// ä¸‹è¨˜ã®ãƒã‚¯ãƒ­ã¯ä¸Šè¨˜ã®å¤‰æ•°ã‚’ä½¿ç”¨ã™ã‚‹
 #define UNITY_MATRIX_MVP
 #define UNITY_MATRIX_MV
 #define UNITY_MATRIX_T_MV
 #define UNITY_MATRIX_IT_MV
 
 // Unity2022.3 UnityShaderVariables.cginc
-// ‚±‚Ì•Ï”‚Í USING_STEREO_MATRICES ‚ª—LŒø‚Ì‚Íg‚¦‚È‚¢
-// ‚±‚Ì•Ï”‚Í ShadowCaster ‚Å‚Íg‚¦‚È‚¢
+// ã“ã®å¤‰æ•°ã¯ USING_STEREO_MATRICES ãŒæœ‰åŠ¹ã®æ™‚ã¯ä½¿ãˆãªã„
+// ã“ã®å¤‰æ•°ã¯ ShadowCaster ã§ã¯ä½¿ãˆãªã„
 float4x4 unity_CameraProjection;
 float4x4 unity_CameraInvProjection;
 float4x4 unity_WorldToCamera;
 float4x4 unity_CameraToWorld;
 
 // Unity2022.3 UnityShaderVariables.cginc
-// USING_STEREO_MATRICES ‚Ì’è‹`
+// USING_STEREO_MATRICES ã®å®šç¾©
 #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define USING_STEREO_MATRICES
 #endif
 
 
 
-// UNITY_UV_STARTS_AT_TOP ‚Æ UNITY_REVERSED_Z ‚Í“¯‚¶
+// UNITY_UV_STARTS_AT_TOP ã¨ UNITY_REVERSED_Z ã¯åŒã˜
 
 // Unity2022.3 HLSLSupport.cginc
-// UNITY_UV_STARTS_AT_TOP ‚Ì’è‹`
+// UNITY_UV_STARTS_AT_TOP ã®å®šç¾©
 #if defined(SHADER_API_D3D11) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
 #define UNITY_UV_STARTS_AT_TOP 1
 #endif
 
 // Unity2022.3 HLSLSupport.cginc
-// UNITY_REVERSED_Z ‚Ì’è‹`
+// UNITY_REVERSED_Z ã®å®šç¾©
 #if defined(SHADER_API_D3D11) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
 #define UNITY_REVERSED_Z 1
 #endif
@@ -253,21 +253,21 @@ Shader"Custom/Example"
         [Header(#()._ HeaderName)]
         [Space(48)]
         
-        // Unity 2020 ˆÈ‘O
+        // Unity 2020 ä»¥å‰
         _Value("Value", Int) = 0
         
-        // Unity 2021 ˆÈŒã
+        // Unity 2021 ä»¥å¾Œ
         _Value("Value", Integer) = 1
         
         
         
         // https://github.com/huwahuwa2017/huwahuwa-memo/blob/main/Shader/Example/PropertiesKeyword.shader
-        // •Ï”–¼‚Í‰½‚Å‚à‚æ‚¢
+        // å¤‰æ•°åã¯ä½•ã§ã‚‚ã‚ˆã„
         [Toggle(_KEYWORD_TOGGLE_A)]
         _TempA("Toggle", Int) = 0
 
-        // •Ï”–¼ + _ + KeywordEnum‚Ì’l
-        // ‚ÌƒL[ƒ[ƒh‚ª—LŒø‚É‚È‚é
+        // å¤‰æ•°å + _ + KeywordEnumã®å€¤
+        // ã®ã‚­ãƒ¼ãƒ¯ãƒ¼ãƒ‰ãŒæœ‰åŠ¹ã«ãªã‚‹
         [KeywordEnum(A, B, C)]
         _KEYWORD_ENUM("KeywordEnum", Int) = 0
     }
@@ -275,38 +275,41 @@ Shader"Custom/Example"
     SubShader
     {
         CGINCLUDE
-        // ‚±‚±‚ÉƒR[ƒh‚ğ‘‚­‚ÆA
-        // ‚·‚×‚Ä‚ÌƒpƒX‚Å‚±‚ÌƒR[ƒh‚ğ‘‚«‚ñ‚¾‚±‚Æ‚É‚È‚é
+        // ã“ã“ã«ã‚³ãƒ¼ãƒ‰ã‚’æ›¸ãã¨ã€
+        // ã™ã¹ã¦ã®ãƒ‘ã‚¹ã§ã“ã®ã‚³ãƒ¼ãƒ‰ã‚’æ›¸ãè¾¼ã‚“ã ã“ã¨ã«ãªã‚‹
         ENDCG
         
         // https://docs.unity3d.com/ja/2022.3/Manual/SL-SubShaderTags.html
         Tags
         {
-            // Queue ‚ª 2500 ˆÈ‰º‚Í•s“§–¾ (Render.OpaqueGeometry)
-            // Queue ‚ª 2500 ˆÈ‰º‚©‚Â“¯‚¶’l‚ÌƒIƒuƒWƒFƒNƒg‚ª•¡”‚ ‚éê‡A
-            // ƒ‰ƒ“ƒ_ƒ€‚È‡”Ô(ƒ\[ƒg‚µ‚È‚¢)‚Å•`‰æ‚·‚é
+            // Queue ãŒ 2500 ä»¥ä¸‹ã¯ä¸é€æ˜ (Render.OpaqueGeometry)
+            // Queue ãŒ 2500 ä»¥ä¸‹ã‹ã¤åŒã˜å€¤ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒè¤‡æ•°ã‚ã‚‹å ´åˆã€
+            // ãƒ©ãƒ³ãƒ€ãƒ ãªé †ç•ª(ã‚½ãƒ¼ãƒˆã—ãªã„)ã§æç”»ã™ã‚‹
             
-            // Queue ‚ª 2501 ˆÈã‚Í”¼“§–¾   (Render.TransparentGeometry)
-            // Queue ‚ª 2501 ˆÈã‚©‚Â“¯‚¶’l‚ÌƒIƒuƒWƒFƒNƒg‚ª•¡”‚ ‚éê‡A
-            // ‰“‚¢ƒIƒuƒWƒFƒNƒg‚©‚çæ‚É•`‰æ‚·‚é
+            // Queue ãŒ 2500 ã¨ 2501 ã®é–“ã«
+            // Lighting ã® Environment ã® Skybox Material ã‚’æç”»ã™ã‚‹ (Camera.RenderSkybox)
+
+            // Queue ãŒ 2501 ä»¥ä¸Šã¯åŠé€æ˜   (Render.TransparentGeometry)
+            // Queue ãŒ 2501 ä»¥ä¸Šã‹ã¤åŒã˜å€¤ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãŒè¤‡æ•°ã‚ã‚‹å ´åˆã€
+            // é ã„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‹ã‚‰å…ˆã«æç”»ã™ã‚‹
             
             // Background = 1000, Geometry = 2000, AlphaTest = 2450, Transparent = 3000, Overlay = 4000
             "Queue" = "Background" "Geometry" "AlphaTest" "Transparent" "Overlay" "Overlay+815199"
             
-            // “®“Iƒoƒbƒ`ƒ“ƒO‚ğ–³Œø‰»‚·‚é
+            // å‹•çš„ãƒãƒƒãƒãƒ³ã‚°ã‚’ç„¡åŠ¹åŒ–ã™ã‚‹
             "DisableBatching" = "True"
             
-            // ƒvƒƒWƒFƒNƒ^[ƒRƒ“ƒ|[ƒlƒ“ƒg‚Ì‘ÎÛŠO‚É‚·‚é
+            // ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ã‚¿ãƒ¼ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã®å¯¾è±¡å¤–ã«ã™ã‚‹
             "IgnoreProjector" = "True"
             
             // https://docs.unity3d.com/ja/2022.3/Manual/SL-ShaderReplacement.html
-            // Shader‚ğ’u‚«Š·‚¦‚é‚Æ‚«‚Ì”»’è‚Ég‚¤
-            // DepthTextureMode.DepthNormals ‚Å‚àg‚¤‚ç‚µ‚¢
-            // RenderType ‚Ìˆá‚¢‚Å•‰‰×‚ª•Ï‚í‚é‚Æ‚¢‚¤‰\‚ª‚ ‚é‚ª–¢ŒŸØ
-            // VRC‚ÌƒAƒoƒ^[—pShader‚Å‚ ‚ê‚Îİ’è‚µ‚È‚­‚Ä‚à—Ç‚¢‚Æv‚¤
+            // Shaderã‚’ç½®ãæ›ãˆã‚‹ã¨ãã®åˆ¤å®šã«ä½¿ã†
+            // DepthTextureMode.DepthNormals ã§ã‚‚ä½¿ã†ã‚‰ã—ã„
+            // RenderType ã®é•ã„ã§è² è·ãŒå¤‰ã‚ã‚‹ã¨ã„ã†å™‚ãŒã‚ã‚‹ãŒæœªæ¤œè¨¼
+            // VRCã®ã‚¢ãƒã‚¿ãƒ¼ç”¨Shaderã§ã‚ã‚Œã°è¨­å®šã—ãªãã¦ã‚‚è‰¯ã„ã¨æ€ã†
             "RenderType" = "Opaque" "Transparent" "TransparentCutout" "Background" "Overlay"
             
-            // VRChat—p
+            // VRChatç”¨
             // https://creators.vrchat.com/avatars/shader-fallback-system/
             "VRCFallback" = "Hidden"
         }
@@ -343,8 +346,8 @@ Shader"Custom/Example"
             // https://docs.unity3d.com/ja/2022.3/Manual/shader-predefined-pass-tags-built-in.html
             Tags
             {
-                // LightMode ‚É Unity ‚ª‘z’è‚µ‚Ä‚¢‚È‚¢•¶š—ñ‚ğ“ü‚ê‚é‚ÆA‚»‚ÌƒpƒX‚ÍÀs‚³‚ê‚È‚­‚È‚é
-                // ‚±‚ê‚ğ—˜—p‚µ‚Ä‚¢‚é‚Ì‚ª lilToon ‚Ì "LightMode" = "Never"
+                // LightMode ã« Unity ãŒæƒ³å®šã—ã¦ã„ãªã„æ–‡å­—åˆ—ã‚’å…¥ã‚Œã‚‹ã¨ã€ãã®ãƒ‘ã‚¹ã¯å®Ÿè¡Œã•ã‚Œãªããªã‚‹
+                // ã“ã‚Œã‚’åˆ©ç”¨ã—ã¦ã„ã‚‹ã®ãŒ lilToon ã® "LightMode" = "Never"
                 "LightMode" = "Always" "ForwardBase" "ForwardAdd" "ShadowCaster"
             }
             
@@ -368,17 +371,17 @@ Shader"Custom/Example"
             
             #pragma multi_compile_local _MODE_ALPHA_OFF _MODE_ALPHATEST_ON _MODE_ALPHABLEND_ON _MODE_ALPHAPREMULTIPLY_ON
             
-            // Œx‚ğ”ñ•\¦‚É‚·‚é  ‚Å‚«‚é‚¾‚¯g‚í‚È‚¢•û‚ª—Ç‚¢
+            // è­¦å‘Šã‚’éè¡¨ç¤ºã«ã™ã‚‹  ã§ãã‚‹ã ã‘ä½¿ã‚ãªã„æ–¹ãŒè‰¯ã„
             // https://learn.microsoft.com/ja-jp/windows/win32/direct3dhlsl/hlsl-errors-and-warnings
-            #pragma warning(suppress : Œx”Ô†)
-            // ‚±‚±‚ÉŒx‚ªo‚éƒR[ƒh‚ğ“ü‚ê‚é
-            #pragma warning(suppress : Œx”Ô†)
+            #pragma warning(suppress : è­¦å‘Šç•ªå·)
+            // ã“ã“ã«è­¦å‘ŠãŒå‡ºã‚‹ã‚³ãƒ¼ãƒ‰ã‚’å…¥ã‚Œã‚‹
+            #pragma warning(suppress : è­¦å‘Šç•ªå·)
             
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
             #include "Lighting.cginc"
             
-            // ’è‹`‚³‚ê‚½ƒ}ƒNƒ‚ğíœ‚·‚é‚±‚Æ‚ª‚Å‚«‚é
+            // å®šç¾©ã•ã‚ŒãŸãƒã‚¯ãƒ­ã‚’å‰Šé™¤ã™ã‚‹ã“ã¨ãŒã§ãã‚‹
             #undef
             
             ENDCG
@@ -405,8 +408,8 @@ struct V2F
     float3 wBinormal : TEXCOORD2;
     float3 wNormal : TEXCOORD3;
     
-    // nointerpolation ‚Í’¸“_ŠÔ‚ÌüŒ`•âŠÔ‚ğ–³Œø‰»‚·‚é
-    // ‚¨‚»‚ç‚­OŠpŒ`‚ğ\¬‚µ‚Ä‚¢‚éÅ‰‚Ì’¸“_‚Ì’l‚Æ‚È‚é
+    // nointerpolation ã¯é ‚ç‚¹é–“ã®ç·šå½¢è£œé–“ã‚’ç„¡åŠ¹åŒ–ã™ã‚‹
+    // ãŠãã‚‰ãä¸‰è§’å½¢ã‚’æ§‹æˆã—ã¦ã„ã‚‹æœ€åˆã®é ‚ç‚¹ã®å€¤ã¨ãªã‚‹
     nointerpolation float value : TEXCOORD4;
 };
 
@@ -451,19 +454,19 @@ struct TessellationFactor
 // https://tips.hecomi.com/entry/2018/11/04/232219
 
 // Single Pass
-// VRChat‚ª‚±‚ê‚ğg‚Á‚Ä‚¢‚é
-// ¡‚Å‚Í‘ã’x‚ê‚Ì‹@”\‚Æ‚È‚èA“Áê‚È•û–@‚Å‚È‚¢‚Æ—LŒø‚É‚Å‚«‚È‚¢
+// VRChatãŒã“ã‚Œã‚’ä½¿ã£ã¦ã„ã‚‹
+// ä»Šã§ã¯æ™‚ä»£é…ã‚Œã®æ©Ÿèƒ½ã¨ãªã‚Šã€ç‰¹æ®Šãªæ–¹æ³•ã§ãªã„ã¨æœ‰åŠ¹ã«ã§ããªã„
 #if defined(UNITY_SINGLE_PASS_STEREO)
 #endif
 
 // Single Pass Instancing 
-// Œ»İ‚Å‚Íˆê”Ê“I‚È•`‰æ•û®
+// ç¾åœ¨ã§ã¯ä¸€èˆ¬çš„ãªæç”»æ–¹å¼
 #if defined(UNITY_STEREO_INSTANCING_ENABLED)
 #endif
 
 // MultiView
-// OpenGLŒn‚ÌƒVƒF[ƒ_[API‚Å“®ì‚·‚é Single Pass Instancing ‚É—‚Ä‚¢‚é•`‰æ•û®
-// MultiPass ‚Æ–¼‘O‚ª—‚Ä‚¢‚é‚ª•Ê•¨‚È‚Ì‚Å’ˆÓ
+// OpenGLç³»ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼APIã§å‹•ä½œã™ã‚‹ Single Pass Instancing ã«ä¼¼ã¦ã„ã‚‹æç”»æ–¹å¼
+// MultiPass ã¨åå‰ãŒä¼¼ã¦ã„ã‚‹ãŒåˆ¥ç‰©ãªã®ã§æ³¨æ„
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #endif
 
@@ -477,14 +480,14 @@ struct TessellationFactor
 
 
 
-// Unity 2022 ‚É‚Í UNITY_MATRIX_I_M ‚ª–³‚¢‚Ì‚Å©•ª‚Å’è‹`‚·‚é•K—v‚ª‚ ‚é
+// Unity 2022 ã«ã¯ UNITY_MATRIX_I_M ãŒç„¡ã„ã®ã§è‡ªåˆ†ã§å®šç¾©ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
 #if !defined(UNITY_MATRIX_I_M)
 #define UNITY_MATRIX_I_M unity_WorldToObject
 #endif
 
 
 
-// ƒTƒ“ƒvƒ‰[‚ğ–³‹‚µ‚Äˆ—‘¬“x‚ğ—Dæ‚·‚é
+// ã‚µãƒ³ãƒ—ãƒ©ãƒ¼ã‚’ç„¡è¦–ã—ã¦å‡¦ç†é€Ÿåº¦ã‚’å„ªå…ˆã™ã‚‹
 #define TEX2D_LOAD_CLAMP(tex, uv) tex[uint2(clamp(uv, 0.0, 0.999999) * tex##_TexelSize.zw)]
 #define TEX2D_LOAD_REPEAT(tex, uv) tex[uint2(frac(uv) * tex##_TexelSize.zw)]
 
@@ -502,12 +505,12 @@ uint2 RepeatIndex(int2 index, uint2 size)
 
 
 
-// ‹tƒKƒ“ƒ}•â³ ˆÃ‚­‚È‚é
+// é€†ã‚¬ãƒ³ãƒè£œæ­£ æš—ããªã‚‹
 #define SRGB_TO_XYZ(value)\
 value = saturate(value);\
 value = (value <= 0.04045) ? (value / 12.92) : pow((value + 0.055) / 1.055, 2.4);
 
-// ƒKƒ“ƒ}•â³ –¾‚é‚­‚È‚é
+// ã‚¬ãƒ³ãƒè£œæ­£ æ˜ã‚‹ããªã‚‹
 #define XYZ_TO_SRGB(value)\
 value = saturate(value);\
 value = (value <= 0.0031308) ? (value * 12.92) : (pow(value, 1.0 / 2.4) * 1.055 - 0.055);
@@ -530,10 +533,10 @@ float4 _MainTex_TexelSize;
 
 
 
-// VRChat ‚Ìƒ~ƒ‰[ŒŸo (‘ã’x‚ê)
+// VRChat ã®ãƒŸãƒ©ãƒ¼æ¤œå‡º (æ™‚ä»£é…ã‚Œ)
 static bool _IsInMirror = UNITY_MATRIX_P._31 != 0.0 || UNITY_MATRIX_P._32 != 0.0;
 
-// VRChat ‚Ìƒ~ƒ‰[ŒŸo
+// VRChat ã®ãƒŸãƒ©ãƒ¼æ¤œå‡º
 float _VRChatMirrorMode;
 static bool _IsInMirror = _VRChatMirrorMode != 0.0;
 
@@ -553,14 +556,14 @@ float3 cPos = UnityWorldToClipPos(wPos);
 
 
 
-// unity_ObjectToWorld ‚Å ƒ[ƒJƒ‹À•WŒn‚ğƒ[ƒ‹ƒhÀ•WŒn‚É‚µ‚Ä‚©‚çA
-// UNITY_MATRIX_VP ‚Å ƒ[ƒ‹ƒhÀ•WŒn‚ğƒNƒŠƒbƒvÀ•WŒn‚É•ÏŠ·‚·‚é
-// w ¬•ª‚Í 1 ‚Éã‘‚«‚³‚ê‚é
+// unity_ObjectToWorld ã§ ãƒ­ãƒ¼ã‚«ãƒ«åº§æ¨™ç³»ã‚’ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ç³»ã«ã—ã¦ã‹ã‚‰ã€
+// UNITY_MATRIX_VP ã§ ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ç³»ã‚’ã‚¯ãƒªãƒƒãƒ—åº§æ¨™ç³»ã«å¤‰æ›ã™ã‚‹
+// w æˆåˆ†ã¯ 1 ã«ä¸Šæ›¸ãã•ã‚Œã‚‹
 float4 UnityObjectToClipPos(float3 lPos);
 float4 UnityObjectToClipPos(float4 lPos);
 
-// UNITY_MATRIX_VP ‚Å ƒ[ƒ‹ƒhÀ•WŒn‚ğƒNƒŠƒbƒvÀ•WŒn‚É•ÏŠ·‚·‚é
-// w ¬•ª‚Í 1 ‚Æ‚µ‚Äˆµ‚¤
+// UNITY_MATRIX_VP ã§ ãƒ¯ãƒ¼ãƒ«ãƒ‰åº§æ¨™ç³»ã‚’ã‚¯ãƒªãƒƒãƒ—åº§æ¨™ç³»ã«å¤‰æ›ã™ã‚‹
+// w æˆåˆ†ã¯ 1 ã¨ã—ã¦æ‰±ã†
 float4 UnityWorldToClipPos(float3 wPos);
 
 
@@ -570,22 +573,22 @@ float4 colorB = _MainTex.Sample(sampler_MainTex, TRANSFORM_TEX(uv, _MainTex));
 
 
 
-//ƒJƒƒ‰‚ªŒü‚¢‚Ä‚¢‚é•ûŒü(World)
+//ã‚«ãƒ¡ãƒ©ãŒå‘ã„ã¦ã„ã‚‹æ–¹å‘(World)
 float3 wCameraDir = -UNITY_MATRIX_I_V._m02_m12_m22;
 float3 wCameraDir = -UNITY_MATRIX_V._m20_m21_m22;
 float3 wCameraDir = -UNITY_MATRIX_V[2].xyz;
 
-//ƒJƒƒ‰‚ªŒü‚¢‚Ä‚¢‚é•ûŒü(Local)
+//ã‚«ãƒ¡ãƒ©ãŒå‘ã„ã¦ã„ã‚‹æ–¹å‘(Local)
 float3 lCameraDir = -UNITY_MATRIX_IT_MV[2].xyz;
 
 
 
 float TriangleWave(float input)
 {
-    // 0.0 ‚©‚çƒXƒ^[ƒg
+    // 0.0 ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ
     return abs(frac(input - 0.5) * 2.0 - 1.0);
     
-    // 1.0 ‚©‚çƒXƒ^[ƒg
+    // 1.0 ã‹ã‚‰ã‚¹ã‚¿ãƒ¼ãƒˆ
     return abs(frac(input) * 2.0 - 1.0);
 }
 
@@ -603,22 +606,22 @@ void PointLight()
 {
     float4 atten = 0.0;
     
-    // ƒ|ƒCƒ“ƒgƒ‰ƒCƒg‚ÌŒõ‚ÌŒ¸Š
+    // ãƒã‚¤ãƒ³ãƒˆãƒ©ã‚¤ãƒˆã®å…‰ã®æ¸›è¡°
     
-    // Unity‚ÌShade4PointLights
+    // Unityã®Shade4PointLights
     atten = 1.0 / (1.0 + lengthSq * unity_4LightAtten0);
 
-    // huwahuwa»
+    // huwahuwaè£½
     atten = (1.0 - lengthSq * unity_4LightAtten0 * 0.04) / (1.0 + lengthSq * unity_4LightAtten0);
     atten = max(0.0, atten);
     
-    // lilToon»
+    // lilToonè£½
     //https://github.com/lilxyzw/OpenLit/blob/main/Assets/OpenLit/core.hlsl
     atten = saturate(saturate((25.0 - lengthSq * unity_4LightAtten0) * 0.111375) / (0.987725 + lengthSq * unity_4LightAtten0));
 
     
     
-    // unity_4LightAtten0 ‚©‚ç PointLight ‚Ì”ÍˆÍ‚ğŒvZ‚·‚é®
+    // unity_4LightAtten0 ã‹ã‚‰ PointLight ã®ç¯„å›²ã‚’è¨ˆç®—ã™ã‚‹å¼
     
     // unity_4LightAtten0 = 25.0 / (range * range)
     // unity_4LightAtten0 * (range * range) = 25.0
@@ -629,14 +632,14 @@ void PointLight()
 
 
 
-// TessellationŒW”‚©‚çOŠpŒ`‚Ì”‚ğŒvZ‚·‚é (partitioning("integer"))
+// Tessellationä¿‚æ•°ã‹ã‚‰ä¸‰è§’å½¢ã®æ•°ã‚’è¨ˆç®—ã™ã‚‹ (partitioning("integer"))
 uint TessFactor2TriangleCount(float factor)
 {
     factor = ceil(factor);
     return floor(factor * factor * 1.5);
 }
 
-// OŠpŒ`‚Ì”‚©‚çTessellationŒW”‚ğŒvZ‚·‚é (partitioning("integer"))
+// ä¸‰è§’å½¢ã®æ•°ã‹ã‚‰Tessellationä¿‚æ•°ã‚’è¨ˆç®—ã™ã‚‹ (partitioning("integer"))
 uint TriangleCount2TessFactor(float count)
 {
     return sqrt(count / 1.5f);
@@ -644,7 +647,7 @@ uint TriangleCount2TessFactor(float count)
 
 
 
-// 1ƒ[ƒgƒ‹‚ ‚½‚è‚ÌƒsƒNƒZƒ‹”
+// 1ãƒ¡ãƒ¼ãƒˆãƒ«ã‚ãŸã‚Šã®ãƒ”ã‚¯ã‚»ãƒ«æ•°
 // cPos_W = UnityWorldToClipPos(wPos).w
 // cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPos, 1.0))
 float2 PixelPerMeter(float cPos_W)
@@ -652,7 +655,7 @@ float2 PixelPerMeter(float cPos_W)
     return (_ScreenParams.xy * abs(UNITY_MATRIX_P._m00_m11)) / (cPos_W * 2.0);
 }
 
-// 1ƒsƒNƒZƒ‹‚ ‚½‚è‚Ìƒ[ƒgƒ‹”
+// 1ãƒ”ã‚¯ã‚»ãƒ«ã‚ãŸã‚Šã®ãƒ¡ãƒ¼ãƒˆãƒ«æ•°
 // cPos_W = UnityWorldToClipPos(wPos).w
 // cPos_W = dot(UNITY_MATRIX_VP._m30_m31_m32_m33, float4(wPos, 1.0))
 float2 MeterPerPixel(float cPos_W)
@@ -662,13 +665,13 @@ float2 MeterPerPixel(float cPos_W)
 
 
 
-// •âŠÔ (t ‚Í 0`1 ‚Ì”ÍˆÍ)
+// è£œé–“ (t ã¯ 0ï½1 ã®ç¯„å›²)
 float Smooth(float t)
 {
     return t * t * (t * -2.0 + 3.0);
     
-    // Ken Perlin ‚Ì SmoothŠÖ”
-    // ƒp[ƒŠƒ“ƒmƒCƒY‚©‚ç–@üƒ}ƒbƒv‚ğ¶¬‚·‚é‚Æ‚«‚È‚ÇA“Á’è‚Ì—p“r‚Å‚Í‚±‚¿‚ç‚Ì•û‚ª—Ç‚¢Œ©‚½–Ú‚É‚È‚é
+    // Ken Perlin ã® Smoothé–¢æ•°
+    // ãƒ‘ãƒ¼ãƒªãƒ³ãƒã‚¤ã‚ºã‹ã‚‰æ³•ç·šãƒãƒƒãƒ—ã‚’ç”Ÿæˆã™ã‚‹ã¨ããªã©ã€ç‰¹å®šã®ç”¨é€”ã§ã¯ã“ã¡ã‚‰ã®æ–¹ãŒè‰¯ã„è¦‹ãŸç›®ã«ãªã‚‹
     return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
 }
 
@@ -677,7 +680,7 @@ float InvLerp(float a, float b, float input)
     return (input - a) / (b - a);
 }
 
-// ‘g‚İ‚İŠÖ”‚Æ‚µ‚Ä‘¶İ‚·‚é‚Ì‚ÅA‚í‚´‚í‚´À‘•‚µ‚È‚­‚Ä‚à—Ç‚¢
+// çµ„ã¿è¾¼ã¿é–¢æ•°ã¨ã—ã¦å­˜åœ¨ã™ã‚‹ã®ã§ã€ã‚ã–ã‚ã–å®Ÿè£…ã—ãªãã¦ã‚‚è‰¯ã„
 float Smoothstep(float a, float b, float input)
 {
     return Smooth(saturate(InvLerp(a, b, input)));
@@ -685,21 +688,21 @@ float Smoothstep(float a, float b, float input)
 
 
 
-// ƒKƒEƒXŠÖ” (‚Ìˆêí)
+// ã‚¬ã‚¦ã‚¹é–¢æ•° (ã®ä¸€ç¨®)
 float GaussianFunction(float input)
 {
     return exp(-2.5 * input * input);
 }
 
-// ƒKƒEƒXŠÖ”‚Ì‹ß—
+// ã‚¬ã‚¦ã‚¹é–¢æ•°ã®è¿‘ä¼¼
 float ApproximateGaussianFunction1(float input)
 {
     float temp0 = 1.0 - abs(input);
     return temp0 * temp0 * (3.0 - (2.0 * temp0));
 }
 
-// ƒKƒEƒXŠÖ”‚Ì‹ß—
-// ‚±‚¿‚ç‚Ì•û‚ª•‰‰×‚ª­‚È‚¢
+// ã‚¬ã‚¦ã‚¹é–¢æ•°ã®è¿‘ä¼¼
+// ã“ã¡ã‚‰ã®æ–¹ãŒè² è·ãŒå°‘ãªã„
 float ApproximateGaussianFunction2(float input)
 {
     float temp0 = abs(input);
@@ -708,7 +711,7 @@ float ApproximateGaussianFunction2(float input)
 
 
 
-// ShadeSH9 ‚Ì’²¸
+// ShadeSH9 ã®èª¿æŸ»
 void SH(float3 n)
 {
     float3 color = 0.0;
@@ -795,7 +798,7 @@ void SH(float3 n)
 
 
 
-// 2Ÿ•û’ö®‚Ì‰ğ‚ÌŒö®‚ÌFX‚ÈÀ‘•
+// 2æ¬¡æ–¹ç¨‹å¼ã®è§£ã®å…¬å¼ã®è‰²ã€…ãªå®Ÿè£…
 void Temp0()
 {
     float a, b, c, result;
@@ -826,7 +829,7 @@ void Temp0()
 
 
 
-// Ú‹óŠÔ‚ÌŒvZƒƒ‚
+// æ¥ç©ºé–“ã®è¨ˆç®—ãƒ¡ãƒ¢
 void TangentSpace(I2V input)
 {
     float3 lNormal = input.lNormal;
@@ -888,14 +891,14 @@ void MatrixMemoryLayout()
     );
 }
 
-// ‚í‚´‚í‚´ŠÖ”‚É‚µ‚È‚¢‚ÆŒx‚ªo‚é
+// ã‚ã–ã‚ã–é–¢æ•°ã«ã—ãªã„ã¨è­¦å‘ŠãŒå‡ºã‚‹
 float3x3 ScalarMul(float3x3 mat, float scalar)
 {
     return mat * scalar;
 }
 
-// Transform ‚Ì Scale ‚ğæ“¾‚·‚é
-// ‚µ‚©‚µAeŠK‘w‚Ì Transform ‚ª‰ñ“]‚µ‚½‚èƒXƒP[ƒ‹‚ª•ÏX‚³‚ê‚Ä‚¢‚é‚Æg‚¦‚È‚¢
+// Transform ã® Scale ã‚’å–å¾—ã™ã‚‹
+// ã—ã‹ã—ã€è¦ªéšå±¤ã® Transform ãŒå›è»¢ã—ãŸã‚Šã‚¹ã‚±ãƒ¼ãƒ«ãŒå¤‰æ›´ã•ã‚Œã¦ã„ã‚‹ã¨ä½¿ãˆãªã„
 float3 GetScale()
 {
     float3 scale;
@@ -910,10 +913,10 @@ float2 Rotarion2D(float2 uv, float angle)
     float S, C;
     sincos(angle, S, C);
 
-    // ”½Œv‰ñ‚è
+    // åæ™‚è¨ˆå›ã‚Š
     return mul(float2x2(C, -S, S, C), uv);
     return mul(float2x2(C, S, -S, C), uv.yx).yx;
-    // Œv‰ñ‚è
+    // æ™‚è¨ˆå›ã‚Š
     return mul(float2x2(C, S, -S, C), uv);
     return mul(float2x2(C, -S, S, C), uv.yx).yx;
 
@@ -935,7 +938,7 @@ float3x3 LookRotation(float3 fv, float3 uv)
 
 
 
-// Rasterrizer Stage ‚È‚Ç‚Å•Ï‰»‚·‚é SV_POSITION ‚ğÄŒ»‚·‚é®
+// Rasterrizer Stage ãªã©ã§å¤‰åŒ–ã™ã‚‹ SV_POSITION ã‚’å†ç¾ã™ã‚‹å¼
 float4 CPosToSVPos(float4 cPos)
 {
     cPos.xyz /= cPos.w;
@@ -960,7 +963,7 @@ float4 CPosToSVPos(float4 cPos)
     return cPos;
 }
 
-// Rasterrizer Stage ‚È‚Ç‚Å•Ï‰»‚·‚é SV_POSITION ‚ğŒ³‚É–ß‚·®
+// Rasterrizer Stage ãªã©ã§å¤‰åŒ–ã™ã‚‹ SV_POSITION ã‚’å…ƒã«æˆ»ã™å¼
 float4 SVPosToCPos(float4 svPos)
 {
     svPos.xy /= _ScreenParams.xy;
@@ -986,14 +989,14 @@ float4 SVPosToCPos(float4 svPos)
 
 
 // https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
-// near clip–Ê‚ğl—¶‚µ‚½Ray‚ÌŠJnˆÊ’u‚ğWorldÀ•WŒn‚Å•Ô‚·
-// “Áê‚È“Š‰es—ñ‚Å‚Íg‚¦‚È‚¢‚±‚Æ‚ª‚ ‚é
+// near clipé¢ã‚’è€ƒæ…®ã—ãŸRayã®é–‹å§‹ä½ç½®ã‚’Worldåº§æ¨™ç³»ã§è¿”ã™
+// ç‰¹æ®ŠãªæŠ•å½±è¡Œåˆ—ã§ã¯ä½¿ãˆãªã„ã“ã¨ãŒã‚ã‚‹
 float3 WorldRayStartPos(float4 cPos)
 {
     float4x4 mp = UNITY_MATRIX_P;
     
-    // •½s“Š‰e‚Å‚Í‚È‚¢‚Æ‚«‚É”­“®
-    // unity_OrthoParams.w‚ÍShadowCaster‚Å‚Íg‚¦‚È‚¢‚Ì‚Å•sÌ—p
+    // å¹³è¡ŒæŠ•å½±ã§ã¯ãªã„ã¨ãã«ç™ºå‹•
+    // unity_OrthoParams.wã¯ShadowCasterã§ã¯ä½¿ãˆãªã„ã®ã§ä¸æ¡ç”¨
     if (any(mp[3] != float4(0.0, 0.0, 0.0, 1.0)))
     {
         return _WorldSpaceCameraPos;
@@ -1009,7 +1012,7 @@ float3 WorldRayStartPos(float4 cPos)
     return mul(UNITY_MATRIX_I_V, float4(temp0, 1.0));
 }
 
-// ’¸“_ƒVƒF[ƒ_[‚ÅÀs‚µ‚½‚¢ê‡‚ÍA‚·‚×‚Ä‚Ì’¸“_ƒVƒF[ƒ_[‚Å cPos.w ‚Ì’l‚ğ“¯‚¶‚É‚·‚é•K—v‚ª‚ ‚é
+// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã§å®Ÿè¡Œã—ãŸã„å ´åˆã¯ã€ã™ã¹ã¦ã®é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã§ cPos.w ã®å€¤ã‚’åŒã˜ã«ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
 float3 WorldRayStartPos(float4 cPos)
 {
     cPos.xy /= cPos.w;
@@ -1025,7 +1028,7 @@ float3 WorldRayStartPos(float4 cPos)
     return mul(UNITY_MATRIX_I_V, temp / temp.w);
 }
 
-// ’¸“_ƒVƒF[ƒ_[‚ÅÀs‚µ‚½‚¢ê‡‚ÍA‚·‚×‚Ä‚Ì’¸“_ƒVƒF[ƒ_[‚Å cPos.w ‚Ì’l‚ğ“¯‚¶‚É‚·‚é•K—v‚ª‚ ‚é
+// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã§å®Ÿè¡Œã—ãŸã„å ´åˆã¯ã€ã™ã¹ã¦ã®é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã§ cPos.w ã®å€¤ã‚’åŒã˜ã«ã™ã‚‹å¿…è¦ãŒã‚ã‚‹
 float3 WorldRayEndPos(float4 cPos)
 {
     cPos.xy /= cPos.w;
@@ -1044,8 +1047,8 @@ float3 WorldRayEndPos(float4 cPos)
 
 
 // https://discussions.unity.com/t/raycasting-through-a-custom-camera-projection-matrix/459472/9
-// near clip–Ê‚ğl—¶‚µ‚½Ray‚ÌŠJnˆÊ’u‚ğViewÀ•WŒn‚Å•Ô‚·
-// ³Šm‚¾‚ª•‰‰×‚ª‚‚¢ FragmentShaderê—p
+// near clipé¢ã‚’è€ƒæ…®ã—ãŸRayã®é–‹å§‹ä½ç½®ã‚’Viewåº§æ¨™ç³»ã§è¿”ã™
+// æ­£ç¢ºã ãŒè² è·ãŒé«˜ã„ FragmentShaderå°‚ç”¨
 float4 ViewRayStartPos(float4 vPos)
 {
     float4 cPos = mul(unity_CameraProjection, vPos);
@@ -1057,7 +1060,7 @@ float4 ViewRayStartPos(float4 vPos)
     return result / result.w;
 }
 
-// ã‹L‚Ìˆ—‚ğunity_CameraInvProjection‚â•½s“Š‰e—p‚Ì‹ts—ñ‚Ì®‚Å‚‘¬‰»
+// ä¸Šè¨˜ã®å‡¦ç†ã‚’unity_CameraInvProjectionã‚„å¹³è¡ŒæŠ•å½±ç”¨ã®é€†è¡Œåˆ—ã®å¼ã§é«˜é€ŸåŒ–
 float4 ViewRayStartPos(float4 vPos)
 {
     float4 cPos;
@@ -1066,12 +1069,12 @@ float4 ViewRayStartPos(float4 vPos)
 #if defined(UNITY_PASS_SHADOWCASTER)
     float4x4 mp = UNITY_MATRIX_P;
     
-    // •½s“Š‰e‚©”»’è
-    // unity_OrthoParams.w‚ÍShadowCaster‚Å‚Íg‚¦‚È‚¢‚Ì‚Å•sÌ—p
+    // å¹³è¡ŒæŠ•å½±ã‹åˆ¤å®š
+    // unity_OrthoParams.wã¯ShadowCasterã§ã¯ä½¿ãˆãªã„ã®ã§ä¸æ¡ç”¨
     if(all(mp[3] == float4(0.0, 0.0, 0.0, 1.0)))
     {
         cPos = mul(mp, vPos);
-        //cPos.xy /= cPos.w;    •½s“Š‰e‚¾‚ÆcPos.w=1.0‚É‚È‚é‚Ì‚Å•K—v‚È‚¢‚©‚à
+        //cPos.xy /= cPos.w;    å¹³è¡ŒæŠ•å½±ã ã¨cPos.w=1.0ã«ãªã‚‹ã®ã§å¿…è¦ãªã„ã‹ã‚‚
         
 #if defined(UNITY_REVERSED_Z)
         cPos.z = 1.0;

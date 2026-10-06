@@ -6,6 +6,11 @@
 
 
 
+HLSL の Texture の範囲外アクセスは 0 を返すようになっているらしい
+https://learn.microsoft.com/ja-jp/windows/win32/direct3dhlsl/dx-graphics-hlsl-to-load
+
+
+
 
 カメラの描画結果を U8_UINT に保存してみた
 w成分も書き込めることを確認
