@@ -1,4 +1,6 @@
-// v6 2026-09-06 12:48
+﻿// v6 2026-09-06 12:48
+
+// ScreenCapture.CaptureScreenshot では透明度を保存できないので、このプログラムを使う
 
 #if UNITY_EDITOR
 
